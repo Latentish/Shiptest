@@ -503,6 +503,8 @@
 	tool_behaviour = TOOL_DECONSTRUCT
 	toolspeed = 0.3
 	wall_decon_damage = 400
+	hitsound = 'sound/weapons/anglegrinder.ogg'
+	usesound = 'sound/weapons/anglegrinder.ogg'
 	var/datum/effect_system/spark_spread/spark_system
 
 /obj/item/mecha_parts/mecha_equipment/salvage_saw/can_attach(obj/mecha/M as obj)
@@ -510,16 +512,6 @@
 		if(istype(M, /obj/mecha/working) || istype(M, /obj/mecha/combat))
 			return 1
 	return 0
-
-/obj/item/mecha_parts/mecha_equipment/salvage_saw/attach()
-	..()
-	toolspeed = 0.3
-	return
-
-/obj/item/mecha_parts/mecha_equipment/salvage_saw/detach()
-	..()
-	toolspeed = 10 //yeah sure, use a mech tool without a mech. see how far that gets you
-	return ..()
 
 /obj/item/mecha_parts/mecha_equipment/salvage_saw/action(atom/target)
 	if(!action_checks(target))
@@ -534,18 +526,13 @@
 		if(target.deconstruct_act(chassis.occupant, src))
 			do_sparks(2, TRUE, src)
 		target.cut_overlay(GLOB.cutting_effect)
-		if(!chassis.stopped)
-			occupant_message("[src] finishes cutting, allowing movement again.")
-	if(chassis.stopped > 0)
-		chassis.stopped--
-	else
-		chassis.stopped = 0
 
-/obj/item/mecha_parts/mecha_equipment/salvage_saw/tool_start_check(user, amount)
-	if(!chassis.stopped)
-		occupant_message("[src] begins cutting, locking in place!")
-	chassis.stopped++
+/obj/item/mecha_parts/mecha_equipment/salvage_saw/tool_start_check(mob/living/user, amount)
+	toolspeed = chassis?.has_charge(energy_drain) ? 0.3 : 10
 	return TRUE
+
+/obj/item/mecha_parts/mecha_equipment/salvage_saw/tool_use_check(mob/living/user, atom/target, amount)
+	return check_do_after(target)
 
 /obj/item/mecha_parts/mecha_equipment/salvage_saw/proc/saw_mob(mob/living/target, mob/user)
 	target.visible_message(span_danger("[chassis] is sawing [target] with [src]!"), \
@@ -624,7 +611,7 @@
 		M.capacitor = null
 	N.update_part_values()
 	for(var/obj/item/mecha_parts/E in M.contents)
-		if(istype(E, /obj/item/mecha_parts/concealed_weapon_bay)) //why is the bay not just a variable change who did this
+		if(istype(E, /obj/item/mecha_parts/weapon_bay)) //why is the bay not just a variable change who did this
 			E.forceMove(N)
 	for(var/obj/item/mecha_parts/mecha_equipment/E in M.equipment) //Move the equipment over...
 		E.detach()
