@@ -706,6 +706,11 @@
 	if(istype(W, /obj/item/match))
 		W.matchignite()
 
+/obj/item/storage/box/matches/ComponentInitialize()
+	. = ..()
+	var/datum/component/storage/storage = GetComponent(/datum/component/storage)
+	storage.set_holdable(list(/obj/item/match, null))
+
 /obj/item/storage/box/lights
 	name = "box of replacement bulbs"
 	icon = 'icons/obj/storage.dmi'
@@ -996,7 +1001,7 @@
 			/obj/item/reagent_containers/food/snacks/grown/tomato,
 			/obj/item/reagent_containers/food/snacks/grown/carrot,
 			/obj/item/reagent_containers/food/snacks/grown/potato,
-			/obj/item/reagent_containers/food/snacks/grown/potato/sweet,
+			/obj/item/reagent_containers/food/snacks/grown/sweet_potato,
 			/obj/item/reagent_containers/food/snacks/grown/apple,
 			/obj/item/reagent_containers/food/snacks/chocolatebar,
 			/obj/item/reagent_containers/food/snacks/grown/cherries,
@@ -1076,7 +1081,7 @@
 
 /obj/item/storage/box/ingredients/delights/PopulateContents()
 	for(var/i in 1 to 2)
-		new /obj/item/reagent_containers/food/snacks/grown/potato/sweet(src)
+		new /obj/item/reagent_containers/food/snacks/grown/sweet_potato(src)
 		new /obj/item/reagent_containers/food/snacks/grown/bluecherries(src)
 	new /obj/item/reagent_containers/food/snacks/grown/vanillapod(src)
 	new /obj/item/reagent_containers/food/snacks/grown/cocoapod(src)
