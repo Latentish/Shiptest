@@ -2539,14 +2539,14 @@
 /obj/item/food/bread/plain,
 /obj/item/reagent_containers/condiment/sugar,
 /obj/item/reagent_containers/condiment/sugar,
-/obj/item/reagent_containers/food/snacks/meat/slab,
-/obj/item/reagent_containers/food/snacks/meat/slab,
-/obj/item/reagent_containers/food/snacks/meat/slab,
-/obj/item/reagent_containers/food/snacks/grown/cabbage,
-/obj/item/reagent_containers/food/snacks/grown/cabbage,
-/obj/item/reagent_containers/food/snacks/fishmeat,
-/obj/item/reagent_containers/food/snacks/fishmeat,
-/obj/item/reagent_containers/food/snacks/fishmeat,
+/obj/item/food/meat/slab,
+/obj/item/food/meat/slab,
+/obj/item/food/meat/slab,
+/obj/item/food/grown/cabbage,
+/obj/item/food/grown/cabbage,
+/obj/item/food/fishmeat,
+/obj/item/food/fishmeat,
+/obj/item/food/fishmeat,
 /obj/item/reagent_containers/condiment/milk,
 /obj/item/reagent_containers/condiment/milk,
 /obj/item/reagent_containers/condiment/enzyme,
@@ -3042,10 +3042,6 @@
 /area/ship/bridge)
 "Ua" = (
 /obj/structure/table/wood,
-/obj/item/reagent_containers/food/snacks/jellysandwich{
-	pixel_x = 0;
-	pixel_y = 8
-	},
 /obj/item/reagent_containers/condiment/saltshaker{
 	pixel_x = -6;
 	pixel_y = -6
@@ -3053,6 +3049,11 @@
 /obj/item/reagent_containers/condiment/peppermill{
 	pixel_x = 6;
 	pixel_y = -6
+	},
+/obj/item/reagent_containers/food/snacks/jellysandwich/cherry{
+	pixel_x = 0;
+	pixel_y = 8;
+	layer = 2.9
 	},
 /turf/open/floor/plasteel/patterned/brushed,
 /area/ship/crew/canteen)
