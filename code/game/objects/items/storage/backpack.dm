@@ -302,9 +302,9 @@
 	var/static/list/contraband = list(
 		/obj/item/poster/random_contraband,
 		/obj/item/poster/random_contraband,
-		/obj/item/reagent_containers/food/snacks/grown/cannabis,
-		/obj/item/reagent_containers/food/snacks/grown/cannabis/rainbow,
-		/obj/item/reagent_containers/food/snacks/grown/cannabis/white,
+		/obj/item/food/grown/cannabis,
+		/obj/item/food/grown/cannabis/rainbow,
+		/obj/item/food/grown/cannabis/white,
 		/obj/item/storage/box/fireworks/dangerous,
 		/obj/item/storage/pill_bottle/zoom,
 		/obj/item/storage/pill_bottle/happy,
@@ -404,12 +404,6 @@
 	icon_state = "courierbagsec"
 	item_state = "courierbagsec"
 
-/obj/item/storage/backpack/messenger/inteq
-	name = "inteq messenger bag"
-	desc = "A comfortable leather strapped messenger bag worn over one shoulder. This one denotes the wearer as an IRMG operator"
-	icon_state = "courierbaginteq"
-	item_state = "courierbaginteq"
-
 /*
 * Duffelbag Types
 */
@@ -467,6 +461,14 @@
 	name = "surgical duffel bag"
 	desc = "A large duffel bag for holding extra supplies - this one has a material inlay with space for various sharp-looking tools."
 
+/obj/item/storage/backpack/duffelbag/sec/c4
+	name = "tactical duffel bag"
+	desc = "A large duffel bag for holding extra plastic explosives."
+
+/obj/item/storage/backpack/duffelbag/sec/c4/PopulateContents()
+	for(var/i in 1 to 7)
+		new /obj/item/grenade/c4(src)
+
 /obj/item/storage/backpack/duffelbag/sec/surgery/PopulateContents()
 	new /obj/item/scalpel(src)
 	new /obj/item/hemostat(src)
@@ -504,10 +506,6 @@
 	desc = "A large duffel bag for holding lots of funny gags!"
 	icon_state = "duffel-clown"
 	item_state = "duffel-clown"
-
-/obj/item/storage/backpack/duffelbag/clown/cream_pie/PopulateContents()
-	for(var/i in 1 to 10)
-		new /obj/item/reagent_containers/food/snacks/pie/cream(src)
 
 /obj/item/storage/backpack/fireproof
 	resistance_flags = FIRE_PROOF
@@ -643,8 +641,6 @@
 	new /obj/item/storage/box/syringes(src)
 	new /obj/item/storage/box/ammo/foam_darts/riot(src)
 	new /obj/item/grenade/chem_grenade/bioterrorfoam(src)
-	if(prob(5))
-		new /obj/item/reagent_containers/food/snacks/pizza/pineapple(src)
 
 /obj/item/storage/backpack/duffelbag/syndie/c4
 	name = "demolitions duffel bag"

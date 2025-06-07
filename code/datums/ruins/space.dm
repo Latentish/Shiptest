@@ -36,13 +36,13 @@
 	name = "Singularity Lab"
 	description = "An overgrown facility, home to an inactive singularity and many plants"
 	ruin_tags = list(RUIN_TAG_BOSS_COMBAT, RUIN_TAG_MAJOR_LOOT, RUIN_TAG_SHELTER)
-	ruin_mission_types = list(/datum/mission/ruin/oh_fuck)
+//	ruin_mission_types = list(/datum/mission/ruin/oh_fuck)
 
 /datum/mission/ruin/oh_fuck
 	name = "Singularity Generator Signature"
 	desc = "There is a Singularity Generator Signature emitting from this location of space. This is incredibly dangerous. We are willing to pay top dollar to whoever can locate and secure this thing. God help us if a black hole opens up in the system."
 	author = "The Outpost"
-	value = 15000
+	value = 4000
 	mission_limit = 1
 	setpiece_item = /obj/machinery/the_singularitygen
 
@@ -59,24 +59,25 @@
 	name = "Ramzi Scrapping Station"
 	description = "A Syndicate FOB dating back to the ICW, now home to the Ramzi Clique and their latest haul."
 	ruin_tags = list(RUIN_TAG_BOSS_COMBAT, RUIN_TAG_MAJOR_LOOT, RUIN_TAG_SHELTER)
-	ruin_mission_types = list(
+/*	ruin_mission_types = list(
 		/datum/mission/ruin/pgf_captain,
 		/datum/mission/ruin/signaled/kill/foreman
 	)
+*/
+
+/datum/mission/ruin/pgf_captain
+	name = "MIA Vessel Investigation"
+	desc = "The recovery beacon for a PFGN vessel that went missing on patrol has activated. Intellegence suggests they may have been assaulted by pirates. Recover the vessel captain's body and you will be compensated for your services."
+	author = "PGFN Naval Command"
+	value = 1500
+	mission_limit = 1
+	faction = /datum/faction/pgf
+	setpiece_item = /mob/living/carbon/human
 
 /datum/mission/ruin/signaled/kill/foreman
 	name = "Kill Foreman Bonsha"
 	desc = "Defector Verron Bonsha has established a Ramzi Clique post inside a former Coalation FOB. Killing him should send the local Clique into disarray and disrupt their supply lines."
 	author = "2nd Battlegroup Headquarters"
 	faction = /datum/faction/syndicate/ngr
-	value = 3000
+	value = 2000
 	mission_limit = 1
-
-/datum/mission/ruin/pgf_captain
-	name = "MIA Vessel Investigation"
-	desc = "The recovery beacon for a PFGN vessel that went missing on patrol has activated. Intellegence suggests they may have been assaulted by pirates. Recover the vessel captain's body and you will be compensated for your services."
-	author = "PGFN Naval Command"
-	value = 3000
-	mission_limit = 1
-	faction = /datum/faction/pgf
-	setpiece_item = /mob/living/carbon/human
