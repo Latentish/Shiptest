@@ -46,8 +46,8 @@
 /datum/outfit/ramzi/stormtrooper
 	name = "Ramzi Clique Trooper Corpse"
 	uniform = /obj/item/clothing/under/syndicate/combat
-	suit = /obj/item/clothing/suit/space/hardsuit/syndi
-	head = /obj/item/clothing/head/helmet/space/hardsuit/syndi
+	suit = /obj/item/clothing/suit/space/hardsuit/syndi/ramzi/elite
+	head = /obj/item/clothing/head/helmet/space/hardsuit/syndi/ramzi/elite
 	mask = /obj/item/clothing/mask/gas/syndicate
 	back = /obj/item/tank/jetpack/oxygen/harness
 
@@ -217,8 +217,8 @@
 	name = "Avery Inteq"
 
 /obj/effect/mob_spawn/human/corpse/inteq/recruit
-	name = "IRMG Recruit"
-	id_job = "Recruit"
+	name = "IRMG Auxiliary"
+	id_job = "Auxiliary"
 	outfit = /datum/outfit/job/inteq/assistant
 
 /obj/effect/mob_spawn/human/corpse/inteq/medic

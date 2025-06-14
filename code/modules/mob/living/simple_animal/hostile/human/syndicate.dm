@@ -47,7 +47,7 @@
 	desc = "A silhouette of obsidian glass stalks into view, empty hands clutching into armored fists. They are unarmed, and this is nearly a fair fight."
 	icon_state = "syndicate_stormtrooper"
 	icon_living = "syndicate_stormtrooper"
-	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi
+	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi/ramzi/elite
 	mob_spawner = /obj/effect/mob_spawn/human/corpse/ramzi/stormtrooper
 
 ///////////////Melee////////////
@@ -186,7 +186,7 @@
 	maxHealth = 250
 	health = 250
 	projectile_deflect_chance = 0
-	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi
+	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi/ramzi/elite
 	mob_spawner = /obj/effect/mob_spawn/human/corpse/ramzi/stormtrooper
 
 
@@ -195,7 +195,7 @@
 	desc = "Rapid, practiced motions permeate the body underneath the crimson suit of this radiantly hateful being. Each one ripples to the surface, the eyes of a suit tracking you as it brings a sledgehammer to bear."
 	icon_state = "syndicate_stormtrooper_sword"
 	icon_living = "syndicate_stormtrooper_sword"
-	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi
+	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi/ramzi/elite
 	r_hand = /obj/item/melee/sledgehammer/gorlex/pre_wielded
 	armour_penetration = 40
 	melee_damage_lower = 30
@@ -259,7 +259,7 @@
 
 /mob/living/simple_animal/hostile/human/ramzi/ranged/sniper
 	name = "Ramzi Clique Overwatch"
-	desc = "A deserter from the Gorlex Marauders turned pirate. They keep their eyes to the horizon, always ready to pull the trigger."
+	desc = "A deserter from the Gorlex Marauders turned pirate. They turn their eyes to the horizon, always ready to pull the trigger."
 	minimum_distance = 7
 	vision_range = 12
 	aggro_vision_range = 14
@@ -336,17 +336,17 @@
 	icon_state = "syndicate_stormtrooper_pistol"
 	icon_living = "syndicate_stormtrooper_pistol"
 	mob_spawner = /obj/effect/mob_spawn/human/corpse/ramzi/stormtrooper
-	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi
+	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi/ramzi/elite
 	r_hand = /obj/item/gun/ballistic/automatic/pistol/rattlesnake
 	rapid = 3
 	rapid_fire_delay = 2
 
 /mob/living/simple_animal/hostile/human/ramzi/ranged/space/stormtrooper/smg
 	name = "Ramzi Clique Shock Trooper"
-	desc = "Night-black armor traces the silhouette of a soldier equaled by precious few. Their Sidewinder tracks you perfectly, a staccato bark of .45 already in its throat."
+	desc = "Night-black armor traces the silhouette of a soldier equaled by precious few. Their Sidewinder tracks you perfectly, a staccato bark of 5.7 already in its throat."
 	icon_state = "syndicate_stormtrooper_smg"
 	icon_living = "syndicate_stormtrooper_smg"
-	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi
+	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi/ramzi/elite
 	r_hand = /obj/item/gun/ballistic/automatic/smg/sidewinder
 	rapid = 4
 	rapid_fire_delay = 1.5
@@ -357,7 +357,7 @@
 	desc = "Ink and black glass poured into the shape of an armored commando, dripping menace with every step. Their combat shotgun follows you with lethal intent, promising a blizzard of buckshot in less than a blink."
 	icon_state = "syndicate_stormtrooper_shotgun"
 	icon_living = "syndicate_stormtrooper_shotgun"
-	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi
+	armor_base = /obj/item/clothing/suit/space/hardsuit/syndi/ramzi/elite
 	r_hand = /obj/item/gun/ballistic/shotgun/automatic/bulldog
 	casingtype = /obj/item/ammo_casing/shotgun/buckshot
 	rapid = 3
