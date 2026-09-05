@@ -82,6 +82,7 @@
 	resistance_flags = NONE
 	permeability_coefficient = 0.05
 	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 100, "rad" = 0, "fire" = 95, "acid" = 95)
+	unique_reskin = null
 
 /obj/item/clothing/gloves/color/plasmaman/black
 	name = "black envirogloves"
@@ -130,10 +131,6 @@
 /obj/item/clothing/gloves/color/plasmaman/prototype
 	name = "prototype envirogloves"
 	icon_state = "protoplasma"
-
-/obj/item/clothing/gloves/color/plasmaman/clown
-	name = "clown envirogloves"
-	icon_state = "clownplasma"
 
 /obj/item/clothing/gloves/combat/wizard
 	name = "enchanted gloves"

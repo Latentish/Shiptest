@@ -14,6 +14,7 @@
 	var/buildstackamount = 1
 	var/item_chair = /obj/item/chair // if null it can't be picked up
 	layer = OBJ_LAYER
+	var/buckle_dir = null // force a buckled mob to face in this direction
 
 /obj/structure/chair/examine(mob/user)
 	. = ..()
@@ -60,10 +61,7 @@
 	qdel(src)
 
 /obj/structure/chair/attackby(obj/item/W, mob/user, params)
-	if((W.tool_behaviour == TOOL_WRENCH || W.tool_behaviour == TOOL_DECONSTRUCT) && !(flags_1&NODECONSTRUCT_1))
-		W.play_tool_sound(src)
-		deconstruct()
-	else if(istype(W, /obj/item/assembly/shock_kit))
+	if(istype(W, /obj/item/assembly/shock_kit))
 		if(!user.temporarilyRemoveItemFromInventory(W))
 			return
 		var/obj/item/assembly/shock_kit/SK = W
@@ -76,6 +74,20 @@
 		qdel(src)
 	else
 		return ..()
+
+/obj/structure/chair/deconstruct_act(mob/living/user, obj/item/tool)
+	if(..())
+		return TRUE
+	tool.play_tool_sound(src)
+	deconstruct()
+	return TRUE
+
+/obj/structure/chair/wrench_act(mob/living/user, obj/item/tool)
+	if(..() || (flags_1 & NODECONSTRUCT_1))
+		return TRUE
+	tool.play_tool_sound(src)
+	deconstruct()
+	return TRUE
 
 /obj/structure/chair/attack_tk(mob/user)
 	if(!anchored || has_buckled_mobs() || !isturf(user.loc))
@@ -95,6 +107,11 @@
 		layer = ABOVE_MOB_LAYER
 	else
 		layer = OBJ_LAYER
+
+/obj/structure/chair/buckle_mob(mob/living/M, force, check_loc)
+	. = ..()
+	if(buckle_dir)
+		M.setDir(buckle_dir)
 
 /obj/structure/chair/post_buckle_mob(mob/living/M)
 	. = ..()
@@ -306,23 +323,6 @@
 	icon_state = "wooden_chair_wings_toppled"
 	origin_type = /obj/structure/chair/wood/wings
 
-/obj/structure/chair/mime
-	name = "invisible chair"
-	desc = "The mime needs to sit down and shut up."
-	anchored = FALSE
-	icon_state = null
-	buildstacktype = null
-	item_chair = null
-	flags_1 = NODECONSTRUCT_1
-	alpha = 0
-
-/obj/structure/chair/mime/post_buckle_mob(mob/living/M)
-	M.pixel_y += 5
-
-/obj/structure/chair/mime/post_unbuckle_mob(mob/living/M)
-	M.pixel_y -= 5
-
-
 /obj/structure/chair/plastic
 	icon_state = "plastic_chair"
 	name = "folding plastic chair"
@@ -335,11 +335,11 @@
 	item_chair = /obj/item/chair/plastic
 
 /obj/structure/chair/plastic/post_buckle_mob(mob/living/Mob)
-	Mob.pixel_y += 2
-	.=..()
+	Mob.add_offsets(type, z_add = 2)
+	. = ..()
 
 /obj/structure/chair/plastic/post_unbuckle_mob(mob/living/Mob)
-	Mob.pixel_y -= 2
+	Mob.remove_offsets(type)
 
 /obj/item/chair/plastic
 	name = "folding plastic chair"
@@ -360,7 +360,7 @@
 	name = "handrail"
 	icon = 'icons/obj/structures/handrail.dmi'
 	icon_state = "handrail"
-	desc = "A safety railing with buckles to secure yourself to when floor isn't stable enough."
+	desc = "A safety railing with buckles to secure yourself to when the floor isn't stable enough."
 	item_chair = null
 	buildstackamount = 4
 	buildstacktype = /obj/item/stack/rods

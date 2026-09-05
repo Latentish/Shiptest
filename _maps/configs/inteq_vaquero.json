@@ -14,15 +14,17 @@
 	],
 	"map_short_name": "Vaquero-class",
 	"map_path": "_maps/shuttles/inteq/inteq_vaquero.dmm",
+	"token_icon_state": "ship_generic",
 	"limit": 1,
+	"tranist_y_offset": -11,
 	"job_slots": {
 		"Vanguard": {
-			"outfit": "/datum/outfit/job/inteq/captain/empty",
+			"outfit": "/datum/outfit/job/inteq/command/captain",
 			"officer": true,
 			"slots": 1
 		},
-		"Master At Arms": {
-			"outfit": "/datum/outfit/job/inteq/warden",
+		"Enforcer Class One": {
+			"outfit": "/datum/outfit/job/inteq/security/classone",
 			"officer": true,
 			"slots": 1
 		},
@@ -38,7 +40,7 @@
 			"outfit": "/datum/outfit/job/inteq/security",
 			"slots": 1
 		},
-		"Recruit": {
+		"Auxiliary": {
 			"outfit": "/datum/outfit/job/inteq/assistant",
 			"slots": 1
 		}

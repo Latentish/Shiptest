@@ -1,0 +1,46 @@
+{
+	"$schema": "https://raw.githubusercontent.com/shiptest-ss13/Shiptest/master/_maps/ship_config_schema.json",
+	"faction": "/datum/faction/pgf",
+	"prefix": "PGFN",
+	"manufacturer": "Axilai Orbital Works",
+	"map_name": "Mercurial Quasar-class Rapid Response Corvette",
+	"namelists": [
+		"PGF"
+	],
+	"map_short_name": "M. Quasar-class",
+	"description": "In preparation for the planned decommissioning of the full line of Tearful Quasar corvettes by 506 FSC, the PGFN ordered a replacement vessel be designed by Etherbor's Lihmona Navy Shipyards. The result of subsequent design trials was the Mercurial Quasar, both cheaper and more agile than the craft it was to replace. Upon finalization of the design, Axilai Orbital Works was chosen to host the assembly yards, starting manufacture in 499 FSC. Intended to properly succeed the Tearful Quasar in patrol, reconnaissance and ambush clearing duties, the Mercurial Quasar boasts an impressive point defense suite as well as a powerful engine bank. While these features are ideal for spaceborne operation, in order to keep the overall silhouette down, the Mercurial Quasar’s crew accommodations are considerably tighter than its predecessors. A typical Mercurial Quasar crew includes three PGF Marines and three cross-trained Navy specialists, all responsible for the maintenance and operation of the vessel. On the Frontier, the Mercurial Quasar is a potent and flexible independent force, capable of executing a wide variety of missions in service to the Federation." ,
+	"tags": [
+		"Combat",
+		"Exploration",
+		"RP Focus"
+	],
+	"starting_funds": 3000,
+	"map_path": "_maps/shuttles/pgf/pgf_mercurial_quasar.dmm",
+	"token_icon_state": "ship_small_long_generic",
+	"limit": 1,
+	"job_slots": {
+		"Captain": {
+			"outfit": "/datum/outfit/job/gezena/captain",
+			"officer": true,
+			"slots": 1
+		},
+		"Navy Engineer": {
+			"outfit": "/datum/outfit/job/gezena/engineer",
+			"slots": 1
+		},
+		"Hospital Corpsman": {
+			"outfit": "/datum/outfit/job/gezena/doctor",
+			"slots": 1
+		},
+		"Marine Squad Leader": {
+			"outfit": "/datum/outfit/job/gezena/hos",
+			"officer": true,
+			"slots": 1
+		},
+		"Marine": {
+			"outfit": "/datum/outfit/job/gezena/security",
+			"slots": 2
+		}
+	},
+	"enabled":true
+}

@@ -200,6 +200,14 @@
 /datum/client_colour/monochrome/blind/permanent //For the permanently colorblind
 	priority = PRIORITY_ABSOLUTE
 
+/datum/client_colour/monochrome/New(mob/_owner)
+	. = ..()
+	ADD_TRAIT(_owner, TRAIT_COLORBLIND, REF(src))
+
+/datum/client_colour/monochrome/Destroy()
+	REMOVE_TRAIT(owner, TRAIT_COLORBLIND, REF(src))
+	return ..()
+
 /datum/client_colour/bloodlust
 	priority = PRIORITY_ABSOLUTE // Only anger.
 	colour = list(0,0,0,0,0,0,0,0,0,1,0,0) //pure red.
@@ -220,6 +228,20 @@
 	priority = PRIORITY_NORMAL
 	fade_in = 5 SECONDS
 	easing = SINE_EASING
+
+/datum/client_colour/rahkrahene
+	colour = "#e5a5b5"
+	fade_in = 5 SECONDS
+	easing = SINE_EASING
+	fade_out = 5 SECONDS
+	priority = PRIORITY_HIGH
+
+/datum/client_colour/rahkrahene_overdose
+	colour = "#dc4e71"
+	fade_in = 5 SECONDS
+	easing = SINE_EASING
+	fade_out = 5 SECONDS
+	priority = PRIORITY_ABSOLUTE
 
 #undef PRIORITY_ABSOLUTE
 #undef PRIORITY_HIGH

@@ -6,7 +6,7 @@
 	lefthand_file = 'icons/mob/inhands/weapons/hammers_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/weapons/hammers_righthand.dmi'
 	name = "proto-magnetic crusher"
-	desc = "A multipurpose disembarkation and self-defense tool designed by EXOCOM using an incomplete Nanotrasen prototype. \
+	desc = "A multipurpose disembarkation and self-defense tool designed by EXOCOM using an incomplete Makosso-Warra prototype. \
 	Found in the grime-stained hands of wannabee explorers across the frontier, it cuts rock and hews flora using magnetic osscilation and a heavy cleaving edge."
 	force = 0 //You can't hit stuff unless it's wielded
 	w_class = WEIGHT_CLASS_BULKY
@@ -17,7 +17,7 @@
 	custom_materials = list(/datum/material/iron=1150, /datum/material/glass=2075)
 	hitsound = 'sound/weapons/bladeslice.ogg'
 	attack_verb = list("smashed", "crushed", "cleaved", "chopped", "pulped")
-	sharpness = IS_SHARP
+	sharpness = SHARP_EDGED
 	actions_types = list(/datum/action/item_action/toggle_light)
 	obj_flags = UNIQUE_RENAME
 	light_system = MOVABLE_LIGHT
@@ -43,9 +43,12 @@
 
 /obj/item/kinetic_crusher/attack(mob/living/target, mob/living/carbon/user)
 	if(!HAS_TRAIT(src, TRAIT_WIELDED))
-		to_chat(user, span_warning("[src] is too heavy to use with one hand! You fumble and drop everything."))
-		user.drop_all_held_items()
 		return
+
+	var/atom/throw_target = get_edge_target_turf(target, user.dir)
+	if(!target.anchored)
+		target.throw_at(throw_target, rand(1,2), 2, user, gentle = TRUE)
+
 	var/datum/status_effect/crusher_damage/C = target.has_status_effect(STATUS_EFFECT_CRUSHERDAMAGETRACKING)
 	var/target_health = target.health
 	..()
@@ -65,7 +68,7 @@
 		D.preparePixelProjectile(target, user, modifiers)
 		D.firer = user
 		D.hammer_synced = src
-		playsound(user, 'sound/weapons/plasma_cutter.ogg', 100, TRUE)
+		playsound(user, 'sound/weapons/melee/plasmacutter/plasma_cutter.ogg', 100, TRUE)
 		D.fire()
 		charged = FALSE
 		update_appearance()
@@ -146,14 +149,14 @@
 		new /obj/effect/temp_visual/kinetic_blast(M)
 	..()
 
-//outdated Nanotrasen prototype of the crusher. Incredibly heavy, but the blade was made at a premium. //to alter this I had to duplicate some code, big moment.
+//outdated Makosso-Warra prototype of the crusher. Incredibly heavy, but the blade was made at a premium. //to alter this I had to duplicate some code, big moment.
 /obj/item/kinetic_crusher/old
 	icon_state = "crusherold"
 	item_state = "crusherold0"
 	name = "proto-kinetic crusher"
 	desc = "During the early design process of the Kinetic Accelerator, a great deal of money and time was invested in magnetic distruption technology. \
-	Though eventually replaced with concussive blasts, the ever-practical NT designed a second mining tool. \
-	Only a few were ever produced, mostly for NT research institutions, and they are a valulable relic in the postwar age."
+	Though eventually replaced with concussive blasts, the ever-practical Makosso-Warra designed a second mining tool. \
+	Only a few were ever produced, mostly for Makosso-Warra research institutions, and they are a valulable relic in the postwar age."
 	detonation_damage = 10
 	slowdown = 0.5//hevy
 	attack_verb = list("mashed", "flattened", "bisected", "eradicated","destroyed")
@@ -191,7 +194,7 @@
 	custom_materials = list(/datum/material/titanium=5000, /datum/material/iron=2075)
 	hitsound = 'sound/weapons/blade1.ogg'
 	attack_verb = list("sliced", "bisected", "diced", "chopped", "filleted")
-	sharpness = IS_SHARP
+	sharpness = SHARP_EDGED
 	obj_flags = UNIQUE_RENAME
 	light_color = "#fb6767"
 	light_system = MOVABLE_LIGHT

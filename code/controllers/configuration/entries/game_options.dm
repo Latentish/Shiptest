@@ -131,7 +131,7 @@
 	value_mode = VALUE_MODE_FLAG
 
 /datum/config_entry/number/max_loadout_items	//maximum number of items that can be in a player's loadout
-	config_entry_value = 10
+	config_entry_value = 20
 	min_val = 0
 
 /datum/config_entry/flag/no_summon_guns	//No
@@ -281,17 +281,27 @@
 
 /datum/config_entry/flag/starlight
 
-/datum/config_entry/flag/allow_random_events	// Enables random events mid-round when set
+/datum/config_entry/flag/allow_random_events // Enables random events mid-round when set
 
-/datum/config_entry/number/events_min_time_mul	// Multipliers for random events minimal starting time and minimal players amounts
+/datum/config_entry/number/events_min_time_mul // Multipliers for random events minimal starting time and minimal players amounts
 	config_entry_value = 1
 	min_val = 0
 	integer = FALSE
 
 /datum/config_entry/number/events_min_players_mul
-	config_entry_value = 1
+	default = 1
 	min_val = 0
 	integer = FALSE
+
+/datum/config_entry/number/events_frequency_lower
+	config_entry_value = 30 MINUTES
+	min_val = 0
+	protection = CONFIG_ENTRY_LOCKED
+
+/datum/config_entry/number/events_frequency_upper
+	config_entry_value = 60 MINUTES
+	min_val = 0
+	protection = CONFIG_ENTRY_LOCKED
 
 /datum/config_entry/number/mice_roundstart
 	config_entry_value = 10
@@ -363,29 +373,25 @@
 	min_val = 0
 
 /datum/config_entry/number/max_overmap_event_clusters
-	config_entry_value = 10
+	config_entry_value = 4
 
 /datum/config_entry/number/max_overmap_events
 	config_entry_value = 150
 
 /datum/config_entry/number/max_overmap_dynamic_events
-	config_entry_value = 10
+	config_entry_value = 7
 
 /datum/config_entry/string/overmap_generator_type
 	config_entry_value = "solar_system"
 
 /datum/config_entry/number/overmap_size
-	config_entry_value = 30
+	config_entry_value = 20
 	min_val = 1
 
 /datum/config_entry/number/overmap_encounter_size
 	max_val = 255
 	config_entry_value = 127
 	min_val = 127
-
-/datum/config_entry/number/max_dynamic_missions
-	config_entry_value = 1
-	min_val = 0
 
 /datum/config_entry/number/commendation_percent_poll
 	integer = FALSE
@@ -396,3 +402,5 @@
 //When the auto ship locking will start counting up, in minutes
 /datum/config_entry/number/ship_locking_starts
 	config_entry_value = 30
+
+/datum/config_entry/flag/native_fov

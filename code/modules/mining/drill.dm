@@ -19,12 +19,13 @@
 	density = TRUE
 	anchored = FALSE
 	use_power = NO_POWER_USE
-	layer = ABOVE_ALL_MOB_LAYER
+	layer = LYING_MOB_LAYER
 	armor = list("melee" = 50, "bullet" = 30, "laser" = 30, "energy" = 30, "bomb" = 30, "bio" = 0, "rad" = 0, "fire" = 90, "acid" = 90)
 	component_parts = list()
 
 	var/malfunction
 	var/active = FALSE
+	///the vein that we are currently drilling
 	var/obj/structure/vein/our_vein
 	var/datum/looping_sound/drill/soundloop
 	var/obj/item/stock_parts/cell/cell
@@ -33,6 +34,7 @@
 	var/metal_attached = METAL_ABSENT
 	var/missing_part //I hate this but it's better than most the ideas I've had
 	var/current_timerid
+	interaction_flags_machine = INTERACT_MACHINE_UNPOWERED | INTERACT_MACHINE_WIRES_IF_OPEN | INTERACT_MACHINE_ALLOW_SILICON | INTERACT_MACHINE_OPEN_SILICON | INTERACT_MACHINE_SET_MACHINE
 
 /obj/machinery/drill/examine(mob/user)
 	. = ..()
@@ -79,7 +81,7 @@
 		update_overlays()
 		update_icon_state()
 	if(!active && our_vein?.currently_spawning)
-		our_vein.toggle_spawning()
+		our_vein.stop_spawning()
 
 /obj/machinery/drill/Destroy()
 	QDEL_NULL(soundloop)
@@ -92,7 +94,7 @@
 		say("Drill integrity failure. Engaging emergency shutdown procedure.")
 		//Just to make sure mobs don't spawn infinitely from the vein and as a failure state for players
 		our_vein.deconstruct()
-	obj_break()
+	atom_break()
 	update_icon_state()
 	update_overlays()
 
@@ -120,7 +122,7 @@
 			if(tool.use_tool(src, user, 30, volume=50))
 				to_chat(user, "<span class='notice'>You weld the new plating onto the [src], successfully repairing it.")
 				metal_attached = METAL_ABSENT
-				obj_integrity = max_integrity
+				atom_integrity = max_integrity
 				set_machine_stat(machine_stat & ~BROKEN)
 				update_icon_state()
 				return
@@ -140,6 +142,7 @@
 			to_chat(user, span_notice("You secure the [src] to the ore vein."))
 			playsound(src, 'sound/items/deconstruct.ogg', 50, TRUE)
 			our_vein = vein
+			our_vein.our_drill = src
 			anchored = TRUE
 			update_icon_state()
 			return
@@ -148,8 +151,9 @@
 			playsound(src, 'sound/items/deconstruct.ogg', 50, TRUE)
 			anchored = FALSE
 
-			if(our_vein?.spawner_attached && our_vein?.currently_spawning)
-				our_vein.toggle_spawning()
+			if(our_vein?.currently_spawning)
+				our_vein.stop_spawning()
+			our_vein.our_drill = null
 			our_vein = null
 			update_icon_state()
 			return
@@ -162,7 +166,7 @@
 				var/obj/item/stock_parts/new_part = tool
 				if(new_part.part_behaviour == part.part_behaviour)
 					user.transferItemToLoc(tool,src)
-					part.forceMove(user.loc)
+					try_put_in_hand(part, user)
 					component_parts += new_part
 					component_parts -= part
 					to_chat(user, span_notice("You replace [part] with [new_part]."))
@@ -172,7 +176,7 @@
 					component_parts += new_part
 					malfunction = null
 					missing_part = null
-					obj_integrity = max_integrity
+					atom_integrity = max_integrity
 					to_chat(user, span_notice("You replace the broken part with [new_part]."))
 					break
 			return
@@ -181,17 +185,17 @@
 				span_notice("You begin recalibrating [src]..."))
 			if(tool.use_tool(src, user, 100, volume=50))
 				malfunction = null
-				obj_integrity = max_integrity
+				atom_integrity = max_integrity
 				return
 		if(tool.tool_behaviour == TOOL_WELDER && malfunction == MALF_STRUCTURAL)
-			if(!tool.tool_start_check(user, amount=0))
+			if(!tool.tool_start_check(user, src, amount=0))
 				return
 			user.visible_message(span_notice("[user] begins repairing [src]."), \
 				span_notice("You begin repairing [src]..."), \
 				span_hear("You hear welding."))
 			if(tool.use_tool(src, user, 100, volume=50))
 				malfunction = null
-				obj_integrity = max_integrity
+				atom_integrity = max_integrity
 				return
 		if(istype(tool, /obj/item/stock_parts/cell))
 			var/obj/item/stock_parts/cell/battery = tool
@@ -209,7 +213,7 @@
 			return
 		if(tool.tool_behaviour == TOOL_CROWBAR)
 			cell.update_appearance()
-			cell.forceMove(get_turf(src))
+			try_put_in_hand(cell, user)
 			cell = null
 			to_chat(user, span_notice("You remove the cell from [src]."))
 			active = FALSE
@@ -222,15 +226,8 @@
 		to_chat(user, span_notice("You begin the manual shutoff process."))
 		if(do_after(user, 10, src))
 			if(active)
-				active = FALSE
-				soundloop.stop()
-				deltimer(current_timerid)
-				if(our_vein?.currently_spawning)
-					our_vein.toggle_spawning()
-				playsound(src, 'sound/machines/switch2.ogg', 50, TRUE)
 				say("Manual shutoff engaged, ceasing mining operations.")
-				update_icon_state()
-				update_overlays()
+				stop_mining()
 			else
 				to_chat(user, span_warning("The drill has already been turned off!"))
 		else
@@ -284,6 +281,21 @@
 	else
 		set_light(0)
 
+//shut the drill DOWN NOW!!
+/obj/machinery/drill/proc/stop_mining(destructive=FALSE)
+	active = FALSE
+	soundloop.stop()
+	deltimer(current_timerid)
+	if(our_vein?.currently_spawning)
+		our_vein.stop_spawning()
+	if(destructive)
+		our_vein.Destroy()
+		our_vein = null
+		anchored = FALSE
+	playsound(src, 'sound/machines/switch2.ogg', 50, TRUE)
+	update_icon_state()
+	update_overlays()
+
 //Handles all checks before starting the 30 second (on average) mining tick
 /obj/machinery/drill/proc/start_mining()
 	var/eta
@@ -296,7 +308,7 @@
 		soundloop.stop()
 		update_overlays()
 		return
-	if(obj_integrity <= max_integrity/1.5)
+	if(atom_integrity <= max_integrity/1.5)
 		malfunction = rand(1,5)
 		malfunction(malfunction)
 		active = FALSE
@@ -307,10 +319,9 @@
 		var/mine_time
 		active = TRUE
 		soundloop.start()
-		if(!our_vein.spawner_attached)
-			our_vein.begin_spawning()
-		else if(!our_vein.currently_spawning)
-			our_vein.toggle_spawning()
+		our_vein.begin_spawning()
+		if(!our_vein.currently_spawning)
+			our_vein.stop_spawning()
 		for(var/obj/item/stock_parts/micro_laser/laser in component_parts)
 			mine_time = round((300/sqrt(laser.rating))*our_vein.mine_time_multiplier)
 		eta = mine_time*our_vein.mining_charges
@@ -325,14 +336,11 @@
 	if(our_vein.mining_charges)
 		our_vein.mining_charges--
 		mine_success()
+		if(!active)
+			return FALSE
 		if(our_vein.mining_charges < 1)
-			say("Vein depleted.")
-			active = FALSE
-			soundloop.stop()
-			our_vein.Destroy()
-			our_vein = null
-			update_icon_state()
-			update_overlays()
+			say("Vein depleted, shutting down.")
+			stop_mining(TRUE)
 		else
 			start_mining()
 	else if(!our_vein.mining_charges) //Extra check to prevent vein related errors locking us in place
@@ -350,8 +358,11 @@
 
 //Overly long proc to handle the unique properties for each malfunction type
 /obj/machinery/drill/proc/malfunction(malfunction_type)
-	if(active)
-		our_vein.toggle_spawning() //turns mob spawning off after a malfunction
+
+	//we want to pause the creation of new spawners
+	if(active && our_vein?.currently_spawning)
+		our_vein.stop_spawning()
+
 	switch(malfunction_type)
 		if(MALF_LASER)
 			say("Malfunction: Laser array damaged, please replace before continuing mining operations.")
@@ -375,4 +386,4 @@
 
 /obj/item/paper/guides/drill
 	name = "Laser Mining Drill Operation Manual"
-	default_raw_text = "<center><b>Laser Mining Drill Operation Manual</b></center><br><br><center>Thank you for opting in to the paid testing of Nanotrasen's new, experimental laser drilling device (trademark pending). We are legally obligated to mention that despite this new and wonderful drilling device being less dangerous than past iterations (note the 75% decrease in plasma ignition incidents), the seismic activity created by the drill has been noted to anger most forms of xenofauna. As such our legal team advises only armed mining expeditions make use of this drill.<br><br><c><b>How to set up your Laser Mining Drill</b></center><br><br>1. Find a suitable ore vein with the included scanner.<br>2. Wrench the drill's anchors in place over the vein.<br>3. Protect the drill from any enraged xenofauna until it has finished drilling.<br><br><center>With all this done, your ore should be well on its way out of the ground and into your pockets! Be warned though, the Laser Mining Drill is prone to numerous malfunctions when exposed to most forms of physical trauma. As such, we advise any teams utilizing this drill to bring with them a set of replacement Nanotrasen brand stock parts and a set of tools to handle repairs. If the drill suffers a total structural failure, then plasteel alloy may be needed to repair said structure.</center>"
+	default_raw_text = "<center><b>Laser Mining Drill Operation Manual</b></center><br><br><center>Thank you for opting in to the paid testing of Makoso-Warra's new, experimental laser drilling device (trademark pending). We are legally obligated to mention that despite this new and wonderful drilling device being less dangerous than past iterations (note the 75% decrease in plasma ignition incidents), the seismic activity created by the drill has been noted to anger most forms of xenofauna. As such our legal team advises only armed mining expeditions make use of this drill.<br><br><c><b>How to set up your Laser Mining Drill</b></center><br><br>1. Find a suitable ore vein with the included scanner.<br>2. Wrench the drill's anchors in place over the vein.<br>3. Protect the drill from any enraged xenofauna until it has finished drilling.<br><br><center>With all this done, your ore should be well on its way out of the ground and into your pockets! Be warned though, the Laser Mining Drill is prone to numerous malfunctions when exposed to most forms of physical trauma. As such, we advise any teams utilizing this drill to bring with them a set of replacement Makosso-Warra brand stock parts and a set of tools to handle repairs. If the drill suffers a total structural failure, then plasteel alloy may be needed to repair said structure.</center>"

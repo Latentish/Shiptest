@@ -18,26 +18,13 @@
 	scan_mode = !scan_mode
 	to_chat(user, span_notice("You switch [src] to [scan_mode == PLANT_SCANMODE_CHEMICALS ? "scan for chemical reagents" : "scan for plant growth statistics and traits"]."))
 
-/obj/item/plant_analyzer/attack(mob/living/M, mob/living/carbon/human/user)
-	//Checks if target is a podman
-	if(ispodperson(M))
-		user.visible_message(span_notice("[user] analyzes [M]'s vitals."), \
-							span_notice("You analyze [M]'s vitals."))
-		if(scan_mode == PLANT_SCANMODE_STATS)
-			healthscan(user, M, advanced = TRUE)
-		else
-			chemscan(user, M)
-		add_fingerprint(user)
-		return
-	return ..()
-
 /obj/item/plant_analyzer/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
 	. = ..()
 	if(can_scan_target(target))
 		change_target(target, user)
 
 /obj/item/plant_analyzer/proc/can_scan_target(atom/target)
-	if(istype(target, /obj/machinery/hydroponics) || istype(target, /obj/item/seeds) || istype(target, /obj/item/reagent_containers/food/snacks/grown))
+	if(istype(target, /obj/machinery/hydroponics) || istype(target, /obj/item/seeds) || istype(target, /obj/item/food/grown))
 		return TRUE
 
 /obj/item/plant_analyzer/ui_interact(mob/user, datum/tgui/ui)
@@ -55,7 +42,7 @@
 
 	var/obj/machinery/hydroponics/tray
 	var/obj/item/seeds/my_seed
-	var/obj/item/reagent_containers/food/snacks/grown/product
+	var/obj/item/food/grown/product
 
 	var/temp_seed = FALSE
 	var/temp_product = FALSE
@@ -75,13 +62,13 @@
 	else if(istype(scan_target, /obj/item/seeds))
 		my_seed = scan_target
 
-	else if(istype(scan_target, /obj/item/reagent_containers/food/snacks/grown))
+	else if(istype(scan_target, /obj/item/food/grown))
 		product = scan_target
 
 	if(product && !my_seed)
 		my_seed = product.seed
 
-	if(my_seed && !product && ispath(my_seed.product, /obj/item/reagent_containers/food/snacks/grown))
+	if(my_seed && !product && ispath(my_seed.product, /obj/item/food/grown))
 		product = new my_seed.product
 		temp_product = TRUE
 
@@ -89,8 +76,8 @@
 		data["tray"] = tray.get_tgui_info()
 	if(my_seed)
 		data["seed"] = my_seed.get_tgui_info()
-	if(product)
-		data["seed"] += product.get_tgui_info()
+	//if(product)
+	//	data["seed"] += product.get_tgui_info() todo make fallcon fix this
 
 	if(temp_seed)
 		qdel(my_seed)

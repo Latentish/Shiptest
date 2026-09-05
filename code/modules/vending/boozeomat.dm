@@ -36,6 +36,7 @@
 		/obj/item/reagent_containers/food/drinks/coffee = 8,
 		/obj/item/reagent_containers/food/drinks/ale = 6,
 		/obj/item/reagent_containers/food/drinks/beer = 8,
+		/obj/item/reagent_containers/food/drinks/mead = 8,
 		/obj/item/reagent_containers/food/drinks/bottle/gin = 5,
 		/obj/item/reagent_containers/food/drinks/bottle/whiskey = 5,
 		/obj/item/reagent_containers/food/drinks/bottle/tequila = 5,
@@ -55,12 +56,17 @@
 		/obj/item/reagent_containers/food/drinks/bottle/coconut = 5,
 		/obj/item/reagent_containers/food/drinks/bottle/cacao = 5,
 		/obj/item/reagent_containers/food/drinks/bottle/menthe = 5,
+		/obj/item/reagent_containers/food/drinks/bottle/dotusira = 5,
+		/obj/item/reagent_containers/food/drinks/bottle/faraseta = 5,
+		/obj/item/reagent_containers/food/drinks/bottle/sosomira = 5,
+		/obj/item/reagent_containers/food/drinks/bottle/sososeta = 5,
 		/obj/item/reagent_containers/food/drinks/bottle = 15,
 		/obj/item/reagent_containers/food/drinks/bottle/small = 15,
-		/obj/item/garnish/olives = 10,
-		/obj/item/garnish/umbrellared = 10,
-		/obj/item/garnish/umbrellablue = 10,
-		/obj/item/garnish/umbrellagreen = 10
+		/obj/item/storage/box/straw = 2,
+		/obj/item/storage/box/garnish = 5,
+		/obj/item/garnish/olives = 5,
+		/obj/item/garnish/cherry = 5,
+		/obj/item/garnish/pineapples = 5,
 	)
 	contraband = list()
 	premium = list(

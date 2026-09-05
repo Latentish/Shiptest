@@ -5,6 +5,10 @@
 /obj/item/ammo_casing/energy/laser/sharplite
 	projectile_type = /obj/projectile/beam/laser/sharplite
 	select_name = "kill"
+	e_cost = 555
+
+/obj/item/ammo_casing/energy/laser/sharplite/efficent
+	e_cost = 700  //9 per MW mini cell
 
 /obj/item/ammo_casing/energy/laser/underbarrel
 	projectile_type = /obj/projectile/beam/laser
@@ -27,13 +31,12 @@
 	projectile_type = /obj/projectile/beam/laser/assault
 	fire_sound = 'sound/weapons/gun/laser/e40_las.ogg'
 	delay = 2
-	e_cost = 666 //30 per upgraded cell
+	e_cost = 666 //30 per upgraded cell, 14 per regular
 
 /obj/item/ammo_casing/energy/laser/assault/sharplite
 	projectile_type = /obj/projectile/beam/laser/assault/sharplite
 	fire_sound = 'sound/weapons/gun/laser/e40_las.ogg'
 	delay = 2
-	e_cost = 666 //30 per upgraded cell
 
 /obj/item/ammo_casing/energy/laser/eoehoma/e50
 	projectile_type = /obj/projectile/beam/emitter/hitscan
@@ -43,17 +46,45 @@
 
 /obj/item/ammo_casing/energy/lasergun
 	projectile_type = /obj/projectile/beam/laser
-	e_cost = 830
+	e_cost = 555
 	select_name = "kill"
 
 /obj/item/ammo_casing/energy/lasergun/sharplite
 	projectile_type = /obj/projectile/beam/laser/sharplite
-	e_cost = 830
+	e_cost = 555
+	select_name = "kill"
+
+/obj/item/ammo_casing/energy/lasergun/sharplite/dmr
+	projectile_type = /obj/projectile/beam/laser/sharplite/dmr
+	e_cost = 1000 // 10 per regular cell  20 per upgraded cell
+	delay = 0.4 SECONDS
+	select_name = "kill"
+
+/obj/item/ammo_casing/energy/lasergun/sharplite/sniper
+	projectile_type = /obj/projectile/beam/laser/sharplite/sniper
+	fire_sound = 'sound/weapons/gun/laser/heavy_laser.ogg'
+	delay = 1 SECONDS
+	e_cost = 2000 // 5 per regular cell 10 per upgraded cell
 	select_name = "kill"
 
 /obj/item/ammo_casing/energy/lasergun/eoehoma
 	projectile_type = /obj/projectile/beam/laser/eoehoma
-	fire_sound = 'sound/weapons/gun/laser/e-fire.ogg'
+	fire_sound = 'sound/weapons/gun/laser/e40_las.ogg'
+	e_cost = 1428
+	delay = 0.3 SECONDS
+
+/obj/item/ammo_casing/energy/lasergun/eoehoma/wasp
+	projectile_type = /obj/projectile/beam/laser/eoehoma/wasp
+	fire_sound = 'sound/weapons/laser4.ogg'
+	e_cost = 799
+	delay = 0.1 SECONDS
+
+/obj/item/ammo_casing/energy/lasergun/eoehoma/heavy
+	projectile_type = /obj/projectile/beam/laser/eoehoma/heavy
+	fire_sound = 'sound/weapons/gun/laser/heavy_laser.ogg'
+	e_cost = 10000
+	select_name = "overcharge"
+	delay = 1 SECONDS
 
 /obj/item/ammo_casing/energy/laser/smg
 	projectile_type = /obj/projectile/beam/laser/weak
@@ -63,9 +94,10 @@
 
 /obj/item/ammo_casing/energy/laser/sharplite/smg
 	projectile_type = /obj/projectile/beam/weak/sharplite
-	e_cost = 799 //12 shots with a normal power cell, 25 with an upgraded
+	e_cost = 500 //20 shots with a normal power cell, 40 with an upgraded
 	select_name = "kill"
 	delay = 0.13 SECONDS
+	fire_sound = 'sound/weapons/gun/laser/sharplite-fire_light.ogg'
 
 /obj/item/ammo_casing/energy/lasergun/old
 	projectile_type = /obj/projectile/beam/laser
@@ -73,7 +105,7 @@
 	select_name = "kill"
 
 /obj/item/ammo_casing/energy/laser/sharplite/hos
-	e_cost = 1200
+	e_cost = 1000
 
 /obj/item/ammo_casing/energy/laser/practice
 	projectile_type = /obj/projectile/beam/practice
@@ -92,15 +124,65 @@
 	e_cost = 1598 //12 shots upgraded cell, 6 with normal cell
 	select_name = "scatter"
 
-/obj/item/ammo_casing/energy/laser/ultima
-	projectile_type = /obj/projectile/beam/weak
-	pellets = 6
+/obj/item/ammo_casing/energy/laser/shotgun
+	projectile_type = /obj/projectile/beam/weak/shotgun
+	pellets = 3
 	variance = 25
 	e_cost = 1000
 	select_name = "kill"
 
-/obj/item/ammo_casing/energy/laser/ultima/alt
+/obj/item/ammo_casing/energy/laser/shotgun/drone
+	projectile_type = /obj/projectile/beam/weak/shotgun
+	pellets = 4
+	firing_effect_type = null
+	heavy_metal = FALSE
+
+// so it doesnt drop cases, also apparently every fucking caseless gun runtimes and thats way past my ability
+
+/obj/item/ammo_casing/energy/laser/shotgun/drone/fire_casing(atom/target, mob/living/user, params, distro, quiet, zone_override, spread, atom/fired_from)
+	. = ..()
+	if(.)
+		qdel(src)
+
+/obj/item/ammo_casing/energy/laser/clover
+	projectile_type = /obj/projectile/beam/laser/clover
+	select_name = "kill"
+	e_cost = 333
+	delay = 0.5 SECONDS
+
+/obj/item/ammo_casing/energy/laser/clover/auto
+	projectile_type = /obj/projectile/beam/laser/clover
+	select_name = "kill"
+	e_cost = 277
+	delay = 0.10 SECONDS
+
+/obj/item/ammo_casing/energy/laser/clover/smg
+	projectile_type = /obj/projectile/beam/laser/clover/smg
+	delay = 0.16 SECONDS
+	e_cost = 666
+
+/obj/item/ammo_casing/energy/laser/clover/magnum
+	projectile_type = /obj/projectile/beam/laser/clover/magnum
+	e_cost = 625
+
+/obj/item/ammo_casing/energy/laser/clover/shotgun
+	projectile_type = /obj/projectile/beam/laser/clover/shotgun
+	pellets = 5
+	variance = 25
+	e_cost = 1250
 	select_name = "scatter"
+	fire_sound = 'sound/weapons/laser.ogg'
+
+/obj/item/ammo_casing/energy/laser/clover/highpower
+	projectile_type = /obj/projectile/beam/laser/clover/highpower
+	e_cost = 1000
+	select_name = "kill"
+	delay = 1 SECONDS
+
+/obj/item/ammo_casing/energy/laser/shotgun/sharplite
+	projectile_type = /obj/projectile/beam/weak/shotgun/sharplite
+	delay = 0.4 SECONDS
+
 
 /obj/item/ammo_casing/energy/laser/heavy
 	projectile_type = /obj/projectile/beam/laser/heavylaser
@@ -155,6 +237,7 @@
 	impact_light_color_override = COLOR_SOFT_RED
 	range = 15
 	var/damage_constant = 0.8
+	var/ap_constant = 1
 	hitscan = TRUE
 
 /obj/projectile/beam/hitscan/Range()
@@ -168,6 +251,7 @@
 	if(environment_pressure >= 50)
 		if((decayedRange - range) >= 4)
 			damage *= damage_constant
+			armour_penetration *= ap_constant
 	. = ..()
 
 /obj/item/ammo_casing/energy/lasergun/hitscan
@@ -180,16 +264,18 @@
 
 /obj/item/ammo_casing/energy/disabler/hitscan
 	projectile_type = /obj/projectile/beam/hitscan/disabler
-	e_cost = 833
+	e_cost = 500
 
 /obj/projectile/beam/hitscan/disabler
 	name = "disabler beam"
 	icon_state = "omnilaser"
 	hitscan = TRUE
+	range = 12
 	damage = 20
 	armour_penetration = -20
 	damage_type = STAMINA
 	flag = "energy"
+	bullet_identifier = "disabler"
 	hitsound = 'sound/weapons/tap.ogg'
 	eyeblur = 0
 	impact_effect_type = /obj/effect/temp_visual/impact_effect/blue_laser
@@ -209,7 +295,12 @@
 	impact_light_range = 2.5
 	impact_light_color_override = COLOR_CYAN
 
+/obj/item/ammo_casing/energy/disabler/hitscan/heavy
+	projectile_type = /obj/projectile/beam/hitscan/disabler/heavy
+	e_cost = 666
+
 /obj/projectile/beam/hitscan/disabler/heavy
+	range = 15
 	damage = 30
 	armour_penetration = -10
 

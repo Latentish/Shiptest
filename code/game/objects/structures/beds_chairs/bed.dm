@@ -70,12 +70,19 @@
 /obj/structure/bed/attack_paw(mob/user)
 	return attack_hand(user)
 
-/obj/structure/bed/attackby(obj/item/W, mob/user, params)
-	if((W.tool_behaviour == TOOL_WRENCH || W.tool_behaviour == TOOL_DECONSTRUCT) && !(flags_1&NODECONSTRUCT_1))
-		W.play_tool_sound(src)
-		deconstruct(TRUE)
-	else
-		return ..()
+/obj/structure/bed/deconstruct_act(mob/living/user, obj/item/tool)
+	if(..())
+		return TRUE
+	tool.play_tool_sound(src)
+	deconstruct(TRUE)
+	return TRUE
+
+/obj/structure/bed/wrench_act(mob/living/user, obj/item/tool)
+	if(..() || (flags_1 & NODECONSTRUCT_1))
+		return TRUE
+	tool.play_tool_sound(src)
+	deconstruct(TRUE)
+	return TRUE
 
 /*
  * Roller beds
@@ -231,14 +238,14 @@
 
 /obj/structure/bed/dogbed/proc/update_owner(mob/living/M)
 	if(owner)
-		UnregisterSignal(owner, COMSIG_PARENT_QDELETING)
+		UnregisterSignal(owner, COMSIG_QDELETING)
 	owner = M
-	RegisterSignal(owner, COMSIG_PARENT_QDELETING, PROC_REF(owner_deleted))
+	RegisterSignal(owner, COMSIG_QDELETING, PROC_REF(owner_deleted))
 	name = "[M]'s bed"
 	desc = "[M]'s bed! Looks comfy."
 
 /obj/structure/bed/dogbed/proc/owner_deleted()
-	UnregisterSignal(owner, COMSIG_PARENT_QDELETING)
+	UnregisterSignal(owner, COMSIG_QDELETING)
 	owner = null
 	name = initial(name)
 	desc = initial(desc)
@@ -263,12 +270,12 @@
 	if(buckled_mobs.len > 1 && !goldilocks) //Push the second buckled mob a bit higher from the normal lying position, also, if someone can figure out the same thing for plushes, i'll be really glad to know how to
 		M.pixel_y = initial(M.pixel_y) + 6
 		goldilocks = M
-		RegisterSignal(goldilocks, COMSIG_PARENT_QDELETING, PROC_REF(goldilocks_deleted))
+		RegisterSignal(goldilocks, COMSIG_QDELETING, PROC_REF(goldilocks_deleted))
 
 //Called when the signal is raised, removes the reference
 //preventing the hard delete.
 /obj/structure/bed/double/proc/goldilocks_deleted(datum/source, force)
-	UnregisterSignal(goldilocks, COMSIG_PARENT_QDELETING)
+	UnregisterSignal(goldilocks, COMSIG_QDELETING)
 	goldilocks = null
 
 /obj/structure/bed/double/maint

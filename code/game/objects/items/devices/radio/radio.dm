@@ -94,7 +94,8 @@
 /obj/item/radio/Destroy()
 	remove_radio_all(src) //Just to be sure
 	QDEL_NULL(wires)
-	QDEL_NULL(keyslot)
+	if(istype(keyslot))
+		QDEL_NULL(keyslot)
 	return ..()
 
 /obj/item/radio/Initialize()
@@ -103,6 +104,8 @@
 		wires.cut(WIRE_TX) // OH GOD WHY
 	secure_radio_connections = new
 	. = ..()
+	if(ispath(keyslot))
+		keyslot = new keyslot()
 	frequency = sanitize_frequency(frequency, freerange)
 	set_frequency(frequency)
 
@@ -132,6 +135,12 @@
 	else if(user.canUseTopic(src, !issilicon(user), TRUE, FALSE))
 		listening = !listening
 		to_chat(user, span_notice("You toggle speaker [listening ? "on" : "off"]."))
+
+/obj/item/radio/attack_hand_secondary(mob/user, modifiers)
+	if((!headset && command) && user.canUseTopic(src, !issilicon(user), TRUE, FALSE))
+		use_command = !use_command
+		to_chat(user, span_notice("You toggle high volume [use_command ? "on" : "off"]."))
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/item/radio/interact(mob/user)
 	if(unscrewed && !isAI(user))
@@ -221,10 +230,16 @@
 				. = TRUE
 
 /obj/item/radio/talk_into(atom/movable/M, message, channel, list/spans, datum/language/language, list/message_mods)
+	if(SEND_SIGNAL(M, COMSIG_MOVABLE_USING_RADIO, src) & COMPONENT_CANNOT_USE_RADIO)
+		return
+	if(SEND_SIGNAL(src, COMSIG_RADIO_NEW_MESSAGE, M, message, channel) & COMPONENT_CANNOT_USE_RADIO)
+		return
 	if(!spans)
 		spans = list(M.speech_span)
 	if(!language)
 		language = M.get_selected_language()
+	if((initial(language?.flags) & SIGNED_LANGUAGE) && !HAS_TRAIT(M, TRAIT_CAN_SIGN_ON_COMMS))
+		return
 	INVOKE_ASYNC(src, PROC_REF(talk_into_impl), M, message, channel, spans.Copy(), language, message_mods)
 	return ITALICS | REDUCE_RANGE
 
@@ -273,14 +288,20 @@
 	// Determine the identity information which will be attached to the signal.
 	var/atom/movable/virtualspeaker/speaker = new(null, M, src)
 
+	// Check for the overmap's interference level
+	var/interference_level = SSovermap.get_overmap_interference(src)
+
 	// Construct the signal
 	var/datum/signal/subspace/vocal/signal = new(src, freq, speaker, language, message, spans, message_mods)
+	signal.data["interference"] = interference_level
+	signal.data["sfx"] = 'sound/effects/radio_chatter.ogg'
 
 	// Independent radios, on the CentCom frequency, reach all independent radios
 	if (independent && (freq == FREQ_CENTCOM || freq == FREQ_WIDEBAND))
 		signal.data["compression"] = 0
 		signal.transmission_method = TRANSMISSION_SUPERSPACE
 		signal.map_zones = list(0)  // reaches all Z-levels
+		signal.data["sfx"] = 'sound/effects/overmap/wideband.ogg'
 		signal.broadcast()
 		return
 
@@ -424,7 +445,7 @@
 	. = ..()
 
 /obj/item/radio/borg/syndicate
-	keyslot = new /obj/item/encryptionkey/syndicate
+	keyslot = /obj/item/encryptionkey/syndicate
 
 /obj/item/radio/borg/syndicate/Initialize()
 	. = ..()
@@ -467,3 +488,9 @@
 	name = "old radio"
 	icon_state = "radio"
 	desc = "An old handheld radio. You could use it, if you really wanted to."
+
+/obj/item/radio/command
+	name = "command radio"
+	icon_state = "cmd_radio"
+	desc = "A handheld radio with a configurable volume knob. Useful for making your voice carry farther."
+	command = TRUE

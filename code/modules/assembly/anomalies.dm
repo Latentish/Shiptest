@@ -82,11 +82,8 @@
 	//throngles u cutely
 	visible_message(span_warning("[src] implodes into itself, light itself bending for a split second!"))
 	for(var/mob/living/carbon/carbon in range(1,src))
-		if(carbon.run_armor_check(attack_flag = "melee") >= 20)
-			carbon.break_random_bone()
-		else if(carbon.run_armor_check(attack_flag = "melee") >= 40)
-			carbon.break_all_bones() //crunch
-		carbon.apply_damage(20, BRUTE)
+		carbon.apply_damage(30, BRUTE)
+	..()
 
 ///Hallucination Anomaly
 /obj/item/assembly/signaler/anomaly/hallucination
@@ -198,7 +195,7 @@
 /obj/item/assembly/signaler/anomaly/tvstatic
 	name = "\improper static anomaly core"
 	desc = "The stabilized core of a static anomaly. Your head hurts just staring at it"
-	grind_results = list(/datum/reagent/three_eye = 5)
+	grind_results = list(/datum/reagent/truesight = 5)
 
 /obj/item/assembly/signaler/anomaly/tvstatic/anomaly_core_detonation()
 	visible_message(span_warning("[src] withdraws into itself, one last message escaping it!"))

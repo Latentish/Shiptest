@@ -46,7 +46,7 @@
 
 	speak_chance = 1 //1% (1 in 100) chance every tick; So about once per 150 seconds, assuming an average tick is 1.5s
 	turns_per_move = 5
-	butcher_results = list(/obj/item/reagent_containers/food/snacks/cracker/ = 1)
+	butcher_results = list(/obj/item/food/cracker/ = 1)
 	melee_damage_upper = 10
 	melee_damage_lower = 5
 
@@ -63,7 +63,7 @@
 	friendly_verb_continuous = "grooms"
 	friendly_verb_simple = "groom"
 	mob_size = MOB_SIZE_SMALL
-	movement_type = FLYING
+	is_flying_animal = TRUE
 
 	var/parrot_damage_upper = 10
 	var/parrot_state = PARROT_WANDER //Hunt for a perch when created
@@ -194,9 +194,9 @@
 	var/list/dat = list()
 
 	dat += "<table>"
-	dat += "<tr><td><B>Headset:</B></td><td><A href='?src=[REF(src)];[ears ? "remove_inv=ears'>[ears]" : "add_inv=ears'><font color=grey>Empty</font>"]</A></td></tr>"
+	dat += "<tr><td><B>Headset:</B></td><td><A href='byond://?src=[REF(src)];[ears ? "remove_inv=ears'>[ears]" : "add_inv=ears'><font color=grey>Empty</font>"]</A></td></tr>"
 	dat += {"</table>
-	<A href='?src=[REF(user)];mach_close=mob[REF(src)]'>Close</A>
+	<A href='byond://?src=[REF(user)];mach_close=mob[REF(src)]'>Close</A>
 	"}
 
 	var/datum/browser/popup = new(user, "mob[REF(src)]", "[src]", 440, 510)
@@ -257,8 +257,8 @@
 					available_channels.Cut()
 					for(var/ch in headset_to_add.channels)
 						switch(ch)
-							if(RADIO_CHANNEL_NANOTRASEN)
-								available_channels.Add(RADIO_TOKEN_NANOTRASEN)
+							if(RADIO_CHANNEL_WARRA)
+								available_channels.Add(RADIO_TOKEN_WARRA)
 							if(RADIO_CHANNEL_EMERGENCY)
 								available_channels.Add(RADIO_TOKEN_EMERGENCY)
 							if(RADIO_CHANNEL_MINUTEMEN)
@@ -269,6 +269,12 @@
 								available_channels.Add(RADIO_TOKEN_SOLGOV)
 							if(RADIO_CHANNEL_SYNDICATE)
 								available_channels.Add(RADIO_TOKEN_SYNDICATE)
+							if(RADIO_CHANNEL_CYBERSUN)
+								available_channels.Add(RADIO_TOKEN_CYBERSUN)
+							if(RADIO_CHANNEL_NGR)
+								available_channels.Add(RADIO_TOKEN_NGR)
+							if(RADIO_CHANNEL_SUNS)
+								available_channels.Add(RADIO_TOKEN_SUNS)
 							if(RADIO_CHANNEL_PIRATE)
 								available_channels.Add(RADIO_TOKEN_PIRATE)
 
@@ -330,7 +336,7 @@
 
 //Mobs with objects
 /mob/living/simple_animal/parrot/attackby(obj/item/O, mob/living/user, params)
-	if(!stat && !client && !istype(O, /obj/item/stack/medical) && !istype(O, /obj/item/reagent_containers/food/snacks/cracker))
+	if(!stat && !client && !istype(O, /obj/item/stack/medical) && !istype(O, /obj/item/food/cracker))
 		if(O.force)
 			if(parrot_state == PARROT_PERCH)
 				parrot_sleep_dur = parrot_sleep_max //Reset it's sleep timer if it was perched
@@ -343,7 +349,7 @@
 				parrot_state |= PARROT_FLEE
 			icon_state = icon_living
 			drop_held_item(0)
-	else if(istype(O, /obj/item/reagent_containers/food/snacks/cracker)) //Polly wants a cracker.
+	else if(istype(O, /obj/item/food/cracker)) //Polly wants a cracker.
 		qdel(O)
 		if(health < maxHealth)
 			adjustBruteLoss(-10)
@@ -369,7 +375,7 @@
 /*
  * AI - Not really intelligent, but I'm calling it AI anyway.
  */
-/mob/living/simple_animal/parrot/Life()
+/mob/living/simple_animal/parrot/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	..()
 
 	//Sprite update for when a parrot gets pulled
@@ -773,7 +779,7 @@
 
 
 //parrots will eat crackers instead of dropping them
-	if(istype(held_item, /obj/item/reagent_containers/food/snacks/cracker) && (drop_gently))
+	if(istype(held_item, /obj/item/food/cracker) && (drop_gently))
 		qdel(held_item)
 		held_item = null
 		if(health < maxHealth)
@@ -882,19 +888,19 @@
 
 /mob/living/simple_animal/parrot/proc/set_interest(atom/movable/new_interest)
 	if(parrot_interest)
-		UnregisterSignal(parrot_interest, COMSIG_PARENT_QDELETING)
+		UnregisterSignal(parrot_interest, COMSIG_QDELETING)
 		parrot_interest = null
 	if(new_interest)
 		parrot_interest = new_interest
-		RegisterSignal(parrot_interest, COMSIG_PARENT_QDELETING, PROC_REF(set_interest))
+		RegisterSignal(parrot_interest, COMSIG_QDELETING, PROC_REF(set_interest))
 
 /mob/living/simple_animal/parrot/proc/set_perch(obj/new_perch)
 	if(parrot_perch)
-		UnregisterSignal(parrot_perch, COMSIG_PARENT_QDELETING)
+		UnregisterSignal(parrot_perch, COMSIG_QDELETING)
 		parrot_perch = null
 	if(new_perch)
 		parrot_perch = new_perch
-		RegisterSignal(parrot_perch, COMSIG_PARENT_QDELETING, PROC_REF(set_perch))
+		RegisterSignal(parrot_perch, COMSIG_QDELETING, PROC_REF(set_perch))
 
 /*
  * Sub-types
@@ -930,7 +936,7 @@
 
 	. = ..()
 
-/mob/living/simple_animal/parrot/Polly/Life()
+/mob/living/simple_animal/parrot/Polly/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	if(!stat && SSticker.current_state == GAME_STATE_FINISHED && !memory_saved)
 		Write_Memory(FALSE)
 		memory_saved = TRUE
@@ -1013,15 +1019,4 @@
 			parrot_interest = null
 		else if(parrot_state == (PARROT_SWOOP | PARROT_ATTACK) && Adjacent(parrot_interest))
 			walk_to(src, parrot_interest, 0, parrot_speed)
-			Possess(parrot_interest)
 	..()
-
-/mob/living/simple_animal/parrot/Polly/ghost/proc/Possess(mob/living/carbon/human/H)
-	if(!ishuman(H))
-		return
-	var/datum/disease/parrot_possession/P = new
-	P.parrot = src
-	forceMove(H)
-	H.ForceContractDisease(P)
-	parrot_interest = null
-	H.visible_message(span_danger("[src] dive bombs into [H]'s chest and vanishes!"), span_userdanger("[src] dive bombs into your chest, vanishing! This can't be good!"))

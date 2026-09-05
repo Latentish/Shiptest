@@ -51,9 +51,9 @@
 
 /obj/effect/spawner/xmastree/Initialize(mapload)
 	. = ..()
-	if((CHRISTMAS in SSevents.holidays) && christmas_tree)
+	if(check_holidays(CHRISTMAS) && christmas_tree)
 		new christmas_tree(get_turf(src))
-	else if((FESTIVE_SEASON in SSevents.holidays) && festive_tree)
+	else if(check_holidays(FESTIVE_SEASON) && festive_tree)
 		new festive_tree(get_turf(src))
 
 /obj/effect/spawner/xmastree/rdrod
@@ -61,16 +61,4 @@
 	festive_tree = /obj/structure/festivus
 	christmas_tree = null
 
-/datum/round_event_control/santa
-	name = "Visit by Santa"
-	holidayID = CHRISTMAS
-	typepath = /datum/round_event/santa
-	weight = 20
-	max_occurrences = 1
-	earliest_start = 30 MINUTES
-
-/datum/round_event/santa
-	var/mob/living/carbon/human/santa //who is our santa?
-
-/datum/round_event/santa/announce(fake)
-	priority_announce("Santa is coming to town!", "Unknown Transmission")
+// santa has been shot down by the frontiersmen. sorry. ill remove the rest of the code later

@@ -22,9 +22,9 @@
 	var/flags_ricochet = NONE
 
 	///When a projectile tries to ricochet off this atom, the projectile ricochet chance is multiplied by this
-	var/ricochet_chance_mod = 1
+	var/receive_ricochet_chance_mod = 1
 	///When a projectile ricochets off this atom, it deals the normal damage * this modifier to this atom
-	var/ricochet_damage_mod = 0.33
+	var/receive_ricochet_damage_coeff = 0.33
 
 	///Reagents holder
 	var/datum/reagents/reagents = null
@@ -67,8 +67,6 @@
 	var/buckle_message_cooldown = 0
 	///Last fingerprints to touch this atom
 	var/fingerprintslast
-
-	var/list/filter_data //For handling persistent filters
 
 	///Economy cost of item
 	var/custom_price
@@ -154,15 +152,24 @@
 	/// The current connector overlay appearance. Saved so that it can be cut when necessary.
 	var/connector_overlay
 
-	///Default X pixel offset
-	var/base_pixel_x
-	///Default Y pixel offset
-	var/base_pixel_y
+	///Default pixel x shifting for the atom's icon.
+	var/base_pixel_x = 0
+	///Default pixel y shifting for the atom's icon.
+	var/base_pixel_y = 0
+	//Default pixel w shifting for the atom's icon.
+	var/base_pixel_w = 0
+	///Default pixel z shifting for the atom's icon.
+	var/base_pixel_z = 0
 
 	///Wanted sound when hit by a projectile
 	var/hitsound_type = PROJECTILE_HITSOUND_NON_LIVING
 	///volume wanted for being hit
 	var/hitsound_volume = 50
+
+	/// Generally for niche objects, atoms blacklisted can spawn if enabled by spawner.
+	var/spawn_blacklisted = FALSE
+	/// Use path Ex:(bad_type = obj/item). Generally for abstract code objects, atoms with a set bad_type can never be selected by spawner. Examples include parent objects which should only exist within the code, or deployable embedded items.
+	var/bad_type
 
 /**
  * Called when an atom is created in byond (built in engine proc)
@@ -267,6 +274,16 @@
 	custom_materials = null //Null the list to prepare for applying the materials properly
 	set_custom_materials(temp_list)
 
+	if(uses_integrity)
+		if (islist(armor))
+			armor = getArmor(arglist(armor))
+		else if (!armor)
+			armor = getArmor()
+		else if (!istype(armor, /datum/armor))
+			stack_trace("Invalid type [armor.type] found in .armor during /obj Initialize()")
+		if(atom_integrity == null)
+			atom_integrity = max_integrity
+
 	ComponentInitialize()
 	InitializeAIController()
 
@@ -352,6 +369,10 @@
 /atom/proc/CanAllowThrough(atom/movable/mover, border_dir)
 	SHOULD_CALL_PARENT(TRUE)
 	//SHOULD_BE_PURE(TRUE)
+
+	//put some kinda signal here
+	if(SEND_SIGNAL(src, COMSIG_ATOM_TRY_ALLOW_THROUGH, mover, border_dir))
+		return TRUE
 	if(mover.pass_flags & pass_flags_self)
 		return TRUE
 	if(mover.throwing && (pass_flags_self & LETPASSTHROW))
@@ -395,22 +416,24 @@
  */
 /atom/proc/CheckParts(list/parts_list, datum/crafting_recipe/R)
 	SEND_SIGNAL(src, COMSIG_ATOM_CHECKPARTS, parts_list, R)
-	if(parts_list)
-		for(var/A in parts_list)
-			if(istype(A, /datum/reagent))
-				if(!reagents)
-					reagents = new()
-				reagents.reagent_list.Add(A)
-				reagents.conditional_update()
-			else if(ismovable(A))
-				var/atom/movable/M = A
-				if(isliving(M.loc))
-					var/mob/living/L = M.loc
-					L.transferItemToLoc(M, src)
-				else
-					M.forceMove(src)
-				SEND_SIGNAL(M, COMSIG_ATOM_USED_IN_CRAFT, src)
-		parts_list.Cut()
+	if(!parts_list)
+		return
+
+	for(var/A in parts_list)
+		if(istype(A, /datum/reagent))
+			if(!reagents)
+				reagents = new()
+			reagents.reagent_list.Add(A)
+			reagents.conditional_update()
+		else if(ismovable(A))
+			var/atom/movable/M = A
+			if(isliving(M.loc))
+				var/mob/living/L = M.loc
+				L.transferItemToLoc(M, src)
+			else
+				M.forceMove(src)
+			SEND_SIGNAL(M, COMSIG_ATOM_USED_IN_CRAFT, src)
+	parts_list.Cut()
 
 ///Take air from the passed in gas mixture datum
 /atom/proc/assume_air(datum/gas_mixture/giver)
@@ -474,6 +497,22 @@
 /atom/proc/is_drainable()
 	return reagents && (reagents.flags & DRAINABLE)
 
+/// gives the informations to display on a reagent scanner when scanned, returns a string
+/atom/proc/reagent_scan()
+	var/list/render_list = list()
+
+	if(!isnull(reagents))
+		if(reagents.reagent_list.len > 0)
+			var/reagents_length = reagents.reagent_list.len
+			var/reagents_temp =	reagents.chem_temp
+			render_list += span_notice("[reagents_length] chemical agent[reagents_length > 1 ? "s" : ""] found inside [src] at [reagents_temp]°K.") + "<br>"
+			for (var/re in reagents.reagent_list)
+				var/datum/reagent/R = re
+				var/amount = R.volume
+				render_list += span_notice("\t [amount] units of [re].") + "<br>"
+
+	return jointext(render_list, "")
+
 /** Handles exposing this atom to a list of reagents.
  *
  * Sends COMSIG_ATOM_EXPOSE_REAGENTS
@@ -487,12 +526,14 @@
  * - show_message: Whether to display anything to mobs when they are exposed.
  */
 /atom/proc/expose_reagents(list/reagents, datum/reagents/source, method=TOUCH, volume_modifier=1, show_message=TRUE)
-	if((. = SEND_SIGNAL(src, COMSIG_ATOM_EXPOSE_REAGENTS, reagents, source, method, volume_modifier, show_message)) & COMPONENT_NO_EXPOSE_REAGENTS)
+	. = SEND_SIGNAL(src, COMSIG_ATOM_EXPOSE_REAGENTS, reagents, source, method, volume_modifier, show_message)
+	if(. & COMPONENT_NO_EXPOSE_REAGENTS)
 		return
 
 	for(var/reagent in reagents)
 		var/datum/reagent/R = reagent
 		. |= R.expose_atom(src, reagents[R])
+	SEND_SIGNAL(src, COMSIG_ATOM_AFTER_EXPOSE_REAGENTS, reagents, source, method, volume_modifier, show_message)
 
 /// Are you allowed to drop this atom
 /atom/proc/AllowDrop()
@@ -593,7 +634,7 @@
  * Default behaviour is to get the name and icon of the object and it's reagents where
  * the [TRANSPARENT] flag is set on the reagents holder
  *
- * Produces a signal [COMSIG_PARENT_EXAMINE]
+ * Produces a signal [COMSIG_ATOM_EXAMINE]
  */
 /atom/proc/examine(mob/user)
 	var/examine_string = get_examine_string(user, thats = TRUE)
@@ -631,7 +672,7 @@
 			else
 				. += span_danger("It's empty.")
 
-	SEND_SIGNAL(src, COMSIG_PARENT_EXAMINE, user, .)
+	SEND_SIGNAL(src, COMSIG_ATOM_EXAMINE, user, .)
 
 /**
  * Updates the appearence of the icon
@@ -718,7 +759,7 @@
 	return
 
 /// Handle what happens when your contents are exploded by a bomb
-/atom/proc/contents_explosion(severity, target)
+/atom/proc/contents_explosion(severity, target, light_dam, light_item_dam, heavy_dam, heavy_item_dam)
 	return //For handling the effects of explosions on contents that would not normally be effected
 
 /**
@@ -726,10 +767,10 @@
  *
  * Default behaviour is to call [contents_explosion][/atom/proc/contents_explosion] and send the [COMSIG_ATOM_EX_ACT] signal
  */
-/atom/proc/ex_act(severity, target)
+/atom/proc/ex_act(severity, target, light_dam = EX_LIGHT_BASE_DAM, light_item_dam = EX_LIGHT_BASE_ITEM_DAM, heavy_dam = EX_HEAVY_BASE_DAM, heavy_item_dam = EX_HEAVY_BASE_ITEM_DAM)
 	set waitfor = FALSE
-	contents_explosion(severity, target)
-	SEND_SIGNAL(src, COMSIG_ATOM_EX_ACT, severity, target)
+	contents_explosion(severity, target, light_dam, light_item_dam, heavy_dam, heavy_item_dam)
+	SEND_SIGNAL(src, COMSIG_ATOM_EX_ACT, severity, target, light_dam, light_item_dam, heavy_dam, heavy_item_dam)
 
 /atom/proc/fire_act(exposed_temperature, exposed_volume)
 	SEND_SIGNAL(src, COMSIG_ATOM_FIRE_ACT, exposed_temperature, exposed_volume)
@@ -1135,21 +1176,28 @@
 	if(href_list[VV_HK_MODIFY_TRANSFORM] && check_rights(R_VAREDIT))
 		var/result = input(usr, "Choose the transformation to apply","Transform Mod") as null|anything in list("Scale","Translate","Rotate")
 		var/matrix/M = transform
+		if(!result)
+			return
 		switch(result)
 			if("Scale")
 				var/x = input(usr, "Choose x mod","Transform Mod") as null|num
 				var/y = input(usr, "Choose y mod","Transform Mod") as null|num
-				if(!isnull(x) && !isnull(y))
-					transform = M.Scale(x,y)
+				if(isnull(x) || isnull(y))
+					return
+				transform = M.Scale(x,y)
 			if("Translate")
-				var/x = input(usr, "Choose x mod","Transform Mod") as null|num
-				var/y = input(usr, "Choose y mod","Transform Mod") as null|num
-				if(!isnull(x) && !isnull(y))
-					transform = M.Translate(x,y)
+				var/x = input(usr, "Choose x mod (negative = left, positive = right)","Transform Mod") as null|num
+				var/y = input(usr, "Choose y mod (negative = down, positive = up)","Transform Mod") as null|num
+				if(isnull(x) || isnull(y))
+					return
+				transform = M.Translate(x,y)
 			if("Rotate")
 				var/angle = input(usr, "Choose angle to rotate","Transform Mod") as null|num
-				if(!isnull(angle))
-					transform = M.Turn(angle)
+				if(isnull(angle))
+					return
+				transform = M.Turn(angle)
+
+		SEND_SIGNAL(src, COMSIG_ATOM_VV_MODIFY_TRANSFORM)
 	if(href_list[VV_HK_AUTO_RENAME] && check_rights(R_VAREDIT))
 		var/newname = input(usr, "What do you want to rename this to?", "Automatic Rename") as null|text
 		if(newname)
@@ -1166,7 +1214,7 @@
 	. = ..()
 	var/refid = REF(src)
 	. += "[VV_HREF_TARGETREF(refid, VV_HK_AUTO_RENAME, "<b id='name'>[src]</b>")]"
-	. += "<br><font size='1'><a href='?_src_=vars;[HrefToken()];rotatedatum=[refid];rotatedir=left'><<</a> <a href='?_src_=vars;[HrefToken()];datumedit=[refid];varnameedit=dir' id='dir'>[dir2text(dir) || dir]</a> <a href='?_src_=vars;[HrefToken()];rotatedatum=[refid];rotatedir=right'>>></a></font>"
+	. += "<br><font size='1'><a href='byond://?_src_=vars;[HrefToken()];rotatedatum=[refid];rotatedir=left'><<</a> <a href='byond://?_src_=vars;[HrefToken()];datumedit=[refid];varnameedit=dir' id='dir'>[dir2text(dir) || dir]</a> <a href='byond://?_src_=vars;[HrefToken()];rotatedatum=[refid];rotatedir=right'>>></a></font>"
 
 ///Where atoms should drop if taken from this atom
 /atom/proc/drop_location()
@@ -1222,32 +1270,35 @@
  *
  * Must return  parent proc ..() in the end if overridden
  */
-/atom/proc/tool_act(mob/living/user, obj/item/I, tool_type)
+/atom/proc/tool_act(mob/living/user, obj/item/tool, tool_type, params)
 	var/signal_result
 
+	var/list/modifiers = params2list(params)
 	var/list/processing_recipes = list() //List of recipes that can be mutated by sending the signal
-	signal_result = SEND_SIGNAL(src, COMSIG_ATOM_TOOL_ACT(tool_type), user, I, processing_recipes)
+	signal_result = SEND_SIGNAL(src, COMSIG_ATOM_TOOL_ACT(tool_type), user, tool, modifiers, processing_recipes)
 	if(processing_recipes.len)
-		process_recipes(user, I, processing_recipes)
-	if(QDELETED(I))
+		process_recipes(user, tool, processing_recipes)
+	if(QDELETED(tool))
 		return TRUE
 	switch(tool_type)
 		if(TOOL_CROWBAR)
-			. = crowbar_act(user, I)
+			. = crowbar_act(user, tool, modifiers)
 		if(TOOL_MULTITOOL)
-			. = multitool_act(user, I)
+			. = multitool_act(user, tool, modifiers)
 		if(TOOL_SCREWDRIVER)
-			. = screwdriver_act(user, I)
+			. = screwdriver_act(user, tool, modifiers)
 		if(TOOL_WRENCH)
-			. = wrench_act(user, I)
+			. = wrench_act(user, tool, modifiers)
 		if(TOOL_WIRECUTTER)
-			. = wirecutter_act(user, I)
+			. = wirecutter_act(user, tool, modifiers)
 		if(TOOL_WELDER)
-			. = welder_act(user, I)
+			. = welder_act(user, tool, modifiers)
 		if(TOOL_ANALYZER)
-			. = analyzer_act(user, I)
+			. = analyzer_act(user, tool, modifiers)
+		if(TOOL_SHOVEL)
+			. = shovel_act(user, tool, modifiers)
 		if(TOOL_DECONSTRUCT)
-			. |= deconstruct_act(user, I)
+			. |= deconstruct_act(user, tool, modifiers)
 	if(. || signal_result & COMPONENT_BLOCK_TOOL_ATTACK) //Either the proc or the signal handled the tool's events in some way.
 		return TRUE
 
@@ -1275,16 +1326,31 @@
 
 	StartProcessingAtom(user, I, choices_to_options[pick])
 
-
-/atom/proc/StartProcessingAtom(mob/living/user, obj/item/I, list/chosen_option)
+/atom/proc/StartProcessingAtom(mob/living/user, obj/item/process_item, list/chosen_option)
+	var/processing_time = chosen_option[TOOL_PROCESSING_TIME]
 	to_chat(user, span_notice("You start working on [src]"))
-	if(I.use_tool(src, user, chosen_option[TOOL_PROCESSING_TIME], volume=50))
+
+	if(process_item.use_tool(src, user, processing_time, volume = 50))
 		var/atom/atom_to_create = chosen_option[TOOL_PROCESSING_RESULT]
-		for(var/i = 1 to chosen_option[TOOL_PROCESSING_AMOUNT])
-			new atom_to_create(loc)
-		to_chat(user, span_notice("You manage to create [chosen_option[TOOL_PROCESSING_AMOUNT]] [initial(atom_to_create.name)] from [src]"))
-		qdel(src)
+		var/list/atom/created_atoms = list()
+		var/amount_to_create = chosen_option[TOOL_PROCESSING_AMOUNT]
+		for(var/i = 1 to amount_to_create)
+			var/atom/created_atom = new atom_to_create(drop_location())
+			created_atom.pixel_x = pixel_x
+			created_atom.pixel_y = pixel_y
+			if(i > 1)
+				created_atom.pixel_x += rand(-8,8)
+				created_atom.pixel_y += rand(-8,8)
+			created_atom.OnCreatedFromProcessing(user, process_item, chosen_option, src)
+
+		to_chat(user, span_notice("You manage to create [chosen_option[TOOL_PROCESSING_AMOUNT]] [initial(atom_to_create.gender) == PLURAL ? "[initial(atom_to_create.name)]" : "[initial(atom_to_create.name)][plural_s(initial(atom_to_create.name))]"] from [src]."))
+		SEND_SIGNAL(src, COMSIG_ATOM_PROCESSED, user, process_item, created_atoms)
+		UsedforProcessing(user, process_item, chosen_option)
 		return
+
+/atom/proc/UsedforProcessing(mob/living/user, obj/item/used_item, list/chosen_option)
+	qdel(src)
+	return
 
 /atom/proc/OnCreatedFromProcessing(mob/living/user, obj/item/I, list/chosen_option, atom/original_atom)
 	return
@@ -1293,11 +1359,11 @@
 ///
 
 ///Crowbar act
-/atom/proc/crowbar_act(mob/living/user, obj/item/I)
+/atom/proc/crowbar_act(mob/living/user, obj/item/I, list/modifiers)
 	return SEND_SIGNAL(src, COMSIG_ATOM_CROWBAR_ACT, user, I)
 
 ///Multitool act
-/atom/proc/multitool_act(mob/living/user, obj/item/I)
+/atom/proc/multitool_act(mob/living/user, obj/item/I, list/modifiers)
 	return SEND_SIGNAL(src, COMSIG_ATOM_MULTITOOL_ACT, user, I)
 
 ///Check if the multitool has an item in it's data buffer
@@ -1309,27 +1375,31 @@
 	return TRUE
 
 ///Screwdriver act
-/atom/proc/screwdriver_act(mob/living/user, obj/item/I)
+/atom/proc/screwdriver_act(mob/living/user, obj/item/I, list/modifiers)
 	return SEND_SIGNAL(src, COMSIG_ATOM_SCREWDRIVER_ACT, user, I)
 
 ///Wrench act
-/atom/proc/wrench_act(mob/living/user, obj/item/I)
+/atom/proc/wrench_act(mob/living/user, obj/item/I, list/modifiers)
 	return SEND_SIGNAL(src, COMSIG_ATOM_WRENCH_ACT, user, I)
 
 ///Wirecutter act
-/atom/proc/wirecutter_act(mob/living/user, obj/item/I)
+/atom/proc/wirecutter_act(mob/living/user, obj/item/I, list/modifiers)
 	return SEND_SIGNAL(src, COMSIG_ATOM_WIRECUTTER_ACT, user, I)
 
 ///Welder act
-/atom/proc/welder_act(mob/living/user, obj/item/I)
+/atom/proc/welder_act(mob/living/user, obj/item/I, list/modifiers)
 	return SEND_SIGNAL(src, COMSIG_ATOM_WELDER_ACT, user, I)
 
 ///Analyzer act
-/atom/proc/analyzer_act(mob/living/user, obj/item/I)
+/atom/proc/analyzer_act(mob/living/user, obj/item/I, list/modifiers)
 	return SEND_SIGNAL(src, COMSIG_ATOM_ANALYSER_ACT, user, I)
 
+///Shovel act
+/atom/proc/shovel_act(mob/living/user, obj/item/I, list/modifiers)
+	return SEND_SIGNAL(src, COMSIG_ATOM_SHOVEL_ACT, user, I)
+
 ///Deconstruct act
-/atom/proc/deconstruct_act(mob/living/user, obj/item/I)
+/atom/proc/deconstruct_act(mob/living/user, obj/item/I, list/modifiers)
 	if(flags_1 & NODECONSTRUCT_1)
 		return TRUE
 	return SEND_SIGNAL(src, COMSIG_ATOM_DECONSTRUCT_ACT, user, I)
@@ -1389,8 +1459,6 @@
 			log_shuttle(log_text)
 		if(LOG_RADIO_EMOTE)
 			log_radio_emote(log_text)
-		if(LOG_MSAY)
-			log_mentor(log_text)
 		if(LOG_LOOC)
 			log_looc(log_text)
 		if(LOG_SUBTLER)
@@ -1448,70 +1516,6 @@
 		var/reverse_message = "has been [what_done] by [ssource][postfix]"
 		target.log_message(reverse_message, LOG_ATTACK, color="orange", log_globally=FALSE)
 
-/atom/proc/add_filter(name,priority,list/params)
-	LAZYINITLIST(filter_data)
-	var/list/p = params.Copy()
-	p["priority"] = priority
-	filter_data[name] = p
-	update_filters()
-
-/atom/proc/update_filters()
-	filters = null
-	filter_data = sortTim(filter_data, /proc/cmp_filter_data_priority, TRUE)
-	for(var/f in filter_data)
-		var/list/data = filter_data[f]
-		var/list/arguments = data.Copy()
-		arguments -= "priority"
-		filters += filter(arglist(arguments))
-	UNSETEMPTY(filter_data)
-
-/atom/proc/transition_filter(name, time, list/new_params, easing, loop)
-	var/filter = get_filter(name)
-	if(!filter)
-		return
-
-	var/list/old_filter_data = filter_data[name]
-
-	var/list/params = old_filter_data.Copy()
-	for(var/thing in new_params)
-		params[thing] = new_params[thing]
-
-	animate(filter, new_params, time = time, easing = easing, loop = loop)
-	for(var/param in params)
-		filter_data[name][param] = params[param]
-
-/atom/proc/change_filter_priority(name, new_priority)
-	if(!filter_data || !filter_data[name])
-		return
-
-	filter_data[name]["priority"] = new_priority
-	update_filters()
-
-/obj/item/update_filters()
-	. = ..()
-	for(var/X in actions)
-		var/datum/action/A = X
-		A.UpdateButtonIcon()
-
-/atom/proc/get_filter(name)
-	if(filter_data && filter_data[name])
-		return filters[filter_data.Find(name)]
-
-/atom/proc/remove_filter(name_or_names)
-	if(!filter_data)
-		return
-
-	var/list/names = islist(name_or_names) ? name_or_names : list(name_or_names)
-
-	for(var/name in names)
-		if(filter_data[name])
-			filter_data -= name
-	update_filters()
-
-/atom/proc/clear_filters()
-	filter_data = null
-	filters = null
-
 /atom/proc/intercept_zImpact(atom/movable/AM, levels = 1)
 	. |= SEND_SIGNAL(src, COMSIG_ATOM_INTERCEPT_Z_FALL, AM, levels)
 
@@ -1537,11 +1541,6 @@
 		if(!(material_flags & MATERIAL_NO_EFFECTS))
 			custom_material.on_applied(src, materials[custom_material] * multiplier * material_modifier, material_flags)
 		custom_materials[custom_material] += materials[x] * multiplier
-
-/// Returns the indice in filters of the given filter name.
-/// If it is not found, returns null.
-/atom/proc/get_filter_index(name)
-	return filter_data?.Find(name)
 
 /**
  * Returns true if this atom has gravity for the passed in turf
@@ -1613,18 +1612,22 @@
 					max_grav = max(SG.active,max_grav)
 		return max_grav
 
+///Called after the atom is 'tamed' for type-specific operations, Usually called by the tameable component but also other things.
+/atom/proc/tamed(mob/living/tamer, obj/item/food)
+	return
+
 /**
  * Called when a mob examines (shift click or verb) this atom twice (or more) within EXAMINE_MORE_TIME (default 1.5 seconds)
  *
  * This is where you can put extra information on something that may be superfluous or not important in critical gameplay
  * moments, while allowing people to manually double-examine to take a closer look
  *
- * Produces a signal [COMSIG_PARENT_EXAMINE_MORE]
+ * Produces a signal [COMSIG_ATOM_EXAMINE_MORE]
  */
 /atom/proc/examine_more(mob/user)
 	SHOULD_CALL_PARENT(TRUE)
 	. = list()
-	SEND_SIGNAL(src, COMSIG_PARENT_EXAMINE_MORE, user, .)
+	SEND_SIGNAL(src, COMSIG_ATOM_EXAMINE_MORE, user, .)
 
 ///Passes Stat Browser Panel clicks to the game and calls client click on an atom
 /atom/Topic(href, list/href_list)
@@ -1739,3 +1742,63 @@
 /atom/proc/InitializeAIController()
 	if(ai_controller)
 		ai_controller = new ai_controller(src)
+
+/**
+ * log_wound() is for when someone is *attacked* and suffers a wound. Note that this only captures wounds from damage, so smites/forced wounds aren't logged, as well as demotions like cuts scabbing over
+ *
+ * Note that this has no info on the attack that dealt the wound: information about where damage came from isn't passed to the bodypart's damaged proc. When in doubt, check the attack log for attacks at that same time
+ * TODO later: Add logging for healed wounds, though that will require some rewriting of healing code to prevent admin heals from spamming the logs. Not high priority
+ *
+ * Arguments:
+ * * victim- The guy who got wounded
+ * * suffered_wound- The wound, already applied, that we're logging. It has to already be attached so we can get the limb from it
+ * * dealt_damage- How much damage is associated with the attack that dealt with this wound.
+ * * dealt_wound_bonus- The wound_bonus, if one was specified, of the wounding attack
+ * * dealt_bare_wound_bonus- The bare_wound_bonus, if one was specified *and applied*, of the wounding attack. Not shown if armor was present
+ * * base_roll- Base wounding ability of an attack is a random number from 1 to (dealt_damage ** WOUND_DAMAGE_EXPONENT). This is the number that was rolled in there, before mods
+ */
+/proc/log_wound(atom/victim, obj/item/bodypart/limb, list/datum/wound/suffered_wounds, list/wounding_types, dealt_wound_bonus, dealt_bare_wound_bonus, list/base_rolls)
+	if(QDELETED(victim) || !LAZYLEN(suffered_wounds))
+		return
+	var/message = "has suffered: [english_list(suffered_wounds)][limb ? " to [limb.name]" : null]"// maybe indicate if it's a promote/demote?
+
+	if(wounding_types)
+		var/damage_text
+		for(var/wounding_type in wounding_types)
+			if(damage_text)
+				damage_text += ", "
+			var/damage_dealt = wounding_types[wounding_type]
+			damage_text = "[damage_dealt] [wounding_type]"
+			// The base roll is useful since it can show how lucky someone got with the given attack. For example, dealing a cut
+			if(base_rolls)
+				damage_text += "(rolled [base_rolls[wounding_type]]/[damage_dealt ** WOUND_DAMAGE_EXPONENT])"
+		message += " | Damage: [damage_text]"
+
+	if(dealt_wound_bonus)
+		message += " | WB: [dealt_wound_bonus]"
+
+	if(dealt_bare_wound_bonus)
+		message += " | BWB: [dealt_bare_wound_bonus]"
+
+	victim.log_message(message, LOG_ATTACK, color="blue")
+
+
+/**
+ * Proc called when you want the atom to spin around the center of its icon (or where it would be if its transform var is translated)
+ * By default, it makes the atom spin forever and ever at a speed of 60 rpm.
+ *
+ * Arguments:
+ * * speed: how much it takes for the atom to complete one 360° rotation
+ * * loops: how many times do we want the atom to rotate
+ * * clockwise: whether the atom ought to spin clockwise or counter-clockwise
+ * * segments: in how many animate calls the rotation is split. Probably unnecessary, but you shouldn't set it lower than 3 anyway.
+ * * parallel: whether the animation calls have the ANIMATION_PARALLEL flag, necessary for it to run alongside concurrent animations.
+ */
+/atom/proc/SpinAnimation(speed = 1 SECONDS, loops = -1, clockwise = TRUE, segments = 3, parallel = TRUE)
+	if(!segments)
+		return
+	var/segment = 360/segments
+	if(!clockwise)
+		segment = -segment
+	SEND_SIGNAL(src, COMSIG_ATOM_SPIN_ANIMATION, speed, loops, segments, segment)
+	do_spin_animation(speed, loops, segments, segment, parallel)

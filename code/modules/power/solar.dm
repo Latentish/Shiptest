@@ -67,7 +67,7 @@
 		S.forceMove(src)
 	if(S.glass_type == /obj/item/stack/sheet/rglass) //if the panel is in reinforced glass
 		max_integrity *= 2 								 //this need to be placed here, because panels already on the map don't have an assembly linked to
-		obj_integrity = max_integrity
+		atom_integrity = max_integrity
 
 /obj/machinery/power/solar/crowbar_act(mob/user, obj/item/I)
 	playsound(src.loc, 'sound/machines/click.ogg', 50, TRUE)
@@ -89,7 +89,7 @@
 			playsound(loc, 'sound/items/welder.ogg', 100, TRUE)
 
 
-/obj/machinery/power/solar/obj_break(damage_flag)
+/obj/machinery/power/solar/atom_break(damage_flag)
 	. = ..()
 	if(.)
 		playsound(loc, 'sound/effects/glassbr3.ogg', 100, TRUE)
@@ -332,9 +332,10 @@
 
 	var/track = SOLAR_TRACK_OFF ///SOLAR_TRACK_OFF, SOLAR_TRACK_TIMED, SOLAR_TRACK_AUTO
 
-	var/datum/powernet/powernet = null
 	var/obj/machinery/power/tracker/connected_tracker = null
 	var/list/connected_panels = list()
+
+	power_flags = POWER_ALLOW_AREA | POWER_ALLOW_WIRE
 
 /obj/machinery/computer/solar_control/Initialize(mapload)
 	. = ..()
@@ -452,20 +453,8 @@
 	for(var/obj/machinery/power/solar/S in connected_panels)
 		S.queue_turn(azimuth)
 
-/obj/machinery/computer/solar_control/proc/connect_to_network()
-	. = FALSE
-	powernet = null
-	var/turf/T = get_turf(src)
-	var/obj/structure/cable/attached_wire = locate(/obj/structure/cable) in T
-	if(attached_wire)
-		powernet = attached_wire.powernet
-	if(!powernet) //if the computer isn't directly connected to a wire, attempt to find the APC powering it to pull it's powernet instead
-		var/area/A = get_area(src)
-		if(!A)
-			return
-		var/obj/machinery/power/apc/local_apc = A.get_apc()
-		if(local_apc && local_apc.terminal)
-			powernet = local_apc.terminal.powernet
+/obj/machinery/computer/solar_control/connect_to_network()
+	..()
 	if(powernet)
 		search_for_connected()
 		return TRUE

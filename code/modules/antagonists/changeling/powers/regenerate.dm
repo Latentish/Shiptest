@@ -25,15 +25,15 @@
 			C.emote("scream")
 			C.regenerate_limbs(1)
 		if(!user.getorganslot(ORGAN_SLOT_BRAIN))
-			var/obj/item/organ/brain/B
-			if(C.has_dna() && C.dna.species.mutantbrain)
-				B = new C.dna.species.mutantbrain()
-			else
-				B = new()
+			var/obj/item/organ/brain/B = C.dna?.species.species_organs[ORGAN_SLOT_BRAIN] || /obj/item/organ/brain
+			B = new()
 			B.organ_flags &= ~ORGAN_VITAL
 			B.decoy_override = TRUE
 			B.Insert(C)
 		C.regenerate_organs()
+		for(var/i in C.all_wounds)
+			var/datum/wound/iter_wound = i
+			iter_wound.remove_wound()
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		H.restore_blood()

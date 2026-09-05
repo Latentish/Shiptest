@@ -17,10 +17,14 @@
 	var/number_of_rods = 2
 	var/hatch_open = FALSE
 	var/obj/item/stack/tile/plated_tile
+	var/list/give_turf_traits = list(TRAIT_IMMERSE_STOPPED, TRAIT_CHASM_STOPPED, TRAIT_LAVA_STOPPED, TRAIT_TURF_IGNORE_SLOWDOWN, TRAIT_ACID_STOPPED)
 
 /obj/structure/catwalk/Initialize()
 	. = ..()
 	update_appearance()
+	if(length(give_turf_traits))
+		give_turf_traits = string_list(give_turf_traits)
+		AddElement(/datum/element/give_turf_traits, give_turf_traits)
 
 /obj/structure/catwalk/over
 	layer = CATWALK_LAYER //over pipes, duh
@@ -57,10 +61,6 @@
 		. += span_notice("The supporting rods look like they could be <b>welded</b>.")
 
 /obj/structure/catwalk/attackby(obj/item/C, mob/user, params)
-	if((C.tool_behaviour == TOOL_WELDER || C.tool_behaviour == TOOL_DECONSTRUCT) && !(resistance_flags & INDESTRUCTIBLE))
-		to_chat(user, span_notice("You slice off [src]"))
-		deconstruct()
-		return
 	if(C.tool_behaviour == TOOL_CROWBAR && plated_tile)
 		hatch_open = !hatch_open
 		if(hatch_open)
@@ -83,6 +83,20 @@
 				update_appearance()
 		return
 	return ..()
+
+/obj/structure/catwalk/deconstruct_act(mob/living/user, obj/item/tool)
+	if(..())
+		return TRUE
+	to_chat(user, span_notice("You slice off [src]"))
+	deconstruct()
+	return TRUE
+
+/obj/structure/catwalk/welder_act(mob/living/user, obj/item/tool)
+	if(..() || (resistance_flags & INDESTRUCTIBLE))
+		return TRUE
+	to_chat(user, span_notice("You slice off [src]"))
+	deconstruct()
+	return TRUE
 
 /obj/structure/catwalk/Move(atom/newloc)
 	var/turf/T = loc

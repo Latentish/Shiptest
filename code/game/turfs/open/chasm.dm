@@ -14,12 +14,25 @@
 
 /turf/open/chasm/Initialize(mapload, inherited_virtual_z)
 	. = ..()
-	AddComponent(/datum/component/chasm, below())
+	apply_components(mapload)
+
+/turf/open/chasm/proc/apply_components(mapload)
+	AddComponent(/datum/component/chasm, below(), mapload)
+
+/turf/open/chasm/examine(mob/user)
+	. = ..()
+	. += span_warning("You WILL fucking die if you step on this!!!")
 
 /// Lets people walk into chasms.
 /turf/open/chasm/CanAllowThrough(atom/movable/mover, border_dir)
 	. = ..()
-	return TRUE
+	if(HAS_TRAIT(src, TRAIT_CHASM_STOPPED))
+		return TRUE
+	if(!isliving(mover))
+		return TRUE
+	if(mover.movement_type & (FLOATING|FLYING))
+		return TRUE
+	return FALSE
 
 /turf/open/chasm/proc/set_target(turf/target)
 	var/datum/component/chasm/chasm_component = GetComponent(/datum/component/chasm)
@@ -107,9 +120,13 @@
 	icon = 'icons/turf/floors/junglechasm.dmi'
 	icon_state = "junglechasm-255"
 	base_icon_state = "junglechasm"
-	initial_gas_mix = OPENTURF_LOW_PRESSURE
+	initial_gas_mix = JUNGLEPLANET_DEFAULT_ATMOS
 	planetary_atmos = TRUE
 	baseturfs = /turf/open/chasm/jungle
+
+/turf/open/chasm/jungle/lit
+	light_range = 2
+	light_power = 0.8
 
 /turf/open/chasm/jungle/get_smooth_underlay_icon(mutable_appearance/underlay_appearance, turf/asking_turf, adjacency_dir)
 	underlay_appearance.icon = 'icons/turf/floors.dmi'

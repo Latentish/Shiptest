@@ -55,16 +55,20 @@
 
 	var/parallax_movedir = 0
 
-	var/list/ambientsounds = GENERIC
+	var/ambience_index = AMBIENCE_GENERIC
+	///A list of sounds to pick from every so often to play to clients.
+	var/list/ambientsounds
+	///Used to decide what the minimum time between ambience is
+	var/min_ambience_cooldown = 30 SECONDS
+	///Used to decide what the maximum time between ambience is
+	var/max_ambience_cooldown = 60 SECONDS
+
 	flags_1 = CAN_BE_DIRTY_1
 
 	var/list/firedoors
 	var/list/cameras
 	var/list/firealarms
 	var/firedoors_last_closed_on = 0
-
-	///Boolean to limit the areas (subtypes included) that atoms in this area can smooth with. Used for shuttles.
-	var/area_limited_icon_smoothing = FALSE
 
 	var/list/power_usage
 
@@ -78,10 +82,8 @@
 	///Used to decide what kind of reverb the area makes sound have
 	var/sound_environment = SOUND_ENVIRONMENT_NONE
 
-	///Used to decide what the minimum time between ambience is
-	var/min_ambience_cooldown = 30 SECONDS
-	///Used to decide what the maximum time between ambience is
-	var/max_ambience_cooldown = 90 SECONDS
+	/// The current weather active in this area
+	var/datum/weather/active_weather
 
 	/// Whether area is underground, important for weathers which shouldn't affect caves etc.
 	var/underground = FALSE
@@ -142,6 +144,8 @@ GLOBAL_LIST_EMPTY(teleportlocs)
  */
 /area/Initialize()
 	icon_state = ""
+	if(!ambientsounds)
+		ambientsounds = GLOB.ambience_assoc[ambience_index]
 
 	if(dynamic_lighting == DYNAMIC_LIGHTING_IFSTARLIGHT)
 		dynamic_lighting = CONFIG_GET(flag/starlight) ? DYNAMIC_LIGHTING_ENABLED : DYNAMIC_LIGHTING_DISABLED
@@ -399,7 +403,10 @@ GLOBAL_LIST_EMPTY(teleportlocs)
  */
 /area/proc/close_and_lock_door(obj/machinery/door/DOOR)
 	set waitfor = FALSE
-	DOOR.close()
+	if(DOOR.close_exception)
+		return
+	else
+		DOOR.close()
 	if(DOOR.density)
 		DOOR.lock()
 
@@ -419,6 +426,9 @@ GLOBAL_LIST_EMPTY(teleportlocs)
 	//Lockdown airlocks
 	for(var/obj/machinery/door/DOOR in src)
 		close_and_lock_door(DOOR)
+
+	for(var/obj/structure/hazard/hazards in src)
+		hazards.alarm()
 
 	for (var/i in GLOB.silicon_mobs)
 		var/mob/living/silicon/SILICON = i

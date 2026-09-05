@@ -1,5 +1,6 @@
 /obj/item/melee/sledgehammer
 	name = "sledgehammer"
+	desc = "A heavy-duty hammer designed to demolish walls, break rock, and smash open doors."
 	icon_state = "sledgehammer"
 	base_icon_state = "sledgehammer"
 	icon = 'icons/obj/weapon/blunt.dmi'
@@ -9,8 +10,8 @@
 	force = 5
 	throwforce = 15
 	armour_penetration = 40
-	demolition_mod = 2
-	sharpness = IS_BLUNT
+	demolition_mod = 2.5
+	sharpness = SHARP_NONE
 	w_class = WEIGHT_CLASS_BULKY
 	slot_flags = ITEM_SLOT_BACK
 	attack_cooldown = 12
@@ -19,10 +20,12 @@
 	pickup_sound = 'sound/weapons/melee/heavy_pickup.ogg'
 	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 30)
 	resistance_flags = FIRE_PROOF
+	var/throw_min = 1
+	var/throw_max = 2
 
 /obj/item/melee/sledgehammer/ComponentInitialize()
 	. = ..()
-	AddComponent(/datum/component/two_handed, force_unwielded = force, force_wielded = 30, icon_wielded="[base_icon_state]_w")
+	AddComponent(/datum/component/two_handed, force_unwielded = force, force_wielded = 40, icon_wielded="[base_icon_state]_w")
 
 /obj/item/melee/sledgehammer/update_icon_state()
 	icon_state = "[base_icon_state]"
@@ -33,6 +36,7 @@
 	base_icon_state = "gorlex_sledgehammer"
 	name = "breaching sledgehammer"
 	desc = "A large hammer used by the Gorlex Marauder splinters. As powerful as a weapon as it is a shipbreaking and mining tool."
+	slot_flags = ITEM_SLOT_BACK | ITEM_SLOT_SUITSTORE
 	toolspeed = 0.5
 	wall_decon_damage = MINERAL_WALL_INTEGRITY
 	usesound = list('sound/effects/picaxe1.ogg', 'sound/effects/picaxe2.ogg', 'sound/effects/picaxe3.ogg')
@@ -58,7 +62,7 @@
 		return
 	var/atom/throw_target = get_edge_target_turf(target, user.dir)
 	if(!target.anchored)
-		target.throw_at(throw_target, rand(1,2), 2, user, gentle = TRUE)
+		target.throw_at(throw_target, rand(throw_min,throw_max), 2, user, gentle = TRUE)
 
 /obj/item/melee/sledgehammer/gorlex/afterattack(atom/A, mob/user, proximity)
 	. = ..()
@@ -67,8 +71,55 @@
 	if(HAS_TRAIT(src, TRAIT_WIELDED)) //destroys windows and grilles in one hit
 		if(istype(A, /obj/structure/window) || istype(A, /obj/structure/grille))
 			var/obj/structure/W = A
-			W.obj_destruction("axe")
+			W.atom_destruction("axe")
 
-// its for dynamic gen mobs okay
-/obj/item/melee/sledgehammer/gorlex/pre_wielded
-	icon_state = "gorlex_sledgehammer_w"
+/obj/item/brass_knuckles
+	name = "brass knuckles"
+	icon_state = "brass_knuckles"
+	base_icon_state = "brass_knuckles"
+	icon = 'icons/obj/weapon/blunt.dmi'
+	lefthand_file = 'icons/mob/inhands/weapons/blunt_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/weapons/blunt_righthand.dmi'
+	desc = "A pair of brass knuckles, fit for the common thug or stylish gangster. Can be carried in one hand but are most effective when wielded as a pair."
+	force = 15
+	wound_bonus = 10
+	throwforce = 5
+	demolition_mod = 1.25
+	custom_price = 180
+	sharpness = SHARP_NONE
+	w_class = WEIGHT_CLASS_SMALL
+	slot_flags = ITEM_SLOT_POCKETS
+	attack_cooldown = LIGHT_WEAPON_CD
+	attack_verb = list("punched", "wholloped", "hooked", "jabbed", "slammed")
+	hitsound = list('sound/weapons/genhit2.ogg', 'sound/weapons/genhit3.ogg', 'sound/weapons/punch1.ogg', 'sound/weapons/punch2.ogg', 'sound/weapons/punch3.ogg', 'sound/weapons/punch4.ogg', 'sound/weapons/slap.ogg')
+	pickup_sound = 'sound/weapons/melee/general_pickup.ogg'
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 30)
+	resistance_flags = FIRE_PROOF
+
+/obj/item/brass_knuckles/ComponentInitialize()
+	. = ..()
+	AddComponent(/datum/component/two_handed, attack_cooldown_wielded = 4, attack_cooldown_unwielded = LIGHT_WEAPON_CD, icon_wielded="[base_icon_state]_w")
+
+/obj/item/brass_knuckles/update_icon_state()
+	icon_state = base_icon_state
+	return ..()
+
+/obj/item/melee/trench_club
+	name = "trench club"
+	desc = "A simplistic club made with a wooden handle and a crude lead macehead. Stings like a bitch."
+	icon = 'icons/obj/weapon/blunt.dmi'
+	icon_state = "trench_club"
+	lefthand_file = 'icons/mob/inhands/weapons/blunt_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/weapons/blunt_righthand.dmi'
+	mob_overlay_icon = 'icons/mob/clothing/belt.dmi'
+	force = 25
+	throwforce = 15
+	wound_bonus = 5
+	demolition_mod = 1.25
+	armour_penetration = 20
+	sharpness = SHARP_NONE
+	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_SUITSTORE
+	attack_verb = list("beat", "smacked", "clubbed", "clobbered", "whipped")
+	w_class = WEIGHT_CLASS_NORMAL
+	resistance_flags = FIRE_PROOF
+	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 30)

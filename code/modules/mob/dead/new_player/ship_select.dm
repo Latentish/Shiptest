@@ -56,8 +56,21 @@
 				to_chat(spawnee, span_warning("You cannot join this ship anymore, as its join mode has changed!"))
 				return
 
+			var/datum/faction/registered_faction = target.shuttle_port.registered_faction
+			var/datum/language/official_lang = initial(registered_faction.official_language)
+			if(official_lang != spawnee.client.prefs.native_language && spawnee.client.prefs.learned_languages[official_lang] != LANGUAGE_FLUENT && \
+				tgui_alert(spawnee, "Your character does not fully understand this faction's official language ([initial(official_lang.name)]), are you sure?", "Official language", list("Yes", "No")) != "Yes")
+				return // pop-up warning for new players that forgot to set their
+
 			ui.close()
 			var/datum/job/selected_job = locate(params["job"]) in target.job_slots
+			//boots you out if you're banned from officer roles
+			if(selected_job.officer && is_banned_from(spawnee.ckey, "Ship Command"))
+				to_chat(spawnee, span_danger("You are banned from Officer roles!"))
+				spawnee.new_player_panel()
+				ui.close()
+				return
+
 			// Attempts the spawn itself. This checks for playtime requirements.
 			if(!spawnee.AttemptLateSpawn(selected_job, target))
 				to_chat(spawnee, span_danger("Unable to spawn on ship!"))
@@ -94,8 +107,28 @@
 
 			ui.close()
 
-			to_chat(spawnee, span_danger("Your [template.name] is being prepared. Please be patient!"))
-			var/datum/overmap/ship/controlled/target = SSovermap.spawn_ship_at_start(template)
+			var/ship_loc
+			var/datum/overmap_star_system/selected_system //the star system we want to spawn in
+
+			var/list/valid_spawns = SSovermap.get_spawn_outposts()
+
+			if(valid_spawns > 1)
+				var/datum/overmap/outpost/temp_loc = input(spawnee, "Select outpost to spawn at") as null|anything in valid_spawns
+				if(!temp_loc)
+					return
+				selected_system = temp_loc.current_overmap
+				ship_loc = temp_loc
+
+			else
+				ship_loc = SSovermap.outposts[1]
+				selected_system = SSovermap.tracked_star_systems[1]
+
+			if(!selected_system)
+				CRASH("Ship attemped to be bought at spawn menu, but spawning outpost was not selected! This is bad!") //if selected_system didnt get selected, we nope out, this is very bad
+
+			to_chat(spawnee, "<span class='danger'>Your [template.name] is being prepared. Please be patient!</span>")
+			var/datum/overmap/ship/controlled/target = SSovermap.spawn_ship_at_start(template, ship_loc, selected_system)
+
 			if(!target?.shuttle_port)
 				to_chat(spawnee, span_danger("There was an error loading the ship. Please contact admins!"))
 				spawnee.new_player_panel()
@@ -120,6 +153,7 @@
 	.["ships"] = list()
 	.["shipSpawnAllowed"] = SSovermap.player_ship_spawn_allowed()
 	.["purchaseBanned"] = is_banned_from(user.ckey, "Ship Purchasing")
+	.["officerBanned"] = is_banned_from(user.ckey, "Ship Command")
 	// if the player has a client which is not eligible for playtime restriction (for admin + player DB flag playtime exemption), they "auto meet" playtime requirements
 	.["autoMeet"] = user.client && !user.client.is_playtime_restriction_eligible()
 	.["playMin"] = user.client ? user.client.get_exp_living(TRUE) : 0
@@ -142,6 +176,7 @@
 				"name" = job,
 				"slots" = slots,
 				"minTime" = job.officer ? S.source_template.get_req_officer_minutes() : 0,
+				"officer" = job.officer,
 				"ref" = REF(job),
 			))
 

@@ -7,7 +7,7 @@
 	var/salvageable_parts = list()
 	var/frame_type = /obj/structure/frame/machine
 
-/obj/item/stack/ore/salvage/examine(mob/user)
+/obj/structure/salvageable/examine(mob/user)
 	. = ..()
 	. += "You can use a crowbar to salvage this."
 
@@ -373,11 +373,55 @@
 			audible_message(span_danger("A bundle of vines unfurls from inside the [src]!"))
 			new /mob/living/simple_animal/hostile/venus_human_trap(get_turf(src))
 
+/obj/structure/salvageable/kitchenvend
+	name = "broken-down kitchen vendor"
+	desc = "A ruined kitchen vending machine. Some of its contents might still be intact."
+	icon_state = "dinnerware-broken"
+	icon = 'icons/obj/vending.dmi'
+	salvageable_parts = list(
+		/obj/item/kitchen/rollingpin = 80,
+		/obj/item/reagent_containers/glass/bowl = 80,
+		/obj/item/kitchen/fork = 40,
+		/obj/item/shard = 80,
+		/obj/item/reagent_containers/food/drinks/drinkingglass = 80,
+		/obj/item/plate/small = 80,
+		/obj/item/plate/large = 40,
+		/obj/item/clothing/suit/apron/chef = 40,
+		/obj/item/stack/ore/salvage/scrapmetal/five = 80,
+		/obj/item/stack/cable_coil/cut = 80,
+		/obj/item/book/granter/crafting_recipe/cooking_sweets_101 = 20,
+		/obj/item/melee/knife/kitchen = 10,
+	)
+
+/obj/structure/salvageable/turret
+	name = "destroyed turret"
+	desc = "A long-deserviced automated twin-barrel ballistic turret. Layers of dust coat its cracked lens. Some of its parts might still be useful."
+	icon_state = "syndie_broken"
+	icon = 'icons/obj/turrets.dmi'
+	salvageable_parts = list(
+		/obj/item/shard = 80,
+		/obj/item/ammo_casing/spent/rifle_steel = 80,
+		/obj/item/ammo_casing/spent/rifle_steel = 80,
+		/obj/item/stack/cable_coil/cut = 80,
+		/obj/item/stack/cable_coil/cut = 80,
+		/obj/item/stack/ore/salvage/scrapgold/five = 60,
+		/obj/item/stack/ore/salvage/scrapmetal/five = 60,
+		/obj/item/stack/ore/salvage/scrapplasma = 60,
+		/obj/item/stack/ore/salvage/scrapuranium = 60,
+		/obj/item/circuitboard/machine/turret = 55,
+		/obj/effect/spawner/random/salvage/part/scanning = 50,
+		/obj/effect/spawner/random/salvage/part/scanning = 50,
+		/obj/item/weaponcrafting/receiver = 40,
+		/obj/effect/spawner/random/salvage_laser = 40,
+		/obj/item/storage/toolbox/ammo = 40,
+	)
+
 //scrap item, mostly for fluff
 /obj/item/stack/ore/salvage
 	name = "salvage"
 	icon = 'icons/obj/salvage_structure.dmi'
 	icon_state = "smetal"
+	refined_type = null
 
 /obj/item/stack/ore/salvage/examine(mob/user)
 	. = ..()
@@ -389,7 +433,6 @@
 	points = 1
 	material_flags = MATERIAL_NO_EFFECTS
 	custom_materials = list(/datum/material/iron=MINERAL_MATERIAL_AMOUNT)
-	refined_type = /obj/item/stack/sheet/metal
 
 /obj/item/stack/ore/salvage/scrapmetal/five
 	amount = 5
@@ -407,7 +450,6 @@
 	points = 50
 	material_flags = MATERIAL_NO_EFFECTS
 	custom_materials = list(/datum/material/titanium=MINERAL_MATERIAL_AMOUNT)
-	refined_type = /obj/item/stack/sheet/mineral/titanium
 
 /obj/item/stack/ore/salvage/scraptitanium/five
 	amount = 5
@@ -419,7 +461,6 @@
 	points = 16
 	material_flags = MATERIAL_NO_EFFECTS
 	custom_materials = list(/datum/material/silver=MINERAL_MATERIAL_AMOUNT)
-	refined_type = /obj/item/stack/sheet/mineral/silver
 
 /obj/item/stack/ore/salvage/scrapsilver/five
 	amount = 5
@@ -431,7 +472,6 @@
 	points = 18
 	material_flags = MATERIAL_NO_EFFECTS
 	custom_materials = list(/datum/material/gold=MINERAL_MATERIAL_AMOUNT)
-	refined_type = /obj/item/stack/sheet/mineral/gold
 
 /obj/item/stack/ore/salvage/scrapgold/five
 	amount = 5
@@ -443,7 +483,6 @@
 	points = 15
 	material_flags = MATERIAL_NO_EFFECTS
 	custom_materials = list(/datum/material/plasma=MINERAL_MATERIAL_AMOUNT)
-	refined_type = /obj/item/stack/sheet/mineral/plasma
 
 /obj/item/stack/ore/salvage/scrapplasma/five
 	amount = 5
@@ -455,7 +494,6 @@
 	points = 30
 	material_flags = MATERIAL_NO_EFFECTS
 	custom_materials = list(/datum/material/uranium=MINERAL_MATERIAL_AMOUNT)
-	refined_type = /obj/item/stack/sheet/mineral/uranium
 
 /obj/item/stack/ore/salvage/scrapuranium/five
 	amount = 5
@@ -467,7 +505,6 @@
 	points = 50
 	material_flags = MATERIAL_NO_EFFECTS
 	custom_materials = list(/datum/material/bluespace=MINERAL_MATERIAL_AMOUNT)
-	refined_type = /obj/item/stack/sheet/bluespace_crystal
 
 /obj/item/stack/ore/salvage/scrapbluespace/five
 	amount = 5

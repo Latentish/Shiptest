@@ -10,7 +10,7 @@
 /mob/living/carbon/alien
 	name = "alien"
 	icon = 'icons/mob/alien.dmi'
-	gender = FEMALE //All xenos are girls!!
+	gender = FEMALE //All xenos are girls!! //slay
 	dna = null
 	faction = list(ROLE_ALIEN)
 	ventcrawler = VENTCRAWLER_ALWAYS
@@ -19,7 +19,7 @@
 	verb_say = "hisses"
 	initial_language_holder = /datum/language_holder/alien
 	bubble_icon = "alien"
-	type_of_meat = /obj/item/reagent_containers/food/snacks/meat/slab/xeno
+	type_of_meat = /obj/item/food/meat/slab/xeno
 
 	var/has_fine_manipulation = FALSE
 
@@ -58,7 +58,7 @@
 /mob/living/carbon/alien/assess_threat(judgement_criteria, lasercolor = "", datum/callback/weaponcheck=null) // beepsky won't hunt aliums
 	return -10
 
-/mob/living/carbon/alien/handle_environment(datum/gas_mixture/environment)
+/mob/living/carbon/alien/handle_environment(datum/gas_mixture/environment, seconds_per_tick, times_fired)
 	// Run base mob body temperature proc before taking damage
 	// this balances body temp to the enviroment and natural stabilization
 	. = ..()
@@ -68,16 +68,19 @@
 		throw_alert("alien_fire", /atom/movable/screen/alert/alien_fire)
 		switch(bodytemperature)
 			if(360 to 400)
-				apply_damage(HEAT_DAMAGE_LEVEL_1, BURN)
+				apply_damage(HEAT_DAMAGE_LEVEL_1 * seconds_per_tick, BURN)
 			if(400 to 460)
-				apply_damage(HEAT_DAMAGE_LEVEL_2, BURN)
+				apply_damage(HEAT_DAMAGE_LEVEL_2 * seconds_per_tick, BURN)
 			if(460 to INFINITY)
 				if(on_fire)
-					apply_damage(HEAT_DAMAGE_LEVEL_3, BURN)
+					apply_damage(HEAT_DAMAGE_LEVEL_3 * seconds_per_tick, BURN)
 				else
-					apply_damage(HEAT_DAMAGE_LEVEL_2, BURN)
+					apply_damage(HEAT_DAMAGE_LEVEL_2 * seconds_per_tick, BURN)
 	else
 		clear_alert("alien_fire")
+
+///mob/living/carbon/alien/reagent_check(datum/reagent/R, seconds_per_tick, times_fired) //can metabolize all reagents
+//	return FALSE
 
 /mob/living/carbon/alien/handled_by_species(datum/reagent/R) //can metabolize all reagents
 	return 0

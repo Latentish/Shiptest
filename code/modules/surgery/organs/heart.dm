@@ -60,7 +60,7 @@
 	beating = FALSE
 	update_appearance()
 
-/obj/item/organ/heart/on_life()
+/obj/item/organ/heart/on_life(seconds_per_tick, times_fired)
 	..()
 	if(owner.client && beating)
 		failed = FALSE
@@ -77,7 +77,7 @@
 			H.stop_sound_channel(CHANNEL_HEARTBEAT)
 			beat = BEAT_NONE
 
-		if(H.jitteriness > 100)
+		if(owner.has_status_effect(/datum/status_effect/jitter))
 			if(H.health > HEALTH_THRESHOLD_FULLCRIT && (!beat || beat == BEAT_SLOW))
 				H.playsound_local(get_turf(H),fastbeat,40,0, channel = CHANNEL_HEARTBEAT, use_reverb = FALSE)
 				beat = BEAT_FAST
@@ -121,7 +121,7 @@
 	else
 		return ..()
 
-/obj/item/organ/heart/cursed/on_life()
+/obj/item/organ/heart/cursed/on_life(seconds_per_tick, times_fired)
 	if(world.time > (last_pump + pump_delay))
 		if(ishuman(owner) && owner.client) //While this entire item exists to make people suffer, they can't control disconnects.
 			var/mob/living/carbon/human/H = owner
@@ -214,11 +214,11 @@
 	if(. & EMP_PROTECT_SELF)
 		return
 	if(world.time > severe_cooldown) //So we cant just spam emp to kill people.
-		owner.Dizzy(10)
+		owner.set_timed_status_effect(20 SECONDS, /datum/status_effect/dizziness, only_if_higher = TRUE)
 		owner.losebreath += 10
 		severe_cooldown = world.time + 20 SECONDS
 
-/obj/item/organ/heart/cybernetic/on_life()
+/obj/item/organ/heart/cybernetic/on_life(seconds_per_tick, times_fired)
 	. = ..()
 	if(dose_available && owner.health <= owner.crit_threshold && !owner.reagents.has_reagent(rid))
 		used_dose()
@@ -237,7 +237,7 @@
 	organ_flags = ORGAN_SYNTHETIC //the power of freedom prevents heart attacks
 	var/min_next_adrenaline = 0
 
-/obj/item/organ/heart/freedom/on_life()
+/obj/item/organ/heart/freedom/on_life(seconds_per_tick, times_fired)
 	. = ..()
 	if(owner.health < 5 && world.time > min_next_adrenaline)
 		min_next_adrenaline = world.time + rand(250, 600) //anywhere from 4.5 to 10 minutes

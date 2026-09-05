@@ -39,6 +39,8 @@
 	strip_delay = EQUIP_DELAY_BACK * 1.5
 	equip_self_flags = EQUIP_ALLOW_MOVEMENT | EQUIP_SLOWDOWN
 
+	custom_price = 50
+
 /obj/item/storage/backpack/ComponentInitialize()
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
@@ -97,12 +99,6 @@
 	icon_state = "explorerpack"
 	item_state = "explorerpack"
 
-/obj/item/storage/backpack/mime
-	name = "Parcel Parceaux"
-	desc = "A silent backpack made for those silent workers. Silence Co."
-	icon_state = "mimepack"
-	item_state = "mimepack"
-
 /obj/item/storage/backpack/medic
 	name = "medical backpack"
 	desc = "It's a backpack especially designed for use in a sterile environment."
@@ -117,7 +113,7 @@
 
 /obj/item/storage/backpack/captain
 	name = "captain's backpack"
-	desc = "It's a special backpack made exclusively for Nanotrasen officers."
+	desc = "It's a special backpack made exclusively for Makosso-Warra officers."
 	icon_state = "captainpack"
 	item_state = "captainpack"
 
@@ -185,10 +181,6 @@
 	desc = "A spacious backpack with lots of pockets, worn by Janitors of an Emergency Response Team."
 	icon_state = "ert_janitor"
 
-/obj/item/storage/backpack/ert/clown
-	name = "emergency response team clown backpack"
-	desc = "A spacious backpack with lots of pockets, worn by Clowns of an Emergency Response Team."
-	icon_state = "ert_clown"
 /*
  * Satchel Types
  */
@@ -277,7 +269,7 @@
 
 /obj/item/storage/backpack/satchel/cap
 	name = "captain's satchel"
-	desc = "An exclusive satchel for Nanotrasen officers."
+	desc = "An exclusive satchel for Makosso-Warra officers."
 	icon_state = "satchel-cap"
 	item_state = "satchel-cap"
 
@@ -302,9 +294,9 @@
 	var/static/list/contraband = list(
 		/obj/item/poster/random_contraband,
 		/obj/item/poster/random_contraband,
-		/obj/item/reagent_containers/food/snacks/grown/cannabis,
-		/obj/item/reagent_containers/food/snacks/grown/cannabis/rainbow,
-		/obj/item/reagent_containers/food/snacks/grown/cannabis/white,
+		/obj/item/food/grown/cannabis,
+		/obj/item/food/grown/cannabis/rainbow,
+		/obj/item/food/grown/cannabis/white,
 		/obj/item/storage/box/fireworks/dangerous,
 		/obj/item/storage/pill_bottle/zoom,
 		/obj/item/storage/pill_bottle/happy,
@@ -330,6 +322,40 @@
 
 /obj/item/storage/backpack/satchel/flat/empty/PopulateContents()
 	return
+
+/obj/item/storage/backpack/satchel/flat/onehalftwo/PopulateContents()
+	new /obj/item/grenade/c4(src)
+	new /obj/item/grenade/c4(src)
+	new /obj/item/storage/fancy/cigarettes/cigpack_syndicate(src)
+	new /obj/item/clothing/mask/gas/syndicate(src)
+	new /obj/item/stack/telecrystal/five(src)
+	new /obj/item/storage/toolbox/syndicate(src)
+
+// lizard bags from dopplerstation by paxilmaniac
+
+/obj/item/storage/backpack/satchel/tailbag
+	name = "tailbag"
+	desc = "A pair of bags with straps for wear around a person's tail. You need a tail to wear it."
+	icon_state = "tailbag_black"
+	item_state = "tailbag_black"
+
+/obj/item/storage/backpack/satchel/tailbag/mob_can_equip(mob/living/target, mob/living/equipper, slot, bypass_equip_delay_self)
+	var/mob/living/H = target
+	if(!HAS_TRAIT(H, TRAIT_TAILED))
+		return FALSE
+	return ..()
+
+/obj/item/storage/backpack/satchel/kitbag
+	name = "kitbag"
+	desc = "A bag mounted on the lower back, for storing equipment. Incompatible with tails."
+	icon_state = "backbag_black"
+	item_state = "backbag_black"
+
+/obj/item/storage/backpack/satchel/kitbag/mob_can_equip(mob/living/target, mob/living/equipper, slot, bypass_equip_delay_self)
+	var/mob/living/H = target
+	if(HAS_TRAIT(H, TRAIT_TAILED))
+		return FALSE
+	return ..()
 
 /*
 * Messenger Bag Types from Baystation
@@ -404,11 +430,11 @@
 	icon_state = "courierbagsec"
 	item_state = "courierbagsec"
 
-/obj/item/storage/backpack/messenger/inteq
-	name = "inteq messenger bag"
-	desc = "A comfortable leather strapped messenger bag worn over one shoulder. This one denotes the wearer as an IRMG operator"
-	icon_state = "courierbaginteq"
-	item_state = "courierbaginteq"
+/obj/item/storage/backpack/messenger/sport
+	name = "running bag"
+	desc = "A sturdy bag built for sprinting."
+	icon_state = "sportsbag"
+	item_state = "sportsbag"
 
 /*
 * Duffelbag Types
@@ -455,7 +481,8 @@
 	new /obj/item/surgicaldrill(src)
 	new /obj/item/cautery(src)
 	new /obj/item/clothing/mask/surgical(src)
-	new /obj/item/razor(src)
+	new /obj/item/bonesetter(src)
+	new /obj/item/stack/sticky_tape/surgical(src)
 
 /obj/item/storage/backpack/duffelbag/sec
 	name = "security duffel bag"
@@ -466,6 +493,14 @@
 /obj/item/storage/backpack/duffelbag/sec/surgery
 	name = "surgical duffel bag"
 	desc = "A large duffel bag for holding extra supplies - this one has a material inlay with space for various sharp-looking tools."
+
+/obj/item/storage/backpack/duffelbag/sec/c4
+	name = "tactical duffel bag"
+	desc = "A large duffel bag for holding extra plastic explosives."
+
+/obj/item/storage/backpack/duffelbag/sec/c4/PopulateContents()
+	for(var/i in 1 to 7)
+		new /obj/item/grenade/c4(src)
 
 /obj/item/storage/backpack/duffelbag/sec/surgery/PopulateContents()
 	new /obj/item/scalpel(src)
@@ -499,16 +534,6 @@
 	new /obj/item/wirecutters(src)
 	new /obj/item/multitool(src)
 
-/obj/item/storage/backpack/duffelbag/clown
-	name = "clown's duffel bag"
-	desc = "A large duffel bag for holding lots of funny gags!"
-	icon_state = "duffel-clown"
-	item_state = "duffel-clown"
-
-/obj/item/storage/backpack/duffelbag/clown/cream_pie/PopulateContents()
-	for(var/i in 1 to 10)
-		new /obj/item/reagent_containers/food/snacks/pie/cream(src)
-
 /obj/item/storage/backpack/fireproof
 	resistance_flags = FIRE_PROOF
 
@@ -525,14 +550,14 @@
 	STR.silent = TRUE
 
 /obj/item/storage/backpack/duffelbag/syndie/hitman
-	desc = "A large duffel bag for holding extra things. There is a Nanotrasen logo on the back."
+	desc = "A large duffel bag for holding extra things. There is a Makosso-Warra logo on the back."
 	icon_state = "duffel-syndieammo"
 	item_state = "duffel-syndieammo"
 
 /obj/item/storage/backpack/duffelbag/syndie/hitman/PopulateContents()
 	new /obj/item/clothing/under/suit/black(src)
 	new /obj/item/clothing/accessory/waistcoat(src)
-	new /obj/item/clothing/suit/toggle/lawyer/black(src)
+	new /obj/item/clothing/suit/lawyer/charcoal(src)
 	new /obj/item/clothing/shoes/laceup(src)
 	new /obj/item/clothing/gloves/color/black(src)
 	new /obj/item/clothing/glasses/sunglasses(src)
@@ -554,9 +579,10 @@
 	new /obj/item/surgicaldrill/advanced(src)
 	new /obj/item/scalpel/advanced(src)
 	new /obj/item/retractor/advanced(src)
-	new /obj/item/clothing/suit/straight_jacket(src)
-	new /obj/item/clothing/mask/muzzle(src)
-	new /obj/item/mmi/syndie(src)
+	new /obj/item/clothing/mask/surgical(src)
+	new /obj/item/razor(src)
+	new /obj/item/healthanalyzer(src)
+
 
 /obj/item/storage/backpack/duffelbag/syndie/ammo
 	name = "ammunition duffel bag"
@@ -624,7 +650,7 @@
 	new /obj/item/clothing/glasses/thermal/syndi(src)
 
 /obj/item/storage/backpack/duffelbag/syndie/med/medicalbundle
-	desc = "A large duffel bag containing a medical equipment, a Donksoft LMG, a big jumbo box of riot darts, and a knock-off pair of magboots."
+	desc = "A large duffel bag containing a medical equipment, a toy LMG, a big jumbo box of riot darts, and a knock-off pair of magboots."
 
 /obj/item/storage/backpack/duffelbag/syndie/med/medicalbundle/PopulateContents()
 	new /obj/item/clothing/shoes/magboots/syndie(src)
@@ -633,7 +659,7 @@
 	new /obj/item/storage/box/ammo/foam_darts/riot(src)
 
 /obj/item/storage/backpack/duffelbag/syndie/med/bioterrorbundle
-	desc = "A large duffel bag containing deadly chemicals, a handheld chem sprayer, Bioterror foam grenade, a Donksoft assault rifle, box of riot grade darts, a dart pistol, and a box of syringes."
+	desc = "A large duffel bag containing deadly chemicals, a handheld chem sprayer, Bioterror foam grenade, a toy assault rifle, box of riot grade darts, a dart pistol, and a box of syringes."
 
 /obj/item/storage/backpack/duffelbag/syndie/med/bioterrorbundle/PopulateContents()
 	new /obj/item/reagent_containers/spray/chemsprayer/bioterror(src)
@@ -643,8 +669,6 @@
 	new /obj/item/storage/box/syringes(src)
 	new /obj/item/storage/box/ammo/foam_darts/riot(src)
 	new /obj/item/grenade/chem_grenade/bioterrorfoam(src)
-	if(prob(5))
-		new /obj/item/reagent_containers/food/snacks/pizza/pineapple(src)
 
 /obj/item/storage/backpack/duffelbag/syndie/c4
 	name = "demolitions duffel bag"
@@ -667,21 +691,8 @@
 	new /obj/item/ammo_box/magazine/m9mm_rattlesnake(src)
 	new /obj/item/ammo_box/magazine/m9mm_rattlesnake(src)
 	new /obj/item/reagent_containers/food/drinks/bottle/vodka/badminka(src)
-	new /obj/item/reagent_containers/hypospray/medipen/stimulants(src)
+	new /obj/item/reagent_containers/hypospray/medipen/combat_drug(src)
 	new /obj/item/grenade/syndieminibomb(src)
-
-// For ClownOps.
-/obj/item/storage/backpack/duffelbag/clown/syndie/ComponentInitialize()
-	. = ..()
-	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
-	slowdown = 0
-	STR.silent = TRUE
-
-/obj/item/storage/backpack/duffelbag/clown/syndie/PopulateContents()
-	new /obj/item/clothing/under/rank/civilian/clown(src)
-	new /obj/item/clothing/mask/gas/clown_hat(src)
-	new /obj/item/bikehorn(src)
-	new /obj/item/implanter/sad_trombone(src)
 
 /obj/item/storage/backpack/henchmen
 	name = "wings"

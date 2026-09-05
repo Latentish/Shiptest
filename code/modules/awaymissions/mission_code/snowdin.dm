@@ -66,46 +66,9 @@
 			if(L)
 				L.adjust_fire_stacks(20) //dipping into a stream of plasma would probably make you more flammable than usual
 				L.adjust_bodytemperature(-rand(10,20)) //its cold, man
-				if(ishuman(L))//are they a carbon?
-					var/list/plasma_parts = list()//a list of the organic parts to be turned into plasma limbs
-					var/list/robo_parts = list()//keep a reference of robotic parts so we know if we can turn them into a plasmaman
-					var/mob/living/carbon/human/PP = L
-					var/S = PP.dna.species
-					if(istype(S, /datum/species/plasmaman) || istype(S, /datum/species/android)) //ignore plasmamen/robotic species
-						continue
-
-					for(var/BP in PP.bodyparts)
-						var/obj/item/bodypart/NN = BP
-						if(IS_ORGANIC_LIMB(NN) && NN.limb_id != "plasmaman") //getting every organic, non-plasmaman limb (augments/androids are immune to this)
-							plasma_parts += NN
-						if(!IS_ORGANIC_LIMB(NN))
-							robo_parts += NN
-
-					if(prob(35)) //checking if the delay is over & if the victim actually has any parts to nom
-						PP.adjustToxLoss(15)
-						PP.adjustFireLoss(25)
-						if(plasma_parts.len)
-							var/obj/item/bodypart/NB = pick(plasma_parts) //using the above-mentioned list to get a choice of limbs for dismember() to use
-							NB.limb_id = "plasmaman" //change the species_id of the limb to that of a plasmaman
-							NB.static_icon = 'icons/mob/species/plasmaman/bodyparts.dmi'
-							NB.no_update = TRUE
-							NB.change_bodypart_status()
-							PP.force_scream()
-							if(!HAS_TRAIT(PP, TRAIT_ANALGESIA))
-								PP.visible_message(
-									span_warning("[L] screams in pain as [L.p_their()] [NB] melts down to the bone!"),
-									span_userdanger("You scream out in pain as your [NB] melts down to the bone, leaving an eerie plasma-like glow where flesh used to be!"))
-							else
-								PP.visible_message(
-									span_warning("[L] lets out panicked gasps as [L.p_their()] [NB] melts down to the bone!"),
-									span_userdanger("You gasp in shock as your [NB] melts down to the bone, leaving an eerie plasma-like glow where flesh used to be!"))
-						if(!plasma_parts.len && !robo_parts.len) //a person with no potential organic limbs left AND no robotic limbs, time to turn them into a plasmaman
-							PP.IgniteMob()
-							PP.set_species(/datum/species/plasmaman)
-							PP.visible_message(
-								span_warning("[L] bursts into a brilliant purple flame as [L.p_their()] entire body is that of a skeleton!"),
-								span_userdanger("Your senses numb as all of your remaining flesh is turned into a purple slurry, sloshing off your body and leaving only your bones to show in a vibrant purple!"))
-
+				if(prob(35)) //used to be used to slowly convert limbs, I'm not changing the mechnical function outside of removing limb/species conversion, so plasma just kinda random crits now lol.
+					L.adjustToxLoss(15)
+					L.adjustFireLoss(25)
 
 /obj/vehicle/ridden/lavaboat/plasma
 	name = "plasma boat"
@@ -124,7 +87,7 @@
 
 /obj/item/paper/crumpled/ruins/snowdin/misc1
 	name = "Mission Prologue"
-	default_raw_text = {"Holy shit, what a rush! Those Nanotrasen bastards didn't even know what hit 'em! All five of us dropped in right on the captain, didn't even have time to yell! We were in and out with that disk in mere minutes!
+	default_raw_text = {"Holy shit, what a rush! Those Makosso-Warra bastards didn't even know what hit 'em! All five of us dropped in right on the captain, didn't even have time to yell! We were in and out with that disk in mere minutes!
 	Crew didn't even know what was happening till the delta alert went down and by then we were already gone. We got a case to drink on the way home to celebrate, fuckin' job well done!"}
 
 /obj/item/paper/crumpled/ruins/snowdin/dontdeadopeninside
@@ -155,11 +118,11 @@
 	DELAY 45
 	NAME Elizabeth Queef
 	DELAY 10
-	SAY Nah. I've been feeding the AI the results for the past 2 weeks to sift through the garbage and haven't seen anything out of the usual, at least whatever Nanotrasen is looking for.
+	SAY Nah. I've been feeding the AI the results for the past 2 weeks to sift through the garbage and haven't seen anything out of the usual, at least whatever Makosso-Warra is looking for.
 	DELAY 45
 	NAME Jacob Ullman
 	DELAY 10
-	SAY Figured as much. Dunno what Nanotrasen expects to find out here past the plasma. At least we're getting paid to fuck around for a couple months while the AI does the hard work.
+	SAY Figured as much. Dunno what Makosso-Warra expects to find out here past the plasma. At least we're getting paid to fuck around for a couple months while the AI does the hard work.
 	DELAY 45
 	NAME Elizabeth Queef
 	DELAY 10
@@ -174,7 +137,7 @@
 	PRESET /datum/preset_holoimage/captain
 	NAME Caleb Reed
 	DELAY 10
-	SAY Paid in experience! That's the Nanotrasen Motto!
+	SAY Paid in experience! That's the Makosso-Warra Motto!
 	DELAY 30;"}
 
 /obj/item/disk/holodisk/snowdin/welcometodie
@@ -187,14 +150,14 @@
 	DELAY 30
 	SAY You have been selected out of $)@! potential candidates for this post!
 	DELAY 30
-	SAY Nanotrasen is pleased to have you working in one of the many top-of-the-line research posts within the $%@!! sector!
+	SAY Makosso-Warra is pleased to have you working in one of the many top-of-the-line research posts within the $%@!! sector!
 	DELAY 30
 	SAY Further job assignment information can be found at your local security post! Have a secure day!
 	DELAY 20;"}
 
 /obj/item/disk/holodisk/snowdin/overrun
 	name = "Conversation #AOP#55"
-	preset_image_type = /datum/preset_holoimage/nanotrasenprivatesecurity
+	preset_image_type = /datum/preset_holoimage/warraprivatesecurity
 	preset_record_text = {"
 	NAME James Reed
 	DELAY 10
@@ -205,7 +168,7 @@
 	DELAY 10
 	SAY Hell if I know! Just shoot it already!
 	DELAY 30
-	PRESET /datum/preset_holoimage/nanotrasenprivatesecurity
+	PRESET /datum/preset_holoimage/warraprivatesecurity
 	NAME James Reed
 	DELAY 10
 	SOUND sound/weapons/laser.ogg
@@ -304,7 +267,7 @@
 	faction = ROLE_SYNDICATE
 	outfit = /datum/outfit/snowsyndie
 	short_desc = "You are a syndicate operative recently awoken from cryostasis in an underground outpost."
-	flavour_text = "You are a syndicate operative recently awoken from cryostasis in an underground outpost. Monitor Nanotrasen communications and record information. All intruders should be \
+	flavour_text = "You are a syndicate operative recently awoken from cryostasis in an underground outpost. Monitor Makosso-Warra communications and record information. All intruders should be \
 	disposed of swiftly to assure no gathered information is stolen or lost. Try not to wander too far from the outpost as the caves can be a deadly place even for a trained operative such as yourself."
 
 /datum/outfit/snowsyndie
@@ -328,19 +291,23 @@
 
 /obj/structure/flora/rock/icy
 	name = "icy rock"
-	icon_state = "icemoonrock1"
+	icon_state = "snowrock_1"
+	density = FALSE
 
 /obj/structure/flora/rock/icy/Initialize()
 	. = ..()
-	icon_state = "icemoonrock[rand(1,3)]"
+	icon_state = "snowrock_[rand(1,4)]"
+
+	if(icon_state == "snowrock_1")
+		density = TRUE
 
 /obj/structure/flora/rock/pile/icy
-	name = "icey rocks"
-	icon_state = "icemoonrock4"
+	name = "icy rocks"
+	icon_state = "snowrock_4"
 
 /obj/structure/flora/rock/pile/icy/Initialize()
 	. = ..()
-	icon_state = "icemoonrock4"
+	icon_state = "snowrock_4"
 
 //decals//--
 /obj/effect/turf_decal/snowdin_station_sign
