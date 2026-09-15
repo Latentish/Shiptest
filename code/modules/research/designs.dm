@@ -140,7 +140,7 @@ other types of metals and chemistry for reagents).
 //Disks with content
 /obj/item/disk/design_disk/ammo_c10mm
 	design_name = "10mm Ammo"
-	desc = "A design disk containing the pattern for a refill box of standard 10mm ammo, used in Stechkin pistols."
+	desc = "A design disk containing the pattern for a refill box of standard 10mm ammo, used in several pistols."
 	starting_blueprints = (/datum/design/c10mm)
 
 /obj/item/disk/design_disk/disposable_gun

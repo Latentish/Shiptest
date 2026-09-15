@@ -23,6 +23,8 @@
 	var/frontier_network = FALSE
 	/// True if the fax machine should be visible to other fax machines in general.
 	var/visible_to_network = TRUE
+	/// Mainly for if there's multiple admin faxes with the same ID and you want mail to go a specific fax first. The paper will be sent to a non-low priority fax first.
+	var/low_priority = FALSE
 	/// If true we will eject faxes at speed rather than sedately place them into a tray.
 	var/hurl_contents = FALSE
 	/// If true you can fax things which strictly speaking are not paper.
@@ -40,15 +42,15 @@
 	)
 	/// List of types which should be allowed to be faxed if hacked
 	var/static/list/exotic_types = list(
-		/obj/item/reagent_containers/food/snacks/pizzaslice,
+		/obj/item/food/pizzaslice,
 		/obj/item/food/breadslice,
-		/obj/item/reagent_containers/food/snacks/donkpocket,
-		/obj/item/reagent_containers/food/snacks/cookie,
-		/obj/item/reagent_containers/food/snacks/salami,
-		/obj/item/reagent_containers/food/snacks/sugarcookie,
-		/obj/item/reagent_containers/food/snacks/oatmealcookie,
-		/obj/item/reagent_containers/food/snacks/raisincookie,
-		/obj/item/reagent_containers/food/snacks/pancakes,
+		/obj/item/food/shoalpocket,
+		/obj/item/food/cookie,
+		/obj/item/food/salami,
+		/obj/item/food/cookie/sugar,
+		/obj/item/food/cookie/oatmeal,
+		/obj/item/food/cookie/raisin,
+		/obj/item/food/pancakes,
 		/obj/item/throwing_star,
 		/obj/item/card,
 	)
@@ -61,7 +63,7 @@
 
 	/// List with a fake-networks(not a fax actually), for request manager.
 	var/list/special_networks = list(
-		list(fax_name = "Nanotrasen Central Command", fax_id = "nanotrasen", color = "green", emag_needed = FALSE),
+		list(fax_name = "Makosso-Warra Central Command", fax_id = "warra", color = "green", emag_needed = FALSE),
 		list(fax_name = "Outpost Authority", fax_id = "outpost", color = "orange", emag_needed = FALSE),
 		list(fax_name = "IRMG Mothership", fax_id = "inteq", color = "yellow", emag_needed = FALSE),
 		list(fax_name = "Solarian Confederation Frontier Affairs", fax_id = "solgov", color = "teal", emag_needed = FALSE),
@@ -69,7 +71,8 @@
 		list(fax_name = "Confederated League Leadership", fax_id = "minutemen", color = "blue", emag_needed = FALSE),
 		list(fax_name = "PGF Military High Command", fax_id = "gezena", color = "olive", emag_needed = FALSE),
 		list(fax_name = "Syndicate Coalition Coordination Center", fax_id = "syndicate", color = "red", emag_needed = FALSE),
-		list(fax_name = "Frontiersmen Communications Quartermaster", fax_id = "frontiersmen", color = "black", emag_needed = TRUE)
+		list(fax_name = "Frontiersmen Communications Quartermaster", fax_id = "frontiersmen", color = "black", emag_needed = TRUE),
+		list(fax_name = "Ramzi Clique Overwatch", fax_id = "ramzi", color = "darkred", emag_needed = TRUE)
 	)
 	// should we make our message be important and be recieved in admin faxes
 	var/admin_fax_id
@@ -341,11 +344,21 @@
 			to_chat(GLOB.admins, span_adminnotice("[icon2html(src.icon, GLOB.admins)]<b><font color=green>FAX REQUEST: </font>[ADMIN_FULLMONTY(usr)]:</b> <span class='linkify'>sent a fax message from [fax_name]/[fax_id][ADMIN_FLW(src)] to [html_encode(params["name"])][to_show]"))
 			log_fax(thing_to_send, params["id"], params["name"])
 			loaded_item_ref = null
-
+			var/list/low_priority_faxes = list()
+			var/fax_found = FALSE
 			for(var/obj/machinery/fax/fax as anything in GLOB.fax_machines)
 				if(fax.admin_fax_id == params["id"])
+					if(fax.low_priority)
+						low_priority_faxes += fax
+						continue
 					fax.receive(thing_to_send, fax_name)
+					fax_found = TRUE
 					break
+			if(!fax_found)
+				for(var/obj/machinery/fax/fax as anything in low_priority_faxes)
+					if(fax.admin_fax_id == params["id"])
+						fax.receive(thing_to_send, fax_name)
+						break
 			update_appearance()
 
 		if("history_clear")
@@ -519,6 +532,10 @@
 	frontier_network = TRUE
 	visible_to_network = FALSE
 
+/obj/machinery/fax/ramzi
+	frontier_network = TRUE
+	visible_to_network = FALSE
+
 /obj/machinery/fax/inteq
 	special_networks = list(
 		list(fax_name = "Outpost Authority", fax_id = "outpost", color = "orange", emag_needed = FALSE),
@@ -529,7 +546,7 @@
 /obj/machinery/fax/clip
 	special_networks = list(
 		list(fax_name = "Outpost Authority", fax_id = "outpost", color = "orange", emag_needed = FALSE),
-		list(fax_name = "Colonial League Leadership", fax_id = "minutemen", color = "blue", emag_needed = FALSE),
+		list(fax_name = "Confederated League Leadership", fax_id = "minutemen", color = "blue", emag_needed = FALSE),
 		list(fax_name = "Frontiersmen Communications Quartermaster", fax_id = "frontiersmen", color = "black", emag_needed = TRUE)
 	)
 
@@ -539,10 +556,10 @@
 		list(fax_name = "Frontiersmen Communications Quartermaster", fax_id = "frontiersmen", color = "black", emag_needed = TRUE)
 	)
 
-/obj/machinery/fax/nanotrasen
+/obj/machinery/fax/warra
 	special_networks = list(
 		list(fax_name = "Outpost Authority", fax_id = "outpost", color = "orange", emag_needed = FALSE),
-		list(fax_name = "Nanotrasen Central Command", fax_id = "nanotrasen", color = "green", emag_needed = FALSE),
+		list(fax_name = "Makosso-Warra Central Command", fax_id = "warra", color = "green", emag_needed = FALSE),
 		list(fax_name = "Frontiersmen Communications Quartermaster", fax_id = "frontiersmen", color = "black", emag_needed = TRUE)
 	)
 
@@ -577,10 +594,21 @@
 
 /obj/machinery/fax/admin
 	name = "Central Command Fax Machine"
-	fax_name = "Nanotrasen Central Command"
+	fax_name = "Makosso-Warra Central Command"
 	radio_channel = RADIO_CHANNEL_CENTCOM
 	visible_to_network = FALSE
-	admin_fax_id = "nanotrasen"
+	admin_fax_id = "warra"
+
+/obj/machinery/fax/admin/n_s
+	name = "N+S Fax Machine"
+	fax_name = "N+S Logistics Command"
+	admin_fax_id = "n_s"
+
+/obj/machinery/fax/admin/vi
+	name = "Central Command Fax Machine"
+	fax_name = "Viligitas Interstellar High Command"
+	visible_to_network = FALSE
+	admin_fax_id = "vi"
 
 /obj/machinery/fax/admin/outpost
 	name = "Outpost Fax Machine"
@@ -592,10 +620,25 @@
 	fax_name = "Solarian Confederation Frontier Affairs"
 	admin_fax_id = "solgov"
 
+/obj/machinery/fax/admin/suns
+	name = "SUNS Fax Machine"
+	fax_name = "Student-Union Academic Headquarters"
+	admin_fax_id = "solgov"
+
 /obj/machinery/fax/admin/syndicate
 	name = "Syndicate Coordination Fax Machine"
 	fax_name = "Syndicate Coordination Center"
 	admin_fax_id = "syndicate"
+
+/obj/machinery/fax/admin/ngr
+	name = "New Gorlex Republic Fax Machine"
+	fax_name = "2nd Battlegroup High Command"
+	admin_fax_id = "ngr"
+
+/obj/machinery/fax/admin/cybersun
+	name = "Cybersun Fax Machine"
+	fax_name = "Cybersun Corporate"
+	admin_fax_id = "cybersun"
 
 /obj/machinery/fax/admin/inteq
 	name = "IRMG Fax Machine"
@@ -622,3 +665,14 @@
 	fax_name = "Frontiersmen Communications Quartermaster"
 	admin_fax_id = "frontiersmen"
 	frontier_network = TRUE
+
+/obj/machinery/fax/admin/ramzi
+	name = "rusty fax machine"
+	fax_name = "Ramzi Communications Quartermaster"
+	admin_fax_id = "ramzi"
+	frontier_network = TRUE
+
+/obj/machinery/fax/admin/zohil // we are the zohil explorat
+	name = "Zohil Explorat Fax Machine"
+	fax_name = "Zohil Explorat Communications"
+	admin_fax_id = "zohil"

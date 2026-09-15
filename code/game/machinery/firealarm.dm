@@ -8,7 +8,6 @@
 /obj/item/wallframe/firealarm
 	name = "fire alarm frame"
 	desc = "Used for building fire alarms."
-	icon = 'icons/obj/monitors.dmi'
 	icon_state = "fire_bitem"
 	result_path = /obj/machinery/firealarm
 	pixel_shift = 32
@@ -17,7 +16,7 @@
 /obj/machinery/firealarm
 	name = "fire alarm"
 	desc = "<i>\"Pull this in case of emergency\"</i>. Thus, keep pulling it forever."
-	icon = 'icons/obj/monitors.dmi'
+	icon = 'icons/obj/wallmounts/firealarm.dmi'
 	icon_state = "fire0"
 	max_integrity = 250
 	integrity_failure = 0.4
@@ -73,10 +72,6 @@
 	if(machine_stat & NOPOWER)
 		return
 
-
-	. += "fire_[SEC_LEVEL_GREEN]"
-	SSvis_overlays.add_vis_overlay(src, icon, "fire_[SEC_LEVEL_GREEN]", layer, plane, dir)
-	SSvis_overlays.add_vis_overlay(src, icon, "fire_[SEC_LEVEL_GREEN]", layer, EMISSIVE_PLANE, dir)
 
 	var/area/A = get_area(src)
 
@@ -165,13 +160,13 @@
 	if(panel_open)
 
 		if(W.tool_behaviour == TOOL_WELDER && user.a_intent == INTENT_HELP)
-			if(obj_integrity < max_integrity)
-				if(!W.tool_start_check(user, amount=0))
+			if(atom_integrity < max_integrity)
+				if(!W.tool_start_check(user, src, amount=0))
 					return
 
 				to_chat(user, span_notice("You begin repairing [src]..."))
 				if(W.use_tool(src, user, 40, volume=50))
-					obj_integrity = max_integrity
+					atom_integrity = max_integrity
 					to_chat(user, span_notice("You repair [src]."))
 			else
 				to_chat(user, span_warning("[src] is already in good condition!"))
@@ -281,7 +276,7 @@
 /obj/machinery/firealarm/take_damage(damage_amount, damage_type = BRUTE, damage_flag = 0, sound_effect = 1, attack_dir)
 	. = ..()
 	if(.) //damage received
-		if(obj_integrity > 0 && !(machine_stat & BROKEN) && buildstage != 0)
+		if(atom_integrity > 0 && !(machine_stat & BROKEN) && buildstage != 0)
 			if(prob(33))
 				alarm()
 
@@ -290,10 +285,11 @@
 		deconstruct()
 	..()
 
-/obj/machinery/firealarm/obj_break(damage_flag)
+/obj/machinery/firealarm/atom_break(damage_flag)
 	if(buildstage == 0) //can't break the electronics if there isn't any inside.
 		return
 	. = ..()
+	update_fire_light()
 	if(.)
 		LAZYREMOVE(myarea.firealarms, src)
 
@@ -303,11 +299,15 @@
 		if(!(machine_stat & BROKEN))
 			var/obj/item/I = new /obj/item/electronics/firealarm(loc)
 			if(!disassembled)
-				I.obj_integrity = I.max_integrity * 0.5
+				I.atom_integrity = I.max_integrity * 0.5
 		new /obj/item/stack/cable_coil(loc, 3)
 	qdel(src)
 
 /obj/machinery/firealarm/proc/update_fire_light(fire)
+	if (machine_stat & (NOPOWER|BROKEN))
+		set_light(l_power = 0) //fixes bug where broken fire alarms never turned off their lights
+		return
+
 	if(fire == !!light_power)
 		return // do nothing if we're already active
 	if(fire)

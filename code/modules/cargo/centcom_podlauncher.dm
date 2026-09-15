@@ -184,13 +184,13 @@
 		////////////////////////////UTILITIES//////////////////
 		if("gamePanel")
 			holder.holder.Game()
-			SSblackbox.record_feedback("tally", "admin_verb", 1, "Game Panel") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+			BLACKBOX_LOG_ADMIN_VERB("Game Panel")
 			. = TRUE
 		if("buildMode")
 			var/mob/holder_mob = holder.mob
 			if (holder_mob)
 				togglebuildmode(holder_mob)
-			SSblackbox.record_feedback("tally", "admin_verb", 1, "Toggle Build Mode") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+			BLACKBOX_LOG_ADMIN_VERB("Toggle Build Mode")
 			. = TRUE
 		if("loadDataFromPreset")
 			var/list/savedData = params["payload"]
@@ -297,7 +297,7 @@
 				temp_pod.explosionSize = list(0,0,0,0)
 				return
 			explosionChoice = 2
-			temp_pod.explosionSize = list(GLOB.MAX_EX_DEVESTATION_RANGE, GLOB.MAX_EX_HEAVY_RANGE, GLOB.MAX_EX_LIGHT_RANGE,GLOB.MAX_EX_FLAME_RANGE) //Set explosion to max cap of server
+			temp_pod.explosionSize = list(GLOB.MAX_EX_DEVASTATION_RANGE, GLOB.MAX_EX_HEAVY_RANGE, GLOB.MAX_EX_LIGHT_RANGE,GLOB.MAX_EX_FLAME_RANGE) //Set explosion to max cap of server
 			. = TRUE
 		if("damageCustom") //Deals damage to whoevers under the pod when it lands
 			if (damageChoice == 1) //If already doing custom damage, set back to default (no damage)

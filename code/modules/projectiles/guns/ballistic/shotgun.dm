@@ -2,6 +2,7 @@
 	name = "shotgun"
 	desc = "You feel as if you should make a 'adminhelp' if you see one of these, along with a 'github' report. You don't really understand what this means though."
 	item_state = "shotgun"
+	bad_type = /obj/item/gun/ballistic/shotgun
 	fire_sound = 'sound/weapons/gun/shotgun/shot.ogg'
 	vary_fire_sound = FALSE
 	fire_sound_volume = 90
@@ -10,7 +11,7 @@
 	w_class = WEIGHT_CLASS_BULKY
 	force = 10
 	flags_1 =  CONDUCT_1
-	slot_flags = ITEM_SLOT_BACK
+	slot_flags = ITEM_SLOT_BACK | ITEM_SLOT_SUITSTORE
 	default_ammo_type = /obj/item/ammo_box/magazine/internal/shot
 	allowed_ammo_types = list(
 		/obj/item/ammo_box/magazine/internal/shot,
@@ -46,6 +47,47 @@
 	min_recoil = 0.1
 	wear_rate = 0
 
+	//in an ideal world this would be a component but I don't wanna untangle all the sleeps doors pull
+	///can this shotgun breach doors
+	var/door_breaching_weapon = TRUE
+
+/obj/item/gun/ballistic/shotgun/attack_obj(obj/O, mob/living/user)
+	if(door_breaching_weapon && istype(O, /obj/machinery/door/airlock))
+		var/obj/machinery/door/airlock/breaching = O
+		if(chambered && chambered.BB && !is_type_in_list(chambered, list(/obj/item/ammo_casing/shotgun/blank, /obj/item/ammo_casing/shotgun/beanbag, /obj/item/ammo_casing/shotgun/rubbershot)))
+			user.visible_message(
+				span_warning("[user] put the barrel of [src] to [breaching]'s electronics!"),
+				span_warning("You puts the barrel of [src] to [breaching]'s electronics, preparing to shred them!"),
+				span_warning("Metal brushes against metal")
+			)
+			if(do_after(user, 5 SECONDS, breaching))
+				if(process_fire(breaching, user, FALSE))
+					switch(breaching.security_level)
+						if(0)
+							EMPTY_BLOCK_GUARD
+						if (1) // thin metal plate. blast through it and create debris
+							var/obj/item/debris = new /obj/item/stack/ore/salvage/scrapmetal
+							debris.safe_throw_at(user, 2, 5, null, 1)
+							breaching.security_level = 0
+						if(2 to 6) //two shots to break
+							var/obj/item/debris = new /obj/item/stack/ore/salvage/scrapmetal
+							debris.safe_throw_at(user, 2, 5, null, 1)
+							breaching.security_level -= 3
+							breaching.security_level = max(breaching.security_level, 0)
+							return
+					if(!breaching.open())
+						update_icon(ALL, 1, 1)
+					//im not rewriting the behavior to do exactly what this does with a different name
+					breaching.obj_flags |= EMAGGED
+					breaching.lights = FALSE
+					breaching.locked = TRUE
+					breaching.loseMainPower()
+					breaching.loseBackupPower()
+					return TRUE
+				return FALSE
+			return FALSE
+	. = ..()
+
 /obj/item/gun/ballistic/shotgun/blow_up(mob/user)
 	if(chambered && chambered.BB)
 		process_fire(user, user, FALSE)
@@ -59,72 +101,21 @@
 
 // Automatic Shotguns//
 /obj/item/gun/ballistic/shotgun/automatic
+	bad_type = /obj/item/gun/ballistic/shotgun/automatic
 	spread = 3
 	spread_unwielded = 15
 	recoil = 1
 	recoil_unwielded = 4
 	wield_delay = 0.65 SECONDS
-	manufacturer = MANUFACTURER_NANOTRASEN
+	manufacturer = MANUFACTURER_NONE
 	semi_auto = TRUE
 
 	gunslinger_recoil_bonus = 1
 	wear_rate = 1
-	wear_minor_threshold = 30
-	wear_major_threshold = 90
-	wear_maximum = 150
+	wear_minor_threshold = 60
+	wear_major_threshold = 180
+	wear_maximum = 300
 
-//Dual Feed Shotgun
-
-/obj/item/gun/ballistic/shotgun/automatic/dual_tube
-	name = "cycler shotgun"
-	desc = "An advanced shotgun with two separate magazine tubes, allowing you to quickly toggle between ammo types."
-
-	icon = 'icons/obj/guns/manufacturer/nanotrasen_sharplite/48x32.dmi'
-	lefthand_file = 'icons/obj/guns/manufacturer/nanotrasen_sharplite/lefthand.dmi'
-	righthand_file = 'icons/obj/guns/manufacturer/nanotrasen_sharplite/righthand.dmi'
-	mob_overlay_icon = 'icons/obj/guns/manufacturer/nanotrasen_sharplite/onmob.dmi'
-
-	icon_state = "cycler"
-
-	default_ammo_type = /obj/item/ammo_box/magazine/internal/shot/tube
-	allowed_ammo_types = list(
-		/obj/item/ammo_box/magazine/internal/shot/tube,
-	)
-	w_class = WEIGHT_CLASS_HUGE
-	var/toggled = FALSE
-	var/obj/item/ammo_box/magazine/internal/shot/alternate_magazine
-	semi_auto = TRUE
-
-/obj/item/gun/ballistic/shotgun/automatic/dual_tube/examine(mob/user)
-	. = ..()
-	. += span_notice("Alt-click to pump it.")
-
-/obj/item/gun/ballistic/shotgun/automatic/dual_tube/Initialize()
-	. = ..()
-	if (!alternate_magazine)
-		alternate_magazine = new default_ammo_type(src)
-
-/obj/item/gun/ballistic/shotgun/automatic/dual_tube/attack_self(mob/living/user)
-	if(!chambered && magazine.contents.len)
-		rack()
-	else
-		toggle_tube(user)
-
-/obj/item/gun/ballistic/shotgun/automatic/dual_tube/proc/toggle_tube(mob/living/user)
-	var/current_mag = magazine
-	var/alt_mag = alternate_magazine
-	magazine = alt_mag
-	alternate_magazine = current_mag
-	toggled = !toggled
-	if(toggled)
-		to_chat(user, span_notice("You switch to tube B."))
-	else
-		to_chat(user, span_notice("You switch to tube A."))
-
-/obj/item/gun/ballistic/shotgun/automatic/dual_tube/AltClick(mob/living/user)
-	if(!istype(user) || !user.canUseTopic(src, BE_CLOSE, ismonkey(user)))
-		return
-	rack()
 
 /obj/item/gun/ballistic/shotgun/automatic/bulldog/inteq
 	name = "\improper Mastiff Shotgun"
@@ -146,63 +137,96 @@ NO_MAG_GUN_HELPER(shotgun/automatic/bulldog/inteq)
 /obj/item/gun/ballistic/shotgun/doublebarrel/improvised
 	name = "improvised shotgun"
 	desc = "A length of pipe and miscellaneous bits of scrap fashioned into a rudimentary single-shot shotgun."
-	icon = 'icons/obj/guns/projectile.dmi'
+	icon = 'icons/obj/guns/manufacturer/hermits/48x32.dmi'
 	lefthand_file = 'icons/mob/inhands/weapons/64x_guns_left.dmi'
 	righthand_file = 'icons/mob/inhands/weapons/64x_guns_right.dmi'
-	mob_overlay_icon = null
-
+	mob_overlay_icon = 'icons/obj/guns/manufacturer/hermits/onmob.dmi'
+	inhand_x_dimension = 64
+	inhand_y_dimension = 64
 	base_icon_state = "ishotgun"
 	icon_state = "ishotgun"
 	item_state = "ishotgun"
 	w_class = WEIGHT_CLASS_BULKY
+	slot_flags = ITEM_SLOT_BACK | ITEM_SLOT_SUITSTORE
 	force = 10
-	slot_flags = null
 	default_ammo_type = /obj/item/ammo_box/magazine/internal/shot/improvised
 	allowed_ammo_types = list(
 		/obj/item/ammo_box/magazine/internal/shot/improvised,
 	)
 	sawn_desc = "I'm just here for the gasoline."
 	unique_reskin = null
-	var/slung = FALSE
+	manufacturer = MANUFACTURER_NONE
 
 	gun_firemodes = list(FIREMODE_SEMIAUTO)
 	default_firemode = FIREMODE_SEMIAUTO
 
-/obj/item/gun/ballistic/shotgun/doublebarrel/improvised/attackby(obj/item/A, mob/user, params)
-	..()
-	if(istype(A, /obj/item/stack/cable_coil) && !sawn_off)
-		var/obj/item/stack/cable_coil/C = A
-		if(C.use(10))
-			slot_flags = ITEM_SLOT_BACK
-			to_chat(user, span_notice("You tie the lengths of cable to the shotgun, making a sling."))
-			slung = TRUE
-			update_appearance()
-		else
-			to_chat(user, span_warning("You need at least ten lengths of cable if you want to make a sling!"))
+	slot_available = list(
+		ATTACHMENT_SLOT_MUZZLE = 1,
+	)
+
+	slot_offsets = list(
+		ATTACHMENT_SLOT_MUZZLE = list(
+			"x" = 35,
+			"y" = 16,
+		),
+	)
 
 /obj/item/gun/ballistic/shotgun/doublebarrel/improvised/update_icon_state()
 	. = ..()
-	if(slung)
-		item_state = "ishotgunsling"
-	if(sawn_off)
-		item_state = "ishotgun_sawn"
-
-/obj/item/gun/ballistic/shotgun/doublebarrel/improvised/update_overlays()
-	. = ..()
-	if(slung)
-		. += "ishotgunsling"
-	if(sawn_off)
-		. += "ishotgun_sawn"
+	if(current_skin)
+		icon_state = "[unique_reskin[current_skin]][sawn_off ? "_sawn" : ""][bolt_locked ? "_open" : ""]"
+	else
+		icon_state = "[base_icon_state || initial(icon_state)][sawn_off ? "_sawn" : ""][bolt_locked ? "_open" : ""]"
 
 /obj/item/gun/ballistic/shotgun/doublebarrel/improvised/sawoff(forced = FALSE)
 	. = ..()
-	if(. && slung) //sawing off the gun removes the sling
-		new /obj/item/stack/cable_coil(get_turf(src), 10)
-		slung = 0
-		update_appearance()
+	if(.)
+		weapon_weight = WEAPON_MEDIUM
+		w_class = WEIGHT_CLASS_SMALL
+		slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_SUITSTORE
+		wield_slowdown = wield_slowdown-0.1
+		wield_delay = 0.3 SECONDS //OP? maybe
+
+		lefthand_file = 'icons/obj/guns/manufacturer/hermits/lefthand.dmi'
+		righthand_file = 'icons/obj/guns/manufacturer/hermits/righthand.dmi'
+		inhand_x_dimension = 32
+		inhand_y_dimension = 32
+
+		spread = 8
+		spread_unwielded = 15
+		recoil = 3 //or not
+		recoil_unwielded = 5
+		icon_state = "ishotgun_sawn"
+		item_state = "ishotgun_sawn"
+		mob_overlay_state = item_state
 
 /obj/item/gun/ballistic/shotgun/doublebarrel/improvised/sawn
+	icon = 'icons/obj/guns/manufacturer/hermits/48x32.dmi'
+	lefthand_file = 'icons/obj/guns/manufacturer/hermits/lefthand.dmi'
+	righthand_file = 'icons/obj/guns/manufacturer/hermits/righthand.dmi'
+	mob_overlay_icon = 'icons/obj/guns/manufacturer/hermits/onmob.dmi'
+	inhand_x_dimension = 32
+	inhand_y_dimension = 32
+	icon_state = "ishotgun_sawn"
+	item_state = "ishotgun_sawn"
+	weapon_weight = WEAPON_MEDIUM
+	w_class = WEIGHT_CLASS_SMALL
+	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_SUITSTORE
 	sawn_off = TRUE
+	wield_slowdown = 0.15
+	wield_delay = 0.3 SECONDS //OP? maybe
+
+	spread = 8
+	spread_unwielded = 15
+	recoil = 3 //or not
+	recoil_unwielded = 5
+
+	slot_offsets = list(
+		ATTACHMENT_SLOT_MUZZLE = list(
+			"x" = 22,
+			"y" = 16,
+		),
+	)
 
 //god fucking bless brazil
 /obj/item/gun/ballistic/shotgun/doublebarrel/brazil

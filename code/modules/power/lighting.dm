@@ -48,7 +48,7 @@
 	icon = 'icons/obj/lighting.dmi'
 	icon_state = "tube-construct-stage1"
 	anchored = TRUE
-	layer = WALL_OBJ_LAYER
+	layer = BELOW_OBJ_LAYER
 	max_integrity = 200
 	armor = list("melee" = 50, "bullet" = 10, "laser" = 10, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 80, "acid" = 50)
 
@@ -66,6 +66,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/structure/light_construct, 32)
 	. = ..()
 	if(building)
 		setDir(ndir)
+	ADD_TRAIT(src, TRAIT_WALLMOUNTED, type)
 
 /obj/structure/light_construct/Destroy()
 	QDEL_NULL(cell)
@@ -210,7 +211,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/structure/light_construct/small, 28)
 	var/base_state = "tube"		// base description and icon_state
 	icon_state = "tube-on"
 	desc = "A lighting fixture."
-	layer = WALL_OBJ_LAYER
+	layer = BELOW_OBJ_LAYER
 	max_integrity = 100
 	use_power = IDLE_POWER_USE
 	idle_power_usage = 0
@@ -249,6 +250,17 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/structure/light_construct/small, 28)
 
 	var/bulb_vacuum_colour = "#4F82FF"	// colour of the light when air alarm is set to severe
 	var/bulb_vacuum_brightness = 8
+
+	var/constant_flickering = FALSE // Are we always flickering?
+	var/flicker_timer = null
+
+	///wallmount trait
+	var/is_wallmounted = TRUE
+
+/obj/machinery/light/Initialize(mapload)
+	. = ..()
+	if(is_wallmounted)
+		ADD_TRAIT(src, TRAIT_WALLMOUNTED, type)
 
 MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/light, 32)
 
@@ -343,14 +355,15 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/light/small/built, 28)
 
 /obj/machinery/light/LateInitialize()
 	. = ..()
+	var/area/A = get_area(src.loc)
 	switch(fitting)
 		if("tube")
 			brightness = 8
-			if(prob(2))
+			if(prob(2) && !(A.area_flags & NO_RANDOM_LIGHT_BREAKAGE))
 				break_light_tube(1)
 		if("bulb")
 			brightness = 4
-			if(prob(5))
+			if(prob(5) && !(A.area_flags & NO_RANDOM_LIGHT_BREAKAGE))
 				break_light_tube(1)
 	addtimer(CALLBACK(src, PROC_REF(update), 0), 1)
 
@@ -564,7 +577,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/light/small/built, 28)
 		newlight.pixel_y = pixel_y
 		newlight.stage = cur_stage
 		if(!disassembled)
-			newlight.obj_integrity = newlight.max_integrity * 0.5
+			newlight.update_integrity(newlight.max_integrity * 0.5)
 			if(status != LIGHT_BROKEN)
 				break_light_tube()
 			if(status != LIGHT_EMPTY)
@@ -637,6 +650,38 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/light/small/built, 28)
 	cell.use(pwr, FALSE)
 	set_light(brightness * bulb_emergency_brightness_mul, max(bulb_emergency_pow_min, bulb_emergency_pow_mul * (cell.charge / cell.maxcharge)), bulb_emergency_colour)
 	return TRUE
+
+/obj/machinery/light/proc/start_flickering()
+	on = FALSE
+	update(FALSE, TRUE, FALSE)
+
+	constant_flickering = TRUE
+
+	flicker_timer = addtimer(CALLBACK(src, PROC_REF(flicker_on)), rand(0.5 SECONDS, 1 SECONDS), TIMER_STOPPABLE)
+
+/obj/machinery/light/proc/stop_flickering()
+	constant_flickering = FALSE
+
+	if(flicker_timer)
+		deltimer(flicker_timer)
+		flicker_timer = null
+
+	seton(has_power())
+
+/obj/machinery/light/proc/alter_flicker(enable = TRUE)
+	if(!constant_flickering)
+		return
+	if(has_power())
+		on = enable
+		update(FALSE, TRUE, FALSE)
+
+/obj/machinery/light/proc/flicker_on()
+	alter_flicker(TRUE)
+	flicker_timer = addtimer(CALLBACK(src, PROC_REF(flicker_off)), rand(0.5 SECONDS, 1 SECONDS), TIMER_STOPPABLE)
+
+/obj/machinery/light/proc/flicker_off()
+	alter_flicker(FALSE)
+	flicker_timer = addtimer(CALLBACK(src, PROC_REF(flicker_on)), rand(0.5 SECONDS, 5 SECONDS), TIMER_STOPPABLE)
 
 
 /obj/machinery/light/proc/flicker(amount = rand(10, 20))
@@ -786,9 +831,8 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/light/small/built, 28)
 
 // called when area power state changes
 /obj/machinery/light/power_change()
-	SHOULD_CALL_PARENT(0)
-	var/area/A = get_area(src)
-	seton(A.lightswitch && A.power_light)
+	SHOULD_CALL_PARENT(FALSE)
+	seton(has_power())
 
 // called when on fire
 
@@ -886,7 +930,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/light/small/built, 28)
 	if(!isliving(AM))
 		return
 	var/mob/living/L = AM
-	if(istype(L) && !(L.is_flying() || L.is_floating() || L.buckled))
+	if(!(L.movement_type & (FLYING|FLOATING)) || L.buckled)
 		playsound(src, 'sound/effects/glass_step.ogg', HAS_TRAIT(L, TRAIT_LIGHT_STEP) ? 30 : 50, TRUE)
 		if(status == LIGHT_BURNED || status == LIGHT_OK)
 			shatter()
@@ -938,6 +982,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/light/small/built, 28)
 	light_type = /obj/item/light/bulb
 	fitting = "bulb"
 	no_emergency = TRUE
+	is_wallmounted = FALSE
 
 #undef LIGHT_DRAIN_TIME  //WS Edit -- Ethereal Charge Scaling
 #undef LIGHT_POWER_GAIN  //WS Edit -- Ethereal Charge Scaling

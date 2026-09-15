@@ -98,7 +98,7 @@
 	energy_coeff = 1
 	synchronizer_coeff = 1
 
-/datum/mutation/human/void/on_life()
+/datum/mutation/human/void/on_life(seconds_per_tick, times_fired)
 	if(!isturf(owner.loc))
 		return
 	if(prob((0.5+((100-dna.stability)/20))) * GET_MUTATION_SYNCHRONIZER(src)) //very rare, but enough to annoy you hopefully. +0.5 probability for every 10 points lost in stability
@@ -151,10 +151,14 @@
 		return
 
 	var/list/parts = list()
-	for(var/obj/item/bodypart/BP as anything in C.bodyparts)
-		if(BP.body_part != HEAD && BP.body_part != CHEST)
-			if(BP.dismemberable)
-				parts += BP
+	var/obj/item/bodypart/limb
+	for(var/zone as anything in C.bodyparts)
+		limb = C.bodyparts[zone]
+		if(!limb)
+			continue
+		if(limb.body_part != HEAD && limb.body_part != CHEST)
+			if(limb.dismemberable)
+				parts += limb
 	if(!parts.len)
 		to_chat(usr, span_notice("You can't shed any more limbs!"))
 		return
@@ -214,9 +218,11 @@
 	throw_speed = 4
 	embedding = list("embedded_pain_multiplier" = 4, "embed_chance" = 100, "embedded_fall_chance" = 0, "embedded_ignore_throwspeed_threshold" = TRUE)
 	w_class = WEIGHT_CLASS_SMALL
-	sharpness = IS_SHARP
+	sharpness = SHARP_POINTY
 	custom_materials = list(/datum/material/biomass = 500)
 	var/mob/living/carbon/human/fired_by
+	/// if we missed our target
+	var/missed = TRUE
 
 /obj/item/hardened_spike/Initialize(mapload, firedby)
 	. = ..()
@@ -224,13 +230,12 @@
 	addtimer(CALLBACK(src, PROC_REF(checkembedded)), 5 SECONDS)
 
 /obj/item/hardened_spike/proc/checkembedded()
-	if(ishuman(loc))
-		var/mob/living/carbon/human/embedtest = loc
-		for(var/l in embedtest.bodyparts)
-			var/obj/item/bodypart/limb = l
-			if(src in limb.embedded_objects)
-				return limb
-	unembedded()
+	if(missed)
+		unembedded()
+
+/obj/item/hardened_spike/embedded(atom/target)
+	if(isbodypart(target))
+		missed = FALSE
 
 /obj/item/hardened_spike/unembedded()
 	var/turf/T = get_turf(src)
@@ -266,12 +271,12 @@
 	var/been_places = FALSE
 	var/datum/action/innate/send_chems/chems
 
-/obj/item/hardened_spike/chem/embedded(mob/living/carbon/human/embedded_mob)
+/obj/item/hardened_spike/chem/embedded(atom/embedded_target)
 	if(been_places)
 		return
 	been_places = TRUE
 	chems = new
-	chems.transfered = embedded_mob
+	// chems.transfered = embedded_mob
 	chems.spikey = src
 	to_chat(fired_by, span_notice("Link established! Use the \"Transfer Chemicals\" ability to send your chemicals to the linked target!"))
 	chems.Grant(fired_by)

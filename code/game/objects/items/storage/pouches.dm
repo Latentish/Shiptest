@@ -18,6 +18,7 @@
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
 	STR.attack_hand_interact = TRUE
+	STR.pocket_openable = TRUE
 	STR.max_w_class = WEIGHT_CLASS_SMALL
 	STR.max_items = 2
 	STR.max_combined_w_class = 24
@@ -47,7 +48,6 @@
 		/obj/item/stack/medical/mesh,
 		/obj/item/stack/medical/ointment,
 		/obj/item/stack/medical/splint,
-		/obj/item/stack/medical/structure,
 		/obj/item/storage/pill_bottle,
 		/obj/item/reagent_containers/pill,
 		/obj/item/reagent_containers/syringe,
@@ -73,7 +73,7 @@
 /obj/item/storage/pouch/ammo/ComponentInitialize()
 	. = ..()
 	var/datum/component/storage/STR = GetComponent(/datum/component/storage)
-	STR.max_w_class = WEIGHT_CLASS_NORMAL
+	STR.max_w_class = WEIGHT_CLASS_SMALL
 	STR.max_items = 3
 	STR.max_combined_w_class = 24
 	STR.set_holdable(list(
@@ -85,10 +85,27 @@
 		/obj/item/ammo_box/a858,
 		/obj/item/ammo_box/vickland_a8_50r,
 		/obj/item/ammo_box/a300,
+		/obj/item/ammo_box/a4570,
 		/obj/item/ammo_box/a762_stripper,
 		/obj/item/ammo_box/amagpellet_claris,
 		/obj/item/stock_parts/cell/gun
 		))
+
+/obj/item/storage/pouch/ammo/sidewinder/PopulateContents()
+	var/static/items_inside = list(/obj/item/ammo_box/magazine/m57_39_sidewinder = 3)
+	generate_items_inside(items_inside,src)
+
+/obj/item/storage/pouch/ammo/cobra/PopulateContents()
+	var/static/items_inside = list(/obj/item/ammo_box/magazine/m45_cobra = 3)
+	generate_items_inside(items_inside,src)
+
+/obj/item/storage/pouch/ammo/ewc6m/PopulateContents()
+	var/static/items_inside = list(/obj/item/stock_parts/cell/gun/pgf = 3)
+	generate_items_inside(items_inside,src)
+
+/obj/item/storage/pouch/ammo/police/PopulateContents()
+	var/static/items_inside = list(/obj/item/ammo_box/magazine/ammo_stack/prefilled/shotgun/beanbag = 1, /obj/item/ammo_box/magazine/ammo_stack/prefilled/shotgun/rubber = 1, /obj/item/ammo_box/magazine/ammo_stack/prefilled/shotgun/buckshot = 1)
+	generate_items_inside(items_inside,src)
 
 /obj/item/storage/pouch/engi
 	name = "technician pouch"
@@ -113,11 +130,13 @@
 		/obj/item/t_scanner,
 		/obj/item/analyzer,
 		/obj/item/geiger_counter,
-		/obj/item/stack/medical/structure,
 		/obj/item/extinguisher/mini,
 		/obj/item/toy/crayon/spraycan,
 		/obj/item/stack/marker_beacon,
-		/obj/item/clothing/gloves
+		/obj/item/clothing/gloves,
+		/obj/item/stack/tape/industrial,
+		/obj/item/clothing/glasses/welding,
+		/obj/item/bodycamera
 		))
 
 /obj/item/storage/pouch/engi/PopulateContents()
@@ -174,5 +193,7 @@
 		/obj/item/toy/crayon/spraycan,
 		/obj/item/stack/marker_beacon,
 		/obj/item/reagent_containers/glass/rag,
-		/obj/item/taperecorder
+		/obj/item/taperecorder,
+		/obj/item/bodycamera,
+		/obj/item/gps
 		))

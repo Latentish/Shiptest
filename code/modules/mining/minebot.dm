@@ -3,7 +3,7 @@
 #define MINEDRONE_ATTACK 2
 
 /mob/living/simple_animal/hostile/mining_drone
-	name = "\improper Nanotrasen minebot"
+	name = "\improper Makosso-Warra minebot"
 	desc = "The instructions printed on the side read: This is a small robot used to support miners, can be set to search and collect loose ore, or to help fend off wildlife."
 	gender = NEUTER
 	icon = 'icons/mob/aibots.dmi'
@@ -31,7 +31,7 @@
 	custom_price = 800
 	speak_emote = list("states")
 	wanted_objects = list(
-		/obj/item/stack/ore/diamond, /obj/item/stack/ore/gold, /obj/item/stack/ore/silver,
+		/obj/item/stack/ore/diamond, /obj/item/stack/ore/gold,
 		/obj/item/stack/ore/plasma, /obj/item/stack/ore/uranium, /obj/item/stack/ore/iron,
 		/obj/item/stack/ore/hellstone, /obj/item/stack/ore/titanium)
 	healable = 0

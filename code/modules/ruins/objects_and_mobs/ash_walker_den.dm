@@ -78,7 +78,7 @@
 			visible_message(span_warning("Serrated tendrils eagerly pull [H] to [src], tearing the body apart as its blood seeps over the eggs."))
 			playsound(get_turf(src),'sound/magic/demon_consume.ogg', 100, TRUE)
 			H.gib()
-			obj_integrity = min(obj_integrity + max_integrity*0.05,max_integrity)//restores 5% hp of tendril
+			atom_integrity = min(atom_integrity + max_integrity*0.05,max_integrity)//restores 5% hp of tendril
 			for(var/mob/living/L in view(src, 5))
 				if(L.mind?.has_antag_datum(/datum/antagonist/ashwalker))
 					SEND_SIGNAL(L, COMSIG_ADD_MOOD_EVENT, "oogabooga", /datum/mood_event/sacrifice_good)
@@ -87,7 +87,7 @@
 
 /obj/structure/lavaland/ash_walker/proc/remake_walker(datum/mind/oldmind, oldname)
 	var/mob/living/carbon/human/M = new /mob/living/carbon/human(get_step(loc, pick(GLOB.alldirs)))
-	M.set_species(/datum/species/lizard/ashwalker/kobold) //WS Edit - Kobold
+	M.set_species(/datum/species/lizard)
 	M.real_name = oldname
 	M.underwear = "Nude"
 	M.update_body()
@@ -109,7 +109,7 @@
 	if(user.a_intent != INTENT_HELP)
 		return ..()
 
-	if(I.sharpness == IS_SHARP_ACCURATE)
+	if(I.sharpness == SHARP_POINTY)
 		if(last_act + 50 > world.time)	//prevents message spam
 			return
 		last_act = world.time

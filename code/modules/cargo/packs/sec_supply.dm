@@ -1,5 +1,5 @@
 /datum/supply_pack/sec_supply
-	group = "Security Supplies"
+	category = "Security Supplies"
 	crate_type = /obj/structure/closet/crate/secure/gear
 
 /*
@@ -12,19 +12,23 @@
 	contains = list(/obj/item/clothing/accessory/holster)
 	crate_name = "holster crate"
 
+/datum/supply_pack/sec_supply/seclite
+	name = "Seclite Crate"
+	desc = "Contains a single high power flashlight, complete with the hardware for attachment to standard helmet mounting brackets."
+	contains = list(/obj/item/flashlight/seclite)
+	cost = 100
+	crate_name = "seclite crate"
+
 /datum/supply_pack/sec_supply/securitybarriers
-	name = "Security Barrier Grenades"
-	desc = "Halt the opposition with four Security Barrier grenades."
-	contains = list(/obj/item/grenade/barrier,
-					/obj/item/grenade/barrier,
-					/obj/item/grenade/barrier,
-					/obj/item/grenade/barrier)
-	cost = 500
+	name = "Security Barrier Grenade"
+	desc = "Halt the opposition with one Security Barrier grenade."
+	contains = list(/obj/item/grenade/barrier)
+	cost = 125
 	crate_name = "security barriers crate"
 
 /datum/supply_pack/sec_supply/empty_sandbags
 	name = "Empty Sandbags"
-	desc = "Contains one box of seven empty sandbags for deployable cover in the field. Sand not included."
+	desc = "Contains one box of thirty empty sandbags for deployable cover in the field. Sand not included."
 	contains = list(/obj/item/storage/box/emptysandbags)
 	cost = 150
 	crate_name = "sandbag crate"
@@ -37,24 +41,24 @@
 	crate_name = "maintenance kit crate"
 
 /datum/supply_pack/sec_supply/flashbangs
-	name = "Flashbangs Crate"
-	desc = "Contains seven flashbangs for use in door breaching and riot control."
-	cost = 750
-	contains = list(/obj/item/storage/box/flashbangs)
+	name = "Flashbang Crate"
+	desc = "Contains one flashbang for use in door breaching and riot control."
+	cost = 200
+	contains = list(/obj/item/grenade/flashbang)
 	crate_name = "flashbangs crate"
 
 /datum/supply_pack/sec_supply/smokebombs
-	name = "Smoke Grenades Crate"
-	desc = "Contains seven smoke grenades for screening unit movements and signalling."
-	cost = 500
-	contains = list(/obj/item/storage/box/smokebombs)
+	name = "Smoke Grenade Crate"
+	desc = "Contains one smoke grenade for screening unit movements and signaling."
+	cost = 70
+	contains = list(/obj/item/grenade/smokebomb)
 	crate_name = "smoke grenades crate"
 
 /datum/supply_pack/sec_supply/teargas
-	name = "Teargas Grenades Crate"
-	desc = "Contains seven teargas grenades for use in crowd dispersion and riot control."
-	cost = 750
-	contains = list(/obj/item/storage/box/teargas)
+	name = "Teargas Grenade Crate"
+	desc = "Contains one teargas grenade for use in crowd dispersion and riot control."
+	cost = 200
+	contains = list(/obj/item/grenade/chem_grenade/teargas)
 	crate_name = "teargas grenades crate"
 
 /datum/supply_pack/sec_supply/camera_console
@@ -114,45 +118,127 @@
 		Misc. weapons / protection
 */
 
-/datum/supply_pack/sec_supply/riotshields
-	name = "Riot Shield Crate"
-	desc = "Contains a riot shield, effective at holding back hostile fauna, xenofauna, or large crowds."
-	cost = 600
-	contains = list(/obj/item/shield/riot)
+/datum/supply_pack/sec_supply/heavyshields
+	name = "Heavy Ballistic Shield Crate"
+	desc = "Contains a heavy ballistic shield, very effective at protecting the user from light arms fire. Can struggle against stronger firepower."
+	cost = 1200
+	contains = list(/obj/item/shield/heavy)
 	crate_name = "riot shield crate"
 
-/datum/supply_pack/sec_supply/teleriotshields
+/datum/supply_pack/sec_supply/telescopicshields
 	name = "Telescopic Riot Shield Crate"
-	desc = "Contains a telescopic riot shield, effective at holding back hostile fauna, xenofauna, or large crowds in tight spaces."
+	desc = "Contains a telescopic riot shield, effective at protecting the user in close quarters combat. Assuming a gun isn't involved of course."
 	cost = 750
-	contains = list(/obj/item/shield/riot/tele)
+	contains = list(/obj/item/shield/tele)
 	crate_name = "riot shield crate"
 
 /datum/supply_pack/sec_supply/survknives
-	name = "Survival Knives Crate"
-	desc = "Contains three sharpened survival knives. Each knife guaranteed to fit snugly inside any galactic-standard boot."
-	cost = 350
-	contains = list(/obj/item/melee/knife/survival,
-					/obj/item/melee/knife/survival,
-					/obj/item/melee/knife/survival)
+	name = "Survival Knife Crate"
+	desc = "Contains one sharpened survival knife. Guaranteed to fit snugly inside any galactic-standard boot."
+	cost = 120
+	contains = list(/obj/item/melee/knife/survival)
 	crate_name = "survival knife crate"
+
+/datum/supply_pack/sec_supply/brass_knuckles
+	name = "Brass Knuckles Crate"
+	desc = "Contains one pair of brass knuckles. Shiny, stylish, and swift. More than enough to make a pirate think twice about roughing up the average spacer-gangster."
+	cost = 160
+	contains = list(/obj/item/brass_knuckles)
+	crate_name = "brass knuckles crate"
 
 /datum/supply_pack/sec_supply/machete
 	name = "Stamped Steel Machete Crate"
-	desc = "Contains two mass produced machetes. A perfect choice for crews on a budget."
-	cost = 500
-	contains = list(/obj/item/melee/sword/mass,
-					/obj/item/melee/sword/mass)
+	desc = "Contains one mass produced machete. A perfect choice for crews on a budget."
+	cost = 250
+	contains = list(/obj/item/melee/sword/mass)
 	crate_name = "machete crate"
 
+/datum/supply_pack/sec_supply/solarian_sabre
+	name = "Solarian Ceremonial Sabre Crate"
+	desc = "Contains one ceremonial Solarian sabre. To keep tradition alive. Still quite sharp."
+	cost = 750
+	contains = list(/obj/item/storage/belt/sabre/solgov)
+	crate_name = "solarian ceremonial sabre crate"
+	faction = /datum/faction/solgov
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/sec_supply/suns_sabre
+	name = "SUNS Dueling Sabre Crate"
+	desc = "Contains a single dueling sabre, intended for resolving conflicts among students."
+	cost = 750
+	contains = list(/obj/item/storage/belt/sabre/suns)
+	crate_name = "student's sabre crate"
+	faction = /datum/faction/suns
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/sec_supply/suns_cmo_sabre
+	name = "SUNS Cane Sabre Crate"
+	desc = "Contains a blade sheathed in a cane. "
+	cost = 800
+	contains = list(/obj/item/storage/belt/sabre/suns/cmo)
+	crate_name = "student's sabre crate"
+	faction = /datum/faction/suns
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/sec_supply/suns_telescopic_sabre
+	name = "SUNS Telescopic Sabre Crate"
+	desc = "Contains a finely crafted telescopic sabre, ideal for those with discerning tastes"
+	cost = 600
+	contains = list(/obj/item/melee/sword/sabre/suns/telescopic)
+	crate_name = "telescopic sabre crate"
+	faction = /datum/faction/suns
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/sec_supply/pgf_boarding_cutlass
+	name = "PGF Boarding Cutlass Crate"
+	desc = "Contains a finely crafted cutlass, issued to boarding parties of the Pan-Gezenan Federation."
+	cost = 750
+	contains = list(/obj/item/storage/belt/sabre/pgf)
+	crate_name = "boarding cutlass crate"
+	faction = /datum/faction/pgf
+	faction_discount = 0
+	faction_locked = TRUE
+
 /datum/supply_pack/sec_supply/combatknives
-	name = "Combat Knives Crate"
-	desc = "Contains three high quality combat knives. For the sharper, and meaner, crew."
-	cost = 1000
-	contains = list(/obj/item/melee/knife/combat,
-					/obj/item/melee/knife/combat,
-					/obj/item/melee/knife/combat)
+	name = "Combat Knife Crate"
+	desc = "Contains one high quality combat knife. For the sharper, and meaner, crew."
+	cost = 350
+	contains = list(/obj/item/melee/knife/combat)
 	crate_name = "combat knife crate"
+
+/datum/supply_pack/sec_supply/clip_kukri
+	name = "Kukri Sword Crate"
+	desc = "Contains a well-made titanium kukri manufactured on Serene. Intended for Minuteman use."
+	cost = 750
+	contains = list(/obj/item/storage/belt/sabre/kukri)
+	crate_name = "kukri crate"
+	faction = /datum/faction/clip
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/sec_supply/cybersun_flyssa
+	name = "Energy Flyssa Crate"
+	desc = "Contains a lathed, verified, and readied Energy Flyssa. Corporate recommends owning a recharger to accompany."
+	cost = 1500
+	contains = list(/obj/item/melee/energy/flyssa)
+	crate_name = "energy flyssa crate"
+	faction = /datum/faction/syndicate/cybersun
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/sec_supply/hardliner_flyssa
+	name = "Energy Flyssa Crate"
+	desc = "Contains a lathed, verified, and readied Energy Flyssa. This is one of the assets you need to be careful to not lose."
+	cost = 1500
+	contains = list(/obj/item/melee/energy/flyssa)
+	crate_name = "energy flyssa crate"
+	faction = /datum/faction/syndicate/hardliners
+	faction_discount = -50
+	faction_locked = TRUE
 
 /datum/supply_pack/sec_supply/flamethrower
 	name = "Flamethrower Crate"
@@ -166,10 +252,9 @@
 
 /datum/supply_pack/sec_supply/frag_grenade
 	name = "Frag Grenade Crate"
-	desc = "Contains two fragmentation grenades. Better not let it go off in your hands."
-	cost = 500
-	contains = list(/obj/item/grenade/frag,
-					/obj/item/grenade/frag)
+	desc = "Contains one fragmentation grenade. Better not let it go off in your hands."
+	cost = 250
+	contains = list(/obj/item/grenade/frag)
 	crate_name = "frag grenade crate"
 	crate_type = /obj/structure/closet/crate/secure/weapon
 
@@ -195,12 +280,9 @@
 
 /datum/supply_pack/sec_supply/pepper_spray
 	name = "Pepper Spray Crate"
-	desc = "Contains four pepper spray cans, for self defense on a budget."
-	cost = 250
-	contains = list(/obj/item/reagent_containers/spray/pepper,
-					/obj/item/reagent_containers/spray/pepper,
-					/obj/item/reagent_containers/spray/pepper,
-					/obj/item/reagent_containers/spray/pepper)
+	desc = "Contains one pepper spray can, for self defense on a budget."
+	cost = 60
+	contains = list(/obj/item/reagent_containers/spray/pepper)
 	crate_name = "pepper spray crate"
 
 /*
@@ -208,10 +290,10 @@
 */
 
 /datum/supply_pack/sec_supply/stingpack
-	name = "Stingbang Grenade Pack"
-	desc = "Contains five \"stingbang\" grenades, perfect for stopping riots and playing morally unthinkable pranks."
-	cost = 750
-	contains = list(/obj/item/storage/box/stingbangs)
+	name = "Stingbang Grenade"
+	desc = "Contains one \"stingbang\" grenade, perfect for stopping riots and playing morally unthinkable pranks."
+	cost = 150
+	contains = list(/obj/item/grenade/stingbang)
 	crate_name = "stingbang grenade pack crate"
 
 /datum/supply_pack/sec_supply/baton
@@ -220,28 +302,121 @@
 	cost = 2500
 	contains = list(/obj/item/melee/baton/loaded)
 	crate_name = "stun baton crate"
+/*
+		Factional
+*/
 
-/datum/supply_pack/sec_supply/claymore
-	name = "C-10 Claymore Crate"
-	desc = "Four motion-activated directional mines, perfect for ambushing enemy infantry. Still debatably legal to sell!"
-	cost = 3000
-	contains = list(/obj/item/paper/fluff/claymore,
-					/obj/item/mine/directional/claymore,
-					/obj/item/mine/directional/claymore,
-					/obj/item/mine/directional/claymore,
-					/obj/item/mine/directional/claymore)
-	crate_name = "C-10 Claymore crate"
+//gezena
 
-/obj/item/paper/fluff/claymore
-	name = "PRODUCT USAGE GUIDE"
-	desc = "A dusty memo stamped with the Scarborough Arms logo."
-	default_raw_text = "<b>ASSEMBLY:</b><br><br>\
-	-Deploy mounting legs and emplace device. Front should be placed in direction of enemy egress, no more then three meters from intended target area.<br><br> \
-	-<b>INFORM ALLIES OF PLACEMENT LOCATION.</b><br><br> \
-	-Wait for arming sequence to complete.<br><br> \
-	-Enjoy hands-free area denial, courtesy of Scarborough Arms.<br><br><br> \
-	<b>DISASSEMBLY & STORAGE:</b><br><br>\
-	-Insert screwdriver into arming pin access and turn 180 degrees. There will be considerable resistance. <b>DO NOT Step onto or in front of device.</b><br><br> \
-	-When pressure releases, reach below device and lift via underside in one clean motion. Mounting legs will automatically retract. <br><br> \
-	-The device is now safe to handle. <br><br> \
-	-Safely stow device in secure, moisture-free location, away from fire and blunt force. "
+/datum/supply_pack/tools/pgfwebbing
+	name = "Gezenan Combat Webbing"
+	desc = "Contains a lightweight harness covered in pouches for use in carrying ammunition and tools."
+	cost = 500
+	contains = list(/obj/item/storage/belt/military/gezena)
+	crate_name = "webbing crate"
+	faction = /datum/faction/pgf
+	faction_discount = 0
+	faction_locked = TRUE
+
+//cybersun
+
+/datum/supply_pack/tools/cybersun_webbing
+	name = "Cybersun Webbing"
+	desc = "Contains a lightweight multichromatic rigging kit for storage of materials on the fly."
+	cost = 500
+	contains = list(/obj/item/storage/belt/military/cybersun)
+	crate_name = "webbing crate"
+	faction = /datum/faction/syndicate/cybersun
+	faction_discount = 0
+	faction_locked = TRUE
+
+//hardliner
+
+/datum/supply_pack/tools/webbing/hardliner
+	name = "Hardliner Webbing Crate"
+	desc = "Contains a webbing, with a standard implement of six pockets."
+	cost = 300
+	contains = list(/obj/item/storage/belt/security/webbing/hardliners)
+	crate_name = "webbing crate"
+	faction = /datum/faction/syndicate/hardliners
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/tools/webbing/hardliner/alt
+	name = "Hardliner Drop Pouch Harness Crate"
+	desc = "Contains a drop pouch harness, with a standard implement of six pockets."
+	contains = list(/obj/item/storage/belt/security/webbing/hardliners/alt)
+	crate_name = "drop pouch crate"
+
+//inteq
+
+/datum/supply_pack/tools/webbing/inteq
+	name = "Inteq Webbing Crate"
+	desc = "Contains a webbing, with a standard implement of six pockets."
+	cost = 300
+	contains = list(/obj/item/storage/belt/security/webbing/inteq)
+	crate_name = "webbing crate"
+	faction = /datum/faction/inteq
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/tools/webbing/inteq/alt
+	name = "Inteq Drop Pouch Harness Crate"
+	desc = "Contains a drop pouch harness, with a standard implement of six pockets."
+	contains = list(/obj/item/storage/belt/security/webbing/inteq/alt)
+	crate_name = "drop pouch crate"
+
+//ngr
+
+/datum/supply_pack/tools/webbing/ngr
+	name = "NGR Webbing Crate"
+	desc = "Contains a webbing, with a standard implement of six pockets."
+	cost = 300
+	contains = list(/obj/item/storage/belt/security/webbing/ngr)
+	crate_name = "webbing crate"
+	faction = /datum/faction/syndicate/ngr
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/tools/webbing/ngr/alt
+	name = "NGR Drop Pouch Harness Crate"
+	desc = "Contains a drop pouch harness, with a standard implement of six pockets."
+	contains = list(/obj/item/storage/belt/security/webbing/ngr/alt)
+	crate_name = "drop pouch crate"
+
+//clip
+
+/datum/supply_pack/tools/belt/clip
+	name = "CLIP Chest Rig Crate"
+	desc = "Contains a chest rig, with an implement of seven pockets."
+	cost = 500
+	contains = list(/obj/item/storage/belt/military/clip)
+	crate_name = "chest rig crate"
+	faction = /datum/faction/clip
+	faction_discount = 0
+	faction_locked = TRUE
+
+/datum/supply_pack/tools/belt/clip/alt
+	name = "CLIP Belt Rig Crate"
+	desc = "Contains a belt rig, with an implement of seven pockets."
+	cost = 500
+	contains = list(/obj/item/storage/belt/military/clip/alt)
+	crate_name = "belt rig crate"
+	faction = /datum/faction/clip
+	faction_discount = 0
+	faction_locked = TRUE
+
+//Makosso-Warra
+
+/datum/supply_pack/sec_supply/vigilitas_uniform
+	name = "Vigilitas Security Uniform"
+	desc = "Contains a replacement uniform for Vigilitas Interstellar security staff. Armor set sold separately."
+	cost = 150
+	contains = list(/obj/item/clothing/head/warra/cap/security,
+					/obj/item/clothing/mask/gas/vigilitas,
+					/obj/item/clothing/under/warra/security,
+					/obj/item/clothing/shoes/jackboots,
+					/obj/item/clothing/gloves/color/black)
+	faction = /datum/faction/warra
+	faction_discount = 0
+	faction_locked = TRUE

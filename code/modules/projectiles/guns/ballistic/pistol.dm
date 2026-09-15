@@ -1,4 +1,5 @@
 /obj/item/gun/ballistic/automatic/pistol
+	bad_type = /obj/item/gun/ballistic/automatic/pistol
 	bolt_type = BOLT_TYPE_LOCKING
 	w_class = WEIGHT_CLASS_NORMAL
 
@@ -17,7 +18,7 @@
 	wield_delay = 0.2 SECONDS
 	fire_delay = 0.2 SECONDS
 	spread = 5
-	spread_unwielded = 7
+	spread_unwielded = 5
 
 	wield_slowdown = PISTOL_SLOWDOWN
 	aimed_wield_slowdown = PISTOL_AIM_SLOWDOWN
@@ -27,17 +28,16 @@
 
 	refused_attachments = list(
 		/obj/item/attachment/gun,
-		/obj/item/attachment/sling
 		)
 
 /obj/item/gun/ballistic/automatic/pistol/commissar
 	name = "\improper Commissar"
-	desc = "A Nanotrasen-issue handgun, modified with a voice box to further enhance its effectiveness in troop discipline."
-	icon_state = "commander"
-	icon = 'icons/obj/guns/manufacturer/nanotrasen_sharplite/48x32.dmi'
-	lefthand_file = 'icons/obj/guns/manufacturer/nanotrasen_sharplite/lefthand.dmi'
-	righthand_file = 'icons/obj/guns/manufacturer/nanotrasen_sharplite/righthand.dmi'
-	mob_overlay_icon = 'icons/obj/guns/manufacturer/nanotrasen_sharplite/onmob.dmi'
+	desc = "A Makosso-Warra-issue handgun, modified with a voice box to further enhance its effectiveness in troop discipline."
+	icon_state = "challenger"
+	icon = 'icons/obj/guns/manufacturer/warra_sharplite/48x32.dmi'
+	lefthand_file = 'icons/obj/guns/manufacturer/warra_sharplite/lefthand.dmi'
+	righthand_file = 'icons/obj/guns/manufacturer/warra_sharplite/righthand.dmi'
+	mob_overlay_icon = 'icons/obj/guns/manufacturer/warra_sharplite/onmob.dmi'
 
 	w_class = WEIGHT_CLASS_NORMAL
 	default_ammo_type = /obj/item/ammo_box/magazine/co9mm
@@ -121,7 +121,7 @@
 	return
 
 //not technically a pistol but whatever
-/obj/item/gun/ballistic/derringer
+/obj/item/gun/ballistic/automatic/pistol/derringer
 	name = ".38 Derringer"
 	desc = "An easily concealable derringer. Uses .38 special ammo."
 	icon_state = "derringer"
@@ -146,8 +146,9 @@
 	bolt_type = BOLT_TYPE_NO_BOLT
 	tac_reloads = FALSE
 	w_class = WEIGHT_CLASS_TINY
+	gun_firemodes = list(FIREMODE_SEMIAUTO, FIREMODE_BURST)
 
-/obj/item/gun/ballistic/derringer/get_ammo(countchambered = FALSE, countempties = TRUE)
+/obj/item/gun/ballistic/automatic/pistol/derringer/get_ammo(countchambered = FALSE, countempties = TRUE)
 	var/boolets = 0 //legacy var name maturity
 	if (chambered && countchambered)
 		boolets++
@@ -155,12 +156,12 @@
 		boolets += magazine.ammo_count(countempties)
 	return boolets
 
-/obj/item/gun/ballistic/derringer/examine(mob/user)
+/obj/item/gun/ballistic/automatic/pistol/derringer/examine(mob/user)
 	. = ..()
 	var/live_ammo = get_ammo(FALSE, FALSE)
 	. += "[live_ammo ? live_ammo : "None"] of those are live rounds."
 
-/obj/item/gun/ballistic/derringer/traitor
+/obj/item/gun/ballistic/automatic/pistol/derringer/traitor
 	name = "\improper .357 Syndicate Derringer"
 	desc = "An easily concealable derriger, if not for the bright red-and-black. Uses .357 ammo."
 
@@ -177,7 +178,7 @@
 	)
 	fire_sound_volume = 50 //Tactical stealth firing
 
-/obj/item/gun/ballistic/derringer/gold
+/obj/item/gun/ballistic/automatic/pistol/derringer/gold
 	name = "\improper Golden Derringer"
 	desc = "The golden sheen is somewhat counter-intuitive on a holdout weapon, but it looks cool. Uses .357 ammo."
 	icon_state = "derringer_gold"
@@ -186,4 +187,4 @@
 		/obj/item/ammo_box/magazine/internal/derr357,
 	)
 
-EMPTY_GUN_HELPER(ballistic/derringer)
+EMPTY_GUN_HELPER(derringer)

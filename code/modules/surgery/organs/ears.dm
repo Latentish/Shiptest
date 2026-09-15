@@ -27,19 +27,17 @@
 	// Multiplier for both long term and short term ear damage
 	var/damage_multiplier = 1
 
-/obj/item/organ/ears/on_life()
+/obj/item/organ/ears/on_life(seconds_per_tick, times_fired)
 	if(!iscarbon(owner))
 		return
 	..()
 	var/mob/living/carbon/C = owner
-	if((damage < maxHealth) && (organ_flags & ORGAN_FAILING))	//ear damage can be repaired from the failing condition
-		organ_flags &= ~ORGAN_FAILING
 	// genetic deafness prevents the body from using the ears, even if healthy
 	if(HAS_TRAIT(C, TRAIT_DEAF))
 		deaf = max(deaf, 1)
 	else if(!(organ_flags & ORGAN_FAILING)) // if this organ is failing, do not clear deaf stacks.
-		deaf = max(deaf - 1, 0)
-		if(prob(damage / 30) && (damage > low_threshold))
+		deaf = max(deaf - (0.5 * seconds_per_tick), 0)
+		if((damage > low_threshold) && SPT_PROB(damage / 30, seconds_per_tick))
 			adjustEarDamage(0, 4)
 			SEND_SOUND(C, sound('sound/weapons/flash_ring.ogg'))
 			to_chat(C, span_warning("The ringing in your ears grows louder, blocking out any external noises for a moment."))
@@ -48,8 +46,7 @@
 
 /obj/item/organ/ears/proc/restoreEars()
 	deaf = 0
-	damage = 0
-	organ_flags &= ~ORGAN_FAILING
+	setOrganDamage(0)
 
 	var/mob/living/carbon/C = owner
 
@@ -57,7 +54,7 @@
 		deaf = 1
 
 /obj/item/organ/ears/proc/adjustEarDamage(ddmg, ddeaf)
-	damage = max(damage + (ddmg*damage_multiplier), 0)
+	applyOrganDamage(ddmg * damage_multiplier)
 	deaf = max(deaf + (ddeaf*damage_multiplier), 0)
 
 /obj/item/organ/ears/proc/minimumDeafTicks(value)
@@ -238,6 +235,25 @@
 		ear_owner.dna.species.mutant_bodyparts -= "ears"
 		ear_owner.update_body()
 
+/obj/item/organ/ears/horse
+	name = "horse ears"
+
+/obj/item/organ/ears/horse/Insert(mob/living/carbon/human/ear_owner, special = 0, drop_if_replaced = TRUE)
+	..()
+	if(istype(ear_owner))
+		color = ear_owner.hair_color
+		ear_owner.dna.species.mutant_bodyparts |= "ears"
+		ear_owner.dna.features["ears"] = "Horse"
+		ear_owner.update_body()
+
+/obj/item/organ/ears/horse/Remove(mob/living/carbon/human/ear_owner,  special = 0)
+	..()
+	if(istype(ear_owner))
+		color = ear_owner.hair_color
+		ear_owner.dna.features["ears"] = "None"
+		ear_owner.dna.species.mutant_bodyparts -= "ears"
+		ear_owner.update_body()
+
 /obj/item/organ/ears/elf
 	name = "elf ears"
 
@@ -274,7 +290,18 @@
 	. = ..()
 	if(. & EMP_PROTECT_SELF)
 		return
-	damage += 40/severity
+	switch(severity)
+		if(1)
+			owner.set_timed_status_effect(4 SECONDS * REM, /datum/status_effect/jitter, only_if_higher = TRUE)
+			owner.set_timed_status_effect(6 SECONDS * REM, /datum/status_effect/dizziness, only_if_higher = TRUE)
+			owner.Knockdown(200)
+			deaf = 30
+			to_chat(owner, span_warning("Your robotic ears are ringing, uselessly."))
+		if(2)
+			owner.set_timed_status_effect(2 SECONDS * REM, /datum/status_effect/jitter, only_if_higher = TRUE)
+			owner.set_timed_status_effect(3 SECONDS * REM, /datum/status_effect/dizziness, only_if_higher = TRUE)
+			owner.Knockdown(100)
+			to_chat(owner, span_warning("Your robotic ears buzz."))
 
 /obj/item/organ/ears/robot
 	name = "auditory sensors"
@@ -288,15 +315,18 @@
 	organ_flags = ORGAN_SYNTHETIC
 
 /obj/item/organ/ears/robot/emp_act(severity)
+	. = ..()
+	if(. & EMP_PROTECT_SELF)
+		return
 	switch(severity)
 		if(1)
-			owner.adjust_jitter(30)
-			owner.Dizzy(30)
+			owner.set_timed_status_effect(60 SECONDS, /datum/status_effect/jitter, only_if_higher = TRUE)
+			owner.set_timed_status_effect(60 SECONDS, /datum/status_effect/dizziness, only_if_higher = TRUE)
 			owner.Knockdown(200)
 			deaf = 30
 			to_chat(owner, span_warning("Your robotic ears are ringing, uselessly."))
 		if(2)
-			owner.adjust_jitter(15)
-			owner.Dizzy(15)
+			owner.set_timed_status_effect(30 SECONDS * REM, /datum/status_effect/jitter, only_if_higher = TRUE)
+			owner.set_timed_status_effect(30 SECONDS, /datum/status_effect/dizziness, only_if_higher = TRUE)
 			owner.Knockdown(100)
 			to_chat(owner, span_warning("Your robotic ears buzz."))

@@ -10,7 +10,7 @@
 	w_class = WEIGHT_CLASS_BULKY
 	block_chance = 10
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
-	sharpness = IS_SHARP
+	sharpness = SHARP_EDGED
 	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 50)
 	resistance_flags = FIRE_PROOF
 	demolition_mod = 0.75
@@ -18,6 +18,7 @@
 /obj/item/melee/sword/ComponentInitialize()
 	. = ..()
 	AddComponent(/datum/component/butchering, 30, 95, 5) //fast and effective, but as a sword, it might damage the results.
+	AddComponent(/datum/component/jousting, max_tile_charge = 7, min_tile_charge = 4)
 
 //cruft
 /obj/item/melee/sword/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
@@ -52,6 +53,7 @@
 	name = "scrap sword"
 	desc = "A jagged and painful weapon only effective on targets without an armour"
 	icon_state = "machete"
+	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_SUITSTORE
 	force = 24
 	throwforce = 10
 	armour_penetration = -35
@@ -63,7 +65,8 @@
 	icon_state = "machete"
 	base_icon_state = "machete"
 	supports_variations = VOX_VARIATION
-	force = 20
+	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_SUITSTORE
+	force = 23
 	throwforce = 15
 	max_integrity = 300
 	integrity_failure = 0.50
@@ -72,7 +75,8 @@
 
 /obj/item/melee/sword/mass/ComponentInitialize()
 	. = ..()
-	AddComponent(/datum/component/two_handed, force_unwielded = 20, force_wielded = 22, icon_wielded = "[base_icon_state]_w")
+	AddComponent(/datum/component/two_handed, force_unwielded = 23, force_wielded = 25, icon_wielded = "[base_icon_state]_w")
+
 
 /obj/item/melee/sword/mass/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK)
 	. = ..()
@@ -88,10 +92,10 @@
 		if(I.use_tool(src, user, 0, volume = 40))
 			name = src::name
 			broken = FALSE
-			obj_integrity = max_integrity
+			atom_integrity = max_integrity
 		return TRUE
 
-/obj/item/melee/sword/mass/obj_break(damage_flag)
+/obj/item/melee/sword/mass/atom_break(damage_flag)
 	. = ..()
 	if(!broken)
 		if(isliving(loc))
@@ -101,7 +105,7 @@
 
 /obj/item/melee/sword/mass/examine(mob/user)
 	. = ..()
-	var/healthpercent = round((obj_integrity/max_integrity) * 100, 1)
+	var/healthpercent = round((atom_integrity/max_integrity) * 100, 1)
 	switch(healthpercent)
 		if(50 to 99)
 			. += span_info("It looks slightly damaged.")
@@ -110,17 +114,24 @@
 		if(0 to 25)
 			. += span_warning("It's falling apart!")
 
-/obj/item/melee/sword/katana
-	name = "katana"
-	desc = "Woefully underpowered in D20."
-	icon_state = "katana"
-	item_state = "katana"
-	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_BACK
-	force = 30
+/obj/item/melee/sword/podao
+	name = "podao"
+	desc = "A replica of a historic Solarian blade originating in Asia. Huge and heavy, its effectiveness shines when full body momentum is utilized."
+	icon_state = "podao"
+	item_state = "podao"
+	base_icon_state = "podao"
+	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_SUITSTORE
+	force = 25
 	throwforce = 10
+	armour_penetration = 30
 	w_class = WEIGHT_CLASS_HUGE
 	block_chance = 10
 	max_integrity = 200
+	attack_cooldown = 10
+
+/obj/item/melee/sword/podao/ComponentInitialize()
+	. = ..()
+	AddComponent(/datum/component/two_handed, force_unwielded = 25, force_wielded = 35, icon_wielded = "[base_icon_state]_w")
 
 /obj/item/melee/sword/chainsaw
 	name = "sacred chainsaw sword"
@@ -131,97 +142,30 @@
 	throwforce = 10
 	armour_penetration = 25
 	slot_flags = ITEM_SLOT_BELT
-	attack_verb = list("sawed", "torn", "cut", "chopped", "diced")
+	attack_verb = list("sawed", "tore", "lacerated", "cut", "chopped", "diced")
 	hitsound = 'sound/weapons/chainsawhit.ogg'
 	tool_behaviour = TOOL_SAW
 	toolspeed = 1.5 //slower than a real saw
 
-/obj/item/melee/sword/sabre
-	name = "officer's sabre"
-	desc = "An elegant weapon, its monomolecular edge is capable of cutting through flesh and bone with ease."
-	icon_state = "sabre"
-	item_state = "sabre"
-	force = 15
-	throwforce = 10
-	block_chance = 60
-	armour_penetration = 75
-	attack_verb = list("slashed", "cut")
-	hitsound = 'sound/weapons/rapierhit.ogg'
-	custom_materials = list(/datum/material/iron = 1000)
+/obj/item/melee/sword/kukri
+	name = "kukri sword"
+	desc = "A well-made titanium kukri. A knife with a curve ideal for rapid cuts and chops."
+	icon_state = "kukri"
+	slot_flags = ITEM_SLOT_BELT | ITEM_SLOT_BACK
+	w_class = WEIGHT_CLASS_BULKY
+	resistance_flags = FIRE_PROOF
 
-/obj/item/melee/sword/sabre/on_enter_storage(datum/component/storage/concrete/S)
+	attack_cooldown = LIGHT_WEAPON_CD
+	force = 30
+	wound_bonus = 5
+	bare_wound_bonus = 10
+	throwforce = 10
+	block_chance = 10
+
+/obj/item/melee/sword/kukri/on_enter_storage(datum/component/storage/concrete/S)
 	var/obj/item/storage/belt/sabre/B = S.real_location()
 	if(istype(B))
 		playsound(B, 'sound/items/sheath.ogg', 25, TRUE)
-
-/obj/item/melee/sword/sabre/solgov
-	name = "solarian sabre"
-	desc = "A refined ceremonial blade often given to soldiers and high ranking officials of SolGov."
-	icon_state = "sabresolgov"
-	item_state = "sabresolgov"
-
-/obj/item/melee/sword/sabre/suns
-	name = "SUNS sabre"
-	desc = "A blade of Solarian origin given to SUNS followers."
-	icon_state = "suns-sabre"
-	item_state = "suns-sabre"
-
-/obj/item/melee/sword/sabre/suns/captain
-	name = "SUNS captain sabre"
-	desc = "An elegant blade awarded to SUNS captains. Despite its higher craftmanship, it appears to be just as effective as a normal sabre."
-	icon_state = "suns-capsabre"
-	item_state = "suns-capsabre"
-
-/obj/item/melee/sword/sabre/suns/cmo
-	name = "SUNS stick sabre"
-	desc = "A thin blade used by SUNS medical instructors."
-	icon_state = "suns-swordstick"
-	item_state = "suns-swordstick"
-
-/obj/item/melee/sword/sabre/pgf
-	name = "\improper boarding cutlass"
-	desc = "When beam and bullet puncture the hull, a trustworthy blade will carry you through the fight"
-	icon_state = "pgf-sabre"
-	block_chance = 30
-	force = 22
-
-/obj/item/melee/sword/sabre/suns/telescopic
-	name = "telescopic sabre"
-	desc = "A telescopic and retractable blade given to SUNS peacekeepers for easy concealment and carry. It's design makes it slightly less effective than normal sabres sadly, however it is still excelent at piercing armor."
-	icon_state = "suns-tsword"
-	item_state = "suns-tsword"
-	force = 0
-	throwforce = 0
-	block_chance = 0
-
-	slot_flags = ITEM_SLOT_BELT
-	w_class = WEIGHT_CLASS_SMALL
-	attack_verb = list("smacked", "prodded")
-
-	var/extend_sound = 'sound/weapons/batonextend.ogg'
-
-	var/on_block_chance = 40
-
-/obj/item/melee/sword/sabre/suns/telescopic/ComponentInitialize()
-	. = ..()
-	AddComponent( \
-		/datum/component/transforming, \
-		force_on = 10, \
-		throwforce_on = 10, \
-		attack_verb_on = list("slashed", "cut"), \
-		w_class_on = WEIGHT_CLASS_BULKY, \
-	)
-	RegisterSignal(src, COMSIG_TRANSFORMING_ON_TRANSFORM, PROC_REF(on_transform))
-
-/obj/item/melee/sword/sabre/suns/telescopic/proc/on_transform(obj/item/source, mob/user, active)
-	SIGNAL_HANDLER
-
-	if(active)
-		block_chance = on_block_chance
-	else
-		block_chance = initial(block_chance)
-	playsound(user, extend_sound, 50, TRUE)
-	return COMPONENT_NO_DEFAULT_MESSAGE
 
 /obj/item/melee/sword/supermatter
 	name = "supermatter sword"
@@ -328,14 +272,12 @@
 		/datum/reagent/toxin = 10,
 		/datum/reagent/toxin/mindbreaker = 10,
 		/datum/reagent/drug/space_drugs = 10,
-		/datum/reagent/drug/crank = 5,
-		/datum/reagent/drug/methamphetamine = 5,
+		/datum/reagent/drug/rahkrahene = 5,
 		/datum/reagent/drug/mammoth = 5,
 		/datum/reagent/drug/aranesp = 5,
 		/datum/reagent/drug/pumpup = 10,
-		/datum/reagent/medicine/omnizine = 10,
+		/datum/reagent/medicine/panacea = 10,
 		/datum/reagent/medicine/earthsblood = 15,
-		/datum/reagent/medicine/omnizine/protozine = 15
 	)
 
 /obj/item/melee/sword/greyking/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
@@ -361,7 +303,7 @@
 	force = 20
 	throwforce = 20
 	throw_speed = 4
-	sharpness = IS_SHARP
+	sharpness = SHARP_EDGED
 	attack_verb = list("cut", "sliced", "diced")
 	slot_flags = ITEM_SLOT_BACK
 	hitsound = 'sound/weapons/bladeslice.ogg'
@@ -395,7 +337,7 @@
 	icon_state = "weeb_blade"
 	item_state = "weeb_blade"
 	slot_flags = ITEM_SLOT_BACK
-	sharpness = IS_SHARP_ACCURATE
+	sharpness = SHARP_POINTY
 	force = 25
 	throw_speed = 4
 	throw_range = 5
@@ -426,9 +368,10 @@
 /obj/item/storage/belt/weebstick
 	name = "nanoforged blade sheath"
 	desc = "It yearns to bath in the blood of your enemies... but you hold it back!"
-	icon = 'icons/obj/weapon/sword.dmi'
+	lefthand_file = 'icons/mob/inhands/equipment/belt_lefthand.dmi'
+	lefthand_file = 'icons/mob/inhands/equipment/belt_righthand.dmi'
 	icon_state = "weeb_sheath"
-	item_state = "sheath"
+	item_state = "weeb_sheath"
 	force = 3
 	var/primed = FALSE //Prerequisite to anime bullshit
 	// ##The anime bullshit## - Mostly stolen from action/innate/dash

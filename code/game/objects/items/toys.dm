@@ -30,6 +30,7 @@
 	throw_speed = 3
 	throw_range = 7
 	force = 0
+	initial_language_holder = /datum/language_holder/universal
 
 
 /*
@@ -570,7 +571,7 @@
 	resistance_flags = FLAMMABLE
 	max_integrity = 50
 	var/parentdeck = null
-	var/deckstyle = "nanotrasen"
+	var/deckstyle = "warra"
 	var/card_hitsound = null
 	var/card_force = 0
 	var/card_throwforce = 0
@@ -587,8 +588,8 @@
 	name = "deck of cards"
 	desc = "A deck of space-grade playing cards."
 	icon = 'icons/obj/toy.dmi'
-	deckstyle = "nanotrasen"
-	icon_state = "deck_nanotrasen_full"
+	deckstyle = "warra"
+	icon_state = "deck_warra_full"
 	w_class = WEIGHT_CLASS_SMALL
 	var/cooldown = 0
 	var/list/cards = list()
@@ -720,7 +721,7 @@
 	. = ..()
 	var/dat = "You have:<BR>"
 	for(var/t in currenthand)
-		dat += "<A href='?src=[REF(src)];pick=[t]'>A [t].</A><BR>"
+		dat += "<A href='byond://?src=[REF(src)];pick=[t]'>A [t].</A><BR>"
 	dat += "Which card will you remove next?"
 	var/datum/browser/popup = new(user, "cardhand", "Hand of Cards", 400, 240)
 	popup.set_content(dat)
@@ -802,7 +803,7 @@
 	name = "card"
 	desc = "A playing card used to play card games like poker."
 	icon = 'icons/obj/toy.dmi'
-	icon_state = "singlecard_down_nanotrasen"
+	icon_state = "singlecard_down_warra"
 	w_class = WEIGHT_CLASS_TINY
 	var/cardname = null
 	var/flipped = 0
@@ -1206,12 +1207,6 @@
 	icon_state = "chemist"
 	toysay = "Get your pills!"
 
-/obj/item/toy/figure/clown
-	name = "Clown action figure"
-	icon_state = "clown"
-	toysay = "Honk!"
-	toysound = 'sound/items/bikehorn.ogg'
-
 /obj/item/toy/figure/ian
 	name = "Ian action figure"
 	icon_state = "ian"
@@ -1275,12 +1270,6 @@
 	name = "Paramedic action figure"
 	icon_state = "paramedic"
 	toysay = "And the best part? I'm not even a real doctor!"
-
-/obj/item/toy/figure/mime
-	name = "Mime action figure"
-	icon_state = "mime"
-	toysay = "..."
-	toysound = null
 
 /obj/item/toy/figure/miner
 	name = "Shaft Miner action figure"

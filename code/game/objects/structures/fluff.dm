@@ -35,9 +35,9 @@
 	icon = 'icons/obj/machines/sleeper.dmi'
 	icon_state = "sleeper-open"
 
-/obj/structure/fluff/empty_sleeper/nanotrasen
+/obj/structure/fluff/empty_sleeper/warra
 	name = "broken hypersleep chamber"
-	desc = "A Nanotrasen hypersleep chamber - this one appears broken. \
+	desc = "A Makosso-Warra hypersleep chamber - this one appears broken. \
 		There are exposed bolts for easy disassembly using a wrench."
 	icon_state = "sleeper-o"
 
@@ -171,6 +171,12 @@
 	icon = 'icons/obj/fluff.dmi'
 	icon_state = "fokof"
 
+/obj/structure/fluff/minefield_sign
+	name = "minefield sign"
+	desc = "A sign with the words 'WARNING MINEFIELD DO NOT CROSS'."
+	icon = 'icons/obj/fluff.dmi'
+	icon_state = "mine_sign"
+
 /obj/structure/fluff/big_chain
 	name = "giant chain"
 	desc = "A towering link of chains leading up to the ceiling."
@@ -268,3 +274,9 @@
 	light_color = "#C3E381"
 	light_range = 2
 	light_power = 1
+
+/obj/structure/fluff/ladder
+	name = "old ladder"
+	desc = "An old, bent ladder - now practically unusable."
+	icon = 'icons/obj/structures.dmi'
+	icon_state = "ladder00"

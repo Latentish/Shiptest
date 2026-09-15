@@ -17,9 +17,9 @@
 	chem_desc = "This keeps a host's temperature stable. High doses can allow short periods of unprotected EVA."
 	chemuse = 75
 
-/datum/borer_chem/spaceacillin
-	chem = /datum/reagent/medicine/spaceacillin
-	chemname = "spaceacillin"
+/datum/borer_chem/antibiotic
+	chem = /datum/reagent/medicine/antibiotic
+	chemname = "broad-spectrum antibiotics"
 	chem_desc = "Prevents your host from spreading diseases, as well as cures some specific types of disease. Also known to hide borers from rudimentary health scans."
 	chemuse = 75
 	quantity = 5
@@ -29,9 +29,9 @@
 	chemname = "mannitol"
 	chem_desc = "Heals any brain damage the host may have."
 
-/datum/borer_chem/omnizine
-	chem = /datum/reagent/medicine/omnizine
-	chemname = "omnizine"
+/datum/borer_chem/panacea
+	chem = /datum/reagent/medicine/panacea
+	chemname = "panacea"
 	chem_desc = "Slowly heals all damage types in the host. Overdose will cause damage in all types instead."
 	quantity = 5
 

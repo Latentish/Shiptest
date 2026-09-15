@@ -46,11 +46,11 @@
 
 	var/call_start_time
 
-//creates a holocall made by `caller` from `calling_pad` to `callees`
-/datum/holocall/New(mob/living/caller, obj/machinery/holopad/calling_pad, list/callees, elevated_access = FALSE)
+//creates a holocall made by `requester` from `calling_pad` to `callees`
+/datum/holocall/New(mob/living/requester, obj/machinery/holopad/calling_pad, list/callees, elevated_access = FALSE)
 	call_start_time = world.time
-	user = caller
-	caller_location = get_area_name(caller)
+	user = requester
+	caller_location = calling_pad.get_pad_name()
 	calling_pad.outgoing_call = src
 	calling_holopad = calling_pad
 	dialed_holopads = list()
@@ -60,6 +60,8 @@
 		if(!QDELETED(H) && H.is_operational)
 			dialed_holopads += H
 			H.say("Incoming call.")
+			if(H.admin_pad)
+				to_chat(GLOB.admins, span_adminnotice("[icon2html(calling_holopad.icon, GLOB.admins)]<b><font color=green> Incoming Holocall! \n </font>[ADMIN_FULLMONTY(requester)]:</b><span class='linkify'> is calling <b>[H.get_pad_name()][ADMIN_FLW(H)]</b> from <b>[get_area_name(calling_holopad)][ADMIN_FLW(calling_pad)]</b>!"))
 			LAZYADD(H.holo_calls, src)
 
 	if(!dialed_holopads.len)
@@ -161,7 +163,7 @@
 		return
 
 	calling_holopad.calling = FALSE
-	hologram = H.activate_holo(user)
+	hologram = H.activate_holo(user, calling_holopad.secret_user)
 	hologram.HC = src
 
 	//eyeobj code is horrid, this is the best copypasta I could make
@@ -178,6 +180,7 @@
 	hangup.Grant(user)
 	playsound(H, 'sound/machines/ping.ogg', 100)
 	H.say("Connection established.")
+	H.update_appearance()
 
 //Checks the validity of a holocall and qdels itself if it's not. Returns TRUE if valid, FALSE otherwise
 /datum/holocall/proc/Check()
@@ -328,14 +331,14 @@
 		unset_busy_human_dummy("HOLODISK_PRESET")
 
 /obj/item/disk/holodisk/example
-	preset_image_type = /datum/preset_holoimage/clown
+	preset_image_type = /datum/preset_holoimage/researcher
 	preset_record_text = {"
-	NAME Clown
+	NAME Guy Scienceman
 	DELAY 10
 	SAY Why did the chaplain cross the maint ?
 	DELAY 20
 	SAY He wanted to get to the other side!
-	SOUND clownstep
+	SOUND scream
 	DELAY 30
 	SAY Helped him get there!
 	DELAY 10
@@ -362,7 +365,7 @@
 /datum/preset_holoimage/captain
 	outfit_type = /datum/outfit/job/captain
 
-/datum/preset_holoimage/nanotrasenprivatesecurity
+/datum/preset_holoimage/warraprivatesecurity
 	outfit_type = /datum/outfit/vigilitas/trooper
 
 /datum/preset_holoimage/gorilla
@@ -370,9 +373,6 @@
 
 /datum/preset_holoimage/corgi
 	nonhuman_mobtype = /mob/living/simple_animal/pet/dog/corgi
-
-/datum/preset_holoimage/clown
-	outfit_type = /datum/outfit/job/clown
 
 /datum/preset_holoimage/miner
 	outfit_type = /datum/outfit/job/miner

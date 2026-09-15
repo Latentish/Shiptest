@@ -51,10 +51,10 @@
 				msg = "It's seen some light use, but it's still pretty fresh."
 	. += span_notice("[msg]")
 
-/obj/item/soap/nanotrasen
-	desc = "A heavy duty bar of Nanotrasen brand soap. Smells of plasma."
+/obj/item/soap/warra
+	desc = "A heavy duty bar of Makosso-Warra brand soap. Smells of plasma."
 	grind_results = list(/datum/reagent/toxin/plasma = 10, /datum/reagent/lye = 10)
-	icon_state = "soapnt"
+	icon_state = "soapwarra"
 	cleanspeed = 28 //janitor gets this
 	uses = 300
 
@@ -64,14 +64,14 @@
 	cleanspeed = 30 // faster to reward chemists for going to the effort
 
 /obj/item/soap/deluxe
-	desc = "A deluxe Waffle Co. brand bar of soap. Smells of high-class luxury."
+	desc = "A deluxe bar of soap. Smells of high-class luxury."
 	icon_state = "soapdeluxe"
 	cleanspeed = 20 //captain gets one of these
 
 /obj/item/soap/syndie
 	desc = "An untrustworthy bar of soap made of strong chemical agents that dissolve blood faster."
 	icon_state = "soapsyndie"
-	cleanspeed = 27 // ever so slightly better than NT
+	cleanspeed = 27 // ever so slightly better than warra
 	uses = 300
 
 /obj/item/soap/omega
@@ -84,7 +84,7 @@
 /obj/item/paper/fluff/stations/soap
 	name = "ancient janitorial poem"
 	desc = "An old paper that has passed many hands."
-	default_raw_text = "The legend of the omega soap</B><BR><BR> Essence of <B>potato</B>. Juice, not grind.<BR><BR> A <B>cactus</B> brew, fermented into <B>wine</B>.<BR><BR> <B>powder of monkey</B>, to help the workload.<BR><BR> <B>Nitric acid</B> and <B>Baldium</B>, for organic dissolving.<BR><BR> A cup filled with <B>Hooch</B>, for sinful absolving<BR><BR> Some <B>Bluespace Dust</B>, for removal of stains.<BR><BR> A syringe full of <B>Pump-up</B>, it's security's bane.<BR><BR> Add a can of <B>Space Cola</B>, because we've been paid.<BR><BR> <B>Heat</B> as hot as you can, let the soap be your blade.<BR><BR> <B>Ten units of each regent create a soap that could topple all others.</B>"
+	default_raw_text = "The legend of the omega soap</B><BR><BR> Essence of <B>potato</B>. Juice, not grind.<BR><BR> A <B>cactus</B> brew, fermented into <B>wine</B>.<BR><BR> <B>Finobranc powder</B>, to help the workload.<BR><BR> <B>Nitric acid</B> and <B>Lye</B>, for organic dissolving.<BR><BR> A cup filled with <B>Hooch</B>, for sinful absolving<BR><BR> Some <B>Bluespace Dust</B>, for removal of stains.<BR><BR> A syringe full of <B>Pump-up</B>, it's security's bane.<BR><BR> Add a can of <B>Space Cola</B>, because we've been paid.<BR><BR> <B>Heat</B> as hot as you can, let the soap be your blade.<BR><BR> <B>Ten units of each regent create a soap that could topple all others.</B>"
 
 /obj/item/soap/proc/decreaseUses(mob/user)
 	var/skillcheck = user.mind.get_skill_modifier(/datum/skill/cleaning, SKILL_SPEED_MODIFIER)
@@ -173,49 +173,9 @@
 	//LoadComponent so child types dont stack squeak components
 	LoadComponent(/datum/component/squeak, sound_list, 50)
 
-/obj/item/bikehorn/attack(mob/living/carbon/M, mob/living/carbon/user)
-	if(user != M && ishuman(user))
-		var/mob/living/carbon/human/H = user
-		if (HAS_TRAIT(H, TRAIT_CLUMSY)) //only clowns can unlock its true powers
-			SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "honk", /datum/mood_event/honk)
-	return ..()
-
 //air horn
 /obj/item/bikehorn/airhorn
 	name = "air horn"
 	desc = "Damn son, where'd you find this?"
 	icon_state = "air_horn"
 	sound_file = 'sound/items/airhorn2.ogg'
-//golden bikehorn
-/obj/item/bikehorn/golden
-	name = "golden bike horn"
-	desc = "Golden? Clearly, it's made with bananium! Honk!"
-	icon_state = "gold_horn"
-	item_state = "gold_horn"
-	var/flip_cooldown = 0
-
-/obj/item/bikehorn/golden/attack()
-	if(flip_cooldown < world.time)
-		flip_mobs()
-	return ..()
-
-/obj/item/bikehorn/golden/attack_self(mob/user)
-	if(flip_cooldown < world.time)
-		flip_mobs()
-	..()
-
-/obj/item/bikehorn/golden/proc/flip_mobs(mob/living/carbon/M, mob/user)
-	var/turf/T = get_turf(src)
-	for(M in ohearers(7, T))
-		if(ishuman(M) && M.can_hear())
-			var/mob/living/carbon/human/H = M
-			if(istype(H.ears, /obj/item/clothing/ears/earmuffs))
-				continue
-		M.emote("flip")
-	flip_cooldown = world.time + 7
-//canned laughter
-/obj/item/reagent_containers/food/drinks/soda_cans/canned_laughter
-	name = "Canned Laughter"
-	desc = "Just looking at this makes you want to giggle."
-	icon_state = "laughter"
-	list_reagents = list(/datum/reagent/consumable/laughter = 50)

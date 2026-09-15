@@ -106,23 +106,9 @@ LINEN BINS
 	item_state = "sheetyellow"
 	dream_messages = list("yellow")
 
-/obj/item/bedsheet/mime
-	name = "mime's blanket"
-	desc = "A very soothing striped blanket.  All the noise just seems to fade out when you're under the covers in this."
-	icon_state = "sheetmime"
-	item_state = "sheetmime"
-	dream_messages = list("silence", "gestures", "a pale face", "a gaping mouth", "the mime")
-
-/obj/item/bedsheet/clown
-	name = "clown's blanket"
-	desc = "A rainbow blanket with a clown mask woven in. It smells faintly of bananas."
-	icon_state = "sheetclown"
-	item_state = "sheetrainbow"
-	dream_messages = list("honk", "laughter", "a prank", "a joke", "a smiling face", "the clown")
-
 /obj/item/bedsheet/captain
 	name = "captain's bedsheet"
-	desc = "It has a Nanotrasen symbol on it, and was woven with a revolutionary new kind of thread guaranteed to have 0.01% permeability for most non-chemical substances, popular among most modern captains."
+	desc = "It has a Makosso-Warra symbol on it, and was woven with a revolutionary new kind of thread guaranteed to have 0.01% permeability for most non-chemical substances, popular among most modern captains."
 	icon_state = "sheetcaptain"
 	item_state = "sheetcaptain"
 	dream_messages = list("authority", "a golden ID", "sunglasses", "a green disc", "an antique gun", "the captain")
@@ -221,11 +207,11 @@ LINEN BINS
 	item_state = "sheetwiz"
 	dream_messages = list("a book", "an explosion", "lightning", "a staff", "a skeleton", "a robe", "magic")
 
-/obj/item/bedsheet/nanotrasen
-	name = "\improper Nanotrasen bedsheet"
-	desc = "It has the Nanotrasen logo on it and has an aura of duty."
-	icon_state = "sheetNT"
-	item_state = "sheetNT"
+/obj/item/bedsheet/warra
+	name = "\improper Makosso-Warra bedsheet"
+	desc = "It has the Makosso-Warra logo on it and has an aura of duty."
+	icon_state = "sheetwarra"
+	item_state = "sheetwarra"
 	dream_messages = list("authority", "an ending")
 
 /obj/item/bedsheet/solgov
@@ -328,26 +314,12 @@ LINEN BINS
 	dream_messages = list("red", "orange", "yellow", "green", "blue", "purple", "a rainbow")
 	desc = "A multicolored blanket. It's actually several different sheets cut up and sewn together."
 
-/obj/item/bedsheet/double/mime
-	name = "double mime's blanket"
-	icon_state = "double_sheetmime"
-	item_state = "sheetmime"
-	dream_messages = list("silence", "gestures", "a pale face", "a gaping mouth", "the mime")
-	desc = "A very soothing striped blanket.  All the noise just seems to fade out when you're under the covers in this."
-
-/obj/item/bedsheet/double/clown
-	name = "double clown's blanket"
-	icon_state = "double_sheetclown"
-	item_state = "sheetrainbow"
-	dream_messages = list("honk", "laughter", "a prank", "a joke", "a smiling face", "the clown")
-	desc = "A rainbow blanket with a clown mask woven in. It smells faintly of bananas."
-
 /obj/item/bedsheet/double/captain
 	name = "double captain's bedsheet"
 	icon_state = "double_sheetcaptain"
 	item_state = "sheetcaptain"
 	dream_messages = list("authority", "a golden ID", "sunglasses", "a green disc", "an antique gun", "the captain")
-	desc = "It has a Nanotrasen symbol on it, and was woven with a revolutionary new kind of thread guaranteed to have 0.01% permeability for most non-chemical substances, popular among most modern captains."
+	desc = "It has a Makosso-Warra symbol on it, and was woven with a revolutionary new kind of thread guaranteed to have 0.01% permeability for most non-chemical substances, popular among most modern captains."
 
 /obj/item/bedsheet/double/rd
 	name = "double research director's bedsheet"
