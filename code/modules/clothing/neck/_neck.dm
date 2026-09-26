@@ -310,6 +310,219 @@
 	icon_state = "scarflightbrown"
 	current_skin = "light brown scarf"
 
+//Ponchos. Duh
+
+/obj/item/clothing/neck/poncho
+	name = "poncho"
+	desc = "Perfect for a rainy night with jazz."
+	icon = 'icons/obj/clothing/neck/poncho.dmi'
+	mob_overlay_icon = 'icons/mob/clothing/neck/poncho.dmi'
+	icon_state = "ponchowhite"
+	item_state = "ponchowhite"
+	body_parts_covered = CHEST
+	custom_price = 60
+	unique_reskin = list("white poncho" = "ponchowhite",
+						"grey poncho" = "ponchogrey",
+						"black poncho" = "ponchoblack",
+						"red poncho" = "ponchored",
+						"maroon poncho" = "ponchomaroon",
+						"orange poncho" = "ponchoorange",
+						"yellow poncho" = "ponchoyellow",
+						"green poncho" = "ponchogreen",
+						"dark green poncho" = "ponchodarkgreen",
+						"teal poncho" = "ponchoteal",
+						"blue poncho" = "ponchoblue",
+						"dark blue poncho" = "ponchodarkblue",
+						"purple poncho" = "ponchopurple",
+						"pink poncho" = "ponchopink",
+						"brown poncho" = "ponchobrown",
+						"light brown poncho" = "poncholightbrown"
+						)
+	unique_reskin_changes_base_icon_state = TRUE
+	unique_reskin_changes_name = TRUE
+	actions_types = list(/datum/action/item_action/toggle_hood)
+	var/ponchotoggled = FALSE
+	var/obj/item/clothing/head/hooded/hood
+	var/hoodtype = /obj/item/clothing/head/hooded/poncho
+
+	equip_sound = 'sound/items/equip/cloth_equip.ogg'
+	equipping_sound = EQUIP_SOUND_SHORT_GENERIC
+	unequipping_sound = UNEQUIP_SOUND_SHORT_GENERIC
+
+/obj/item/clothing/neck/poncho/Initialize()
+	. = ..()
+	if(!base_icon_state)
+		base_icon_state = icon_state
+	make_hood()
+
+/obj/item/clothing/neck/poncho/Destroy()
+	. = ..()
+	qdel(hood)
+	hood = null
+
+/obj/item/clothing/neck/poncho/reskin_obj(mob/M, change_name)
+	. = ..()
+	if(hood)
+		hood.icon_state = base_icon_state
+	return
+
+/obj/item/clothing/neck/poncho/proc/make_hood()
+	if(!hood)
+		var/obj/item/clothing/head/hooded/W = new hoodtype(src)
+		W.suit = src
+		hood = W
+
+/obj/item/clothing/neck/poncho/ui_action_click()
+	toggle_hood()
+
+/obj/item/clothing/neck/poncho/item_action_slot_check(slot, mob/user)
+	if(slot == ITEM_SLOT_NECK)
+		return 1
+
+/obj/item/clothing/neck/poncho/equipped(mob/user, slot)
+	if(slot != ITEM_SLOT_NECK)
+		remove_hood()
+	..()
+
+/obj/item/clothing/neck/poncho/proc/remove_hood()
+	ponchotoggled = FALSE
+	if(hood)
+		if(ishuman(hood.loc))
+			var/mob/living/carbon/H = hood.loc
+			H.transferItemToLoc(hood, src, TRUE)
+			H.update_inv_neck()
+			update_appearance()
+			H.regenerate_icons()
+		else
+			hood.forceMove(src)
+		for(var/X in actions)
+			var/datum/action/A = X
+			A.UpdateButtonIcon()
+
+/obj/item/clothing/neck/poncho/update_appearance(updates)
+	if(ponchotoggled)
+		icon_state = "[base_icon_state]_t"
+	else
+		icon_state = base_icon_state
+	if(isobj(hood))
+		hood.icon_state = base_icon_state
+	. = ..()
+
+/obj/item/clothing/neck/poncho/dropped()
+	..()
+	remove_hood()
+
+/obj/item/clothing/neck/poncho/proc/toggle_hood()
+	if(!ponchotoggled)
+		if(ishuman(src.loc))
+			var/mob/living/carbon/human/H = src.loc
+			if(H.wear_neck != src)
+				to_chat(H, span_warning("You must be wearing [src] to put up the hood!"))
+				return
+			if(H.head)
+				to_chat(H, span_warning("You're already wearing something on your head!"))
+				return
+			else if(H.equip_to_slot_if_possible(hood,ITEM_SLOT_HEAD,0,0,1))
+				ponchotoggled = TRUE
+				H.update_inv_neck()
+				update_appearance()
+				H.regenerate_icons()
+				for(var/X in actions)
+					var/datum/action/A = X
+					A.UpdateButtonIcon()
+	else
+		remove_hood()
+
+/obj/item/clothing/head/hooded/poncho
+	name = "poncho"
+	desc = "Perfect for a rainy night with jazz."
+	icon = 'icons/obj/clothing/head/color.dmi'
+	mob_overlay_icon = 'icons/mob/clothing/head/color.dmi'
+	icon_state = "ponchowhite"
+	item_state = "ponchowhite"
+	body_parts_covered = HEAD
+	flags_inv = HIDEHAIR|HIDEFACE|HIDEEARS
+
+/obj/item/clothing/neck/poncho/white
+	name = "white poncho"
+	icon_state = "ponchowhite"
+	current_skin = "white poncho"
+
+/obj/item/clothing/neck/poncho/grey
+	name = "grey poncho"
+	icon_state = "ponchogrey"
+	current_skin = "grey poncho"
+
+/obj/item/clothing/neck/poncho/black
+	name = "black poncho"
+	icon_state = "ponchoblack"
+	current_skin = "black poncho"
+
+/obj/item/clothing/neck/poncho/red
+	name = "red poncho"
+	icon_state = "ponchored"
+	current_skin = "red poncho"
+
+/obj/item/clothing/neck/poncho/maroon
+	name = "maroon poncho"
+	icon_state = "ponchomaroon"
+	current_skin = "maroon poncho"
+
+/obj/item/clothing/neck/poncho/orange
+	name = "orange poncho"
+	icon_state = "ponchoorange"
+	current_skin = "orange poncho"
+
+/obj/item/clothing/neck/poncho/yellow
+	name = "yellow poncho"
+	icon_state = "ponchoyellow"
+	current_skin = "yellow poncho"
+
+/obj/item/clothing/neck/poncho/green
+	name = "green poncho"
+	icon_state = "ponchogreen"
+	current_skin = "green poncho"
+
+/obj/item/clothing/neck/poncho/darkgreen
+	name = "dark green poncho"
+	icon_state = "ponchowhite"
+	current_skin = "dark green poncho"
+
+/obj/item/clothing/neck/poncho/teal
+	name = "teal poncho"
+	icon_state = "ponchoteal"
+	current_skin = "teal poncho"
+
+/obj/item/clothing/neck/poncho/blue
+	name = "blue poncho"
+	icon_state = "ponchoblue"
+	current_skin = "blue poncho"
+
+/obj/item/clothing/neck/poncho/darkblue
+	name = "dark blue poncho"
+	icon_state = "ponchodarkblue"
+	current_skin = "dark blue poncho"
+
+/obj/item/clothing/neck/poncho/purple
+	name = "purple poncho"
+	icon_state = "ponchopurple"
+	current_skin = "purple poncho"
+
+/obj/item/clothing/neck/poncho/pink
+	name = "pink poncho"
+	icon_state = "ponchopink"
+	current_skin = "pink poncho"
+
+/obj/item/clothing/neck/poncho/brown
+	name = "brown poncho"
+	icon_state = "ponchobrown"
+	current_skin = "brown poncho"
+
+/obj/item/clothing/neck/poncho/lightbrown
+	name = "light brown poncho"
+	icon_state = "poncholightbrown"
+	current_skin = "light brown poncho"
+
 //Shemaghs to operate tactically in a operational tactical situation
 
 /obj/item/clothing/neck/shemagh
@@ -317,6 +530,199 @@
 	desc = "An oversized shemagh, for those with a keen sense of fashion, or those operating tactically."
 	icon_state = "shemagh"
 	supports_variations = VOX_VARIATION
+
+/obj/item/clothing/neck/shemagh/AltClick(mob/user)
+	. = ..()
+	if(iscarbon(user))
+		var/mob/living/carbon/C = user
+		if((C.get_item_by_slot(ITEM_SLOT_NECK) == src))
+			to_chat(user, span_warning("You can't tie [src] while wearing it!"))
+			return
+		if(user.is_holding(src))
+			var/obj/item/clothing/mask/shemagh/nk = new(src)
+			nk.name = "[name] mask"
+			nk.icon_state = "[icon_state]_over"
+			nk.source_shemagh_type = src.type
+			var/current_hand_index = user.get_held_index_of_item(src)
+			user.transferItemToLoc(src, null)
+			user.put_in_hand(nk, current_hand_index)
+			to_chat(user, span_notice("You tie [src] up like a facemask."))
+			qdel(src)
+		else
+			to_chat(user, span_warning("You must be holding [src] in order to tie it!"))
+
+/obj/item/clothing/mask/shemagh
+	icon = 'icons/obj/clothing/neck.dmi'
+	mob_overlay_icon = 'icons/mob/clothing/neck.dmi'
+	flags_inv = HIDEEARS|HIDEHAIR|HIDEFACIALHAIR|HIDEFACE
+	clothing_flags = ALLOWINTERNALS
+	flags_cover = MASKCOVERSMOUTH
+	alternate_worn_layer = FACEWRAP_LAYER
+	w_class = WEIGHT_CLASS_TINY
+	var/source_shemagh_type
+
+/obj/item/clothing/mask/shemagh/AltClick(mob/user)
+	. = ..()
+	if(iscarbon(user))
+		var/mob/living/carbon/C = user
+		if(C.get_item_by_slot(ITEM_SLOT_MASK) == src)
+			to_chat(user, span_warning("You can't untie [src] while wearing it!"))
+			return
+		if(user.is_holding(src))
+			var/obj/item/clothing/neck/shemagh/new_shemagh = new source_shemagh_type(user)
+			var/current_hand_index = user.get_held_index_of_item(src)
+			var/old_name = src.name
+			qdel(src)
+			user.put_in_hand(new_shemagh, current_hand_index)
+			to_chat(user, span_notice("You untie [old_name] back into a [new_shemagh.name]."))
+		else
+			to_chat(user, span_warning("You must be holding [src] in order to untie it!"))
+
+/obj/item/clothing/neck/shemagh/khaki
+	icon_state = "shemagh_khaki"
+
+/obj/item/clothing/neck/shemagh/olive
+	icon_state = "shemagh_olive"
+
+/obj/item/clothing/neck/shemagh/brown
+	icon_state = "shemagh_brown"
+
+/obj/item/clothing/neck/shemagh/black
+	icon_state = "shemagh_black"
+
+// mantles
+
+/obj/item/clothing/neck/mantle
+	name = "mantle"
+	desc = "A big mantle for big shoulders."
+	icon_state = "mantle"
+	item_state = "mantle"
+	unique_reskin = list("black mantle" = "mantle",
+						"olive mantle" = "mantle_forest",
+						"red mantle" = "mantle_red",
+						"snow mantle" = "mantle_snow",
+						"desert mantle" = "mantle_sand",
+						"navy mantle" = "mantle_navy",
+						"leather mantle" = "mantle_leather"
+						)
+	unique_reskin_changes_base_icon_state = TRUE
+	unique_reskin_changes_name = TRUE
+
+/obj/item/clothing/neck/mantle/black
+	name = "black mantle"
+	icon_state = "mantle"
+	current_skin = "black mantle"
+
+/obj/item/clothing/neck/mantle/olive
+	name = "olive mantle"
+	icon_state = "mantle_forest"
+	current_skin = "olive mantle"
+
+/obj/item/clothing/neck/mantle/red
+	name = "red mantle"
+	icon_state = "mantle_red"
+	current_skin = "red mantle"
+
+/obj/item/clothing/neck/mantle/snow
+	name = "snow mantle"
+	icon_state = "mantle_snow"
+	current_skin = "snow mantle"
+
+/obj/item/clothing/neck/mantle/sand
+	name = "desert mantle"
+	icon_state = "mantle_sand"
+	current_skin = "desert mantle"
+
+/obj/item/clothing/neck/mantle/navy
+	name = "navy mantle"
+	icon_state = "mantle_navy"
+	current_skin = "navy mantle"
+
+/obj/item/clothing/neck/mantle/leather
+	name = "leather mantle"
+	icon_state = "mantle_leather"
+	current_skin = "leather mantle"
+
+// neck wraps
+
+/obj/item/clothing/neck/neckwraps
+	name = "neckwraps"
+	desc = "A fashionable piece of cloth cover your neck."
+	icon_state = "neckwraps"
+	item_state = "neckwraps"
+	unique_reskin = list("grey neckwraps" = "neckwraps",
+						"black neckwraps" = "neckwraps_black",
+						"brown neckwraps" = "neckwraps_brown",
+						"tan neckwraps" = "neckwraps_tan",
+						"olive neckwraps" = "neckwraps_olive",
+						"red neckwraps" = "neckwraps_red",
+						"blue neckwraps" = "neckwraps_blue"
+						)
+	unique_reskin_changes_base_icon_state = TRUE
+	unique_reskin_changes_name = TRUE
+
+/obj/item/clothing/neck/neckwraps/grey
+	name = "grey neckwraps"
+	icon_state = "neckwraps"
+	current_skin = "grey neckwraps"
+
+/obj/item/clothing/neck/neckwraps/black
+	name = "black neckwraps"
+	icon_state = "neckwraps_black"
+	current_skin = "black neckwraps"
+
+/obj/item/clothing/neck/neckwraps/brown
+	name = "brown neckwraps"
+	icon_state = "neckwraps_brown"
+	current_skin = "brown neckwraps"
+
+/obj/item/clothing/neck/neckwraps/tan
+	name = "tan neckwraps"
+	icon_state = "neckwraps_tan"
+	current_skin = "tan neckwraps"
+
+/obj/item/clothing/neck/neckwraps/olive
+	name = "olive neckwraps"
+	icon_state = "neckwraps_olive"
+	current_skin = "olive neckwraps"
+
+/obj/item/clothing/neck/neckwraps/red
+	name = "red neckwraps"
+	icon_state = "neckwraps_red"
+	current_skin = "red neckwraps"
+
+/obj/item/clothing/neck/neckwraps/blue
+	name = "blue neckwraps"
+	icon_state = "neckwraps_blue"
+	current_skin = "blue neckwraps"
+
+/obj/item/clothing/neck/shawl
+	name = "shawl"
+	desc = "An aging shawl, still serving as good protection from the elements."
+	icon_state = "shawl"
+	item_state = "shawl"
+	unique_reskin = list("brown shawl" = "shawl",
+						"grey shawl" = "shawl_grey",
+						"green shawl" = "shawl_green",
+						"yellow shawl" = "shawl_yellow"
+						)
+	unique_reskin_changes_base_icon_state = TRUE
+	unique_reskin_changes_name = TRUE
+
+/obj/item/clothing/neck/shawl/grey
+	name = "grey shawl"
+	icon_state = "shawl_grey"
+	current_skin = "grey shawl"
+
+/obj/item/clothing/neck/shawl/green
+	name = "green shawl"
+	icon_state = "shawl_green"
+	current_skin = "green shawl"
+
+/obj/item/clothing/neck/shawl/yellow
+	name = "yellow shawl"
+	icon_state = "shawl_yellow"
+	current_skin = "yellow shawl"
 
 //The three following scarves don't have the scarf subtype
 //This is because Ian can equip anything from that subtype
@@ -336,12 +742,6 @@
 /obj/item/clothing/neck/stripedbluescarf
 	name = "striped blue scarf"
 	icon_state = "stripedbluescarf"
-	custom_price = 10
-	supports_variations = VOX_VARIATION
-
-/obj/item/clothing/neck/stripedsolgovscarf
-	name = "striped solgov scarf"
-	icon_state = "stripedsolgovscarf"
 	custom_price = 10
 	supports_variations = VOX_VARIATION
 
@@ -366,6 +766,28 @@
 	resistance_flags = FIRE_PROOF
 	w_class = WEIGHT_CLASS_SMALL
 	slot_flags = ITEM_SLOT_NECK | ITEM_SLOT_POCKETS
+	strip_delay = 10
+	var/list/tag_fluff = list()
+
+/obj/item/clothing/neck/dogtag/examine_more(mob/user)
+	. = ..()
+	for(var/line in tag_fluff)
+		. += span_boldnotice(line)
+
+/obj/item/clothing/neck/dogtag/attackby(obj/item/I, mob/user, params)
+	if(istype(I, /obj/item/pen))
+		if(length(tag_fluff) >= 5)
+			to_chat(user, span_warning("[src] has no more space!"))
+			return
+		var/tagfluff = stripped_input(user, "Add to this dogtag.", "Plaque Customization", max_length=60)
+		if(!tagfluff)
+			return
+		tag_fluff = tagfluff
+		to_chat(user, span_notice("You add to the information on [src]!"))
+		return
+
+/obj/item/clothing/neck/dogtag/loadout
+	desc = "A non-military dogtag, often worn for style in certain circles."
 
 /obj/item/clothing/neck/dogtag/gold
 	icon_state = "dogtag_gold"
@@ -454,7 +876,7 @@
 
 /obj/item/clothing/neck/crystal_amulet/examine(mob/user)
 	. = ..()
-	var/healthpercent = (obj_integrity/max_integrity) * 100
+	var/healthpercent = (atom_integrity/max_integrity) * 100
 	switch(healthpercent)
 		if(50 to 99)
 			. += "It looks slightly damaged."
@@ -468,7 +890,7 @@
 	if(!isinhands)
 		. += mutable_appearance('icons/effects/effects.dmi', shield_state, MOB_LAYER + 0.01)
 
-/obj/item/clothing/neck/crystal_amulet/obj_destruction(damage_flag)
+/obj/item/clothing/neck/crystal_amulet/atom_destruction(damage_flag)
 	visible_message(span_danger("[src] shatters into a million pieces!"))
 	playsound(src,"shatter", 70)
 	new /obj/effect/decal/cleanable/glass/strange(get_turf(src))

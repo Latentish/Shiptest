@@ -90,12 +90,14 @@ Class Procs:
 	max_integrity = 200
 	layer = BELOW_OBJ_LAYER //keeps shit coming out of the machine from ending up underneath it.
 	flags_ricochet = RICOCHET_HARD
-	ricochet_chance_mod = 0.3
+	receive_ricochet_chance_mod = 0.3
 
 	anchored = TRUE
 	interaction_flags_atom = INTERACT_ATOM_ATTACK_HAND | INTERACT_ATOM_UI_INTERACT
 
 	hitsound_type = PROJECTILE_HITSOUND_METAL
+
+	initial_language_holder = /datum/language_holder/gal_com
 
 	var/machine_stat = NONE
 	var/use_power = IDLE_POWER_USE
@@ -135,6 +137,9 @@ Class Procs:
 
 	var/atmos_processing = FALSE
 	var/interacts_with_air = FALSE
+
+	var/power_flags = POWER_ALLOW_AREA
+	var/datum/powernet/powernet = null
 
 /obj/machinery/Initialize(mapload, apply_default_parts = TRUE)
 	if(!armor)
@@ -183,6 +188,7 @@ Class Procs:
 /obj/machinery/proc/exit_area(datum/source, area/A)
 	SIGNAL_HANDLER
 	set_no_power(A)
+	disconnect_from_network()
 
 /obj/machinery/Destroy()
 	GLOB.machines.Remove(src)
@@ -192,6 +198,7 @@ Class Procs:
 	QDEL_NULL(circuit)
 	QDEL_LIST(component_parts)
 	set_no_power()
+	disconnect_from_network()
 	return ..()
 
 /obj/machinery/proc/locate_machinery()
@@ -312,9 +319,10 @@ Class Procs:
 /obj/machinery/proc/on_set_is_operational(old_value)
 	return
 
-
 /obj/machinery/can_interact(mob/user)
-	if((machine_stat & (NOPOWER|BROKEN)) && !(interaction_flags_machine & INTERACT_MACHINE_OFFLINE)) // Check if the machine is broken, and if we can still interact with it if so
+	if(machine_stat & BROKEN && !(interaction_flags_machine & INTERACT_MACHINE_BROKEN)) // Check if the machine is broken, and if we can still interact with it if so
+		return FALSE
+	if(machine_stat & NOPOWER && !(interaction_flags_machine & INTERACT_MACHINE_UNPOWERED)) // Check if the machine is powered, and if we can still interact with it if not
 		return FALSE
 
 	var/silicon = issilicon(user)
@@ -464,11 +472,11 @@ Class Procs:
 	. = new_frame
 	new_frame.set_anchored(anchored)
 	if(!disassembled)
-		new_frame.obj_integrity = new_frame.max_integrity * 0.5 //the frame is already half broken
+		new_frame.atom_integrity = new_frame.max_integrity * 0.5 //the frame is already half broken
 	transfer_fingerprints_to(new_frame)
 
 
-/obj/machinery/obj_break(damage_flag)
+/obj/machinery/atom_break(damage_flag)
 	SHOULD_CALL_PARENT(1)
 	. = ..()
 	if(!(machine_stat & BROKEN) && !(flags_1 & NODECONSTRUCT_1))
@@ -477,9 +485,9 @@ Class Procs:
 		update_appearance()
 		return TRUE
 
-/obj/machinery/contents_explosion(severity, target)
+/obj/machinery/contents_explosion(severity, target, light_dam = EX_LIGHT_BASE_DAM, light_item_dam = EX_LIGHT_BASE_ITEM_DAM, heavy_dam = EX_HEAVY_BASE_DAM, heavy_item_dam = EX_HEAVY_BASE_ITEM_DAM)
 	if(occupant)
-		occupant.ex_act(severity, target)
+		occupant.ex_act(severity, target, light_dam, light_item_dam, heavy_dam, heavy_item_dam)
 
 /obj/machinery/handle_atom_del(atom/A)
 	if(A == occupant)
@@ -617,7 +625,7 @@ Class Procs:
 	if(!(resistance_flags & INDESTRUCTIBLE))
 		if(resistance_flags & ON_FIRE)
 			. += span_warning("It's on fire!")
-		var/healthpercent = (obj_integrity/max_integrity) * 100
+		var/healthpercent = (atom_integrity/max_integrity) * 100
 		switch(healthpercent)
 			if(50 to 99)
 				. += "It looks slightly damaged."
@@ -643,7 +651,7 @@ Class Procs:
 /obj/machinery/zap_act(power, zap_flags, shocked_objects)
 	. = ..()
 	if(prob(85) && (zap_flags & ZAP_MACHINE_EXPLOSIVE) && !(resistance_flags & INDESTRUCTIBLE))
-		explosion(src, 1, 2, 4, flame_range = 2, adminlog = FALSE, smoke = FALSE)
+		explosion(src, 0, 1, 2, flame_range = 2, adminlog = FALSE, smoke = FALSE)
 	else if(zap_flags & ZAP_OBJ_DAMAGE)
 		take_damage(power/2000, BURN, "energy")
 		if(prob(40))

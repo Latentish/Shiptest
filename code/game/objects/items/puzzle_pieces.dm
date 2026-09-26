@@ -50,18 +50,13 @@
 /obj/item/keycard/gatedrop
 	icon_state = "golden_key"
 
-/obj/item/keycard/gatedrop/lavacanyon
-	name = "Vault Key"
-	desc = "A dusty key, smudged with dried blood."
-	puzzle_id = "lavacanyonkey"
-
 //***************
 //*****Doors*****
 //***************
 
 /obj/machinery/door/keycard
 	name = "locked door"
-	desc = "This door only opens when a keycard is swiped. It looks virtually indestructable."
+	desc = "This door only opens when a keycard is swiped. It looks virtually indestructible."
 	icon = 'icons/obj/doors/doorpuzzle.dmi'
 	icon_state = "door_closed"
 	explosion_block = 3
@@ -191,7 +186,7 @@
 	trigger_delay = 10
 	protected = TRUE
 	resistance_flags = INDESTRUCTIBLE | FIRE_PROOF | ACID_PROOF | LAVA_PROOF
-	var/reward = /obj/item/reagent_containers/food/snacks/cookie
+	var/reward = /obj/item/food/cookie
 	var/claimed = FALSE
 
 /obj/item/pressure_plate/hologrid/Initialize()

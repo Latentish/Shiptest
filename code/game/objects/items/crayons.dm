@@ -66,7 +66,7 @@
 
 	var/edible = TRUE // That doesn't mean eating it is a good idea
 
-	var/list/reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5)
+	var/list/reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/wax = 1.5)
 	// If the user can toggle the colour, a la vanilla spraycan
 	var/can_change_colour = FALSE
 
@@ -158,7 +158,7 @@
 		ui = new(user, src, "Crayon", name)
 		ui.open()
 
-/obj/item/toy/crayon/spraycan/AltClick(mob/user)
+/obj/item/toy/crayon/spraycan/attack_self_secondary(mob/user)
 	if(user.canUseTopic(src, BE_CLOSE, ismonkey(user)))
 		if(has_cap)
 			is_capped = !is_capped
@@ -306,7 +306,7 @@
 
 	var/temp = "rune"
 	var/ascii = (length(drawing) == 1)
-	if(ascii && is_alpha(drawing))
+	if(ascii && is_lowercase_character(drawing))
 		temp = "letter"
 	else if(ascii && is_digit(drawing))
 		temp = "number"
@@ -398,7 +398,7 @@
 	if(affected_turfs.len)
 		fraction /= affected_turfs.len
 	for(var/t in affected_turfs)
-		reagents.trans_to(t, ., volume_multiplier, transfered_by = user, method = TOUCH)
+		reagents.trans_to(t, ., volume_multiplier, transfered_by = user, methods = TOUCH)
 	check_empty(user)
 
 /obj/item/toy/crayon/attack(mob/M, mob/user)
@@ -417,7 +417,7 @@
 		var/eaten = use_charges(user, 5, FALSE)
 		if(check_empty(user)) //Prevents divsion by zero
 			return
-		reagents.trans_to(M, eaten, volume_multiplier, transfered_by = user, method = INGEST)
+		reagents.trans_to(M, eaten, volume_multiplier, transfered_by = user, methods = INGEST)
 		// check_empty() is called during afterattack
 	else
 		..()
@@ -453,66 +453,49 @@
 	icon_state = "crayonred"
 	paint_color = "#DA0000"
 	crayon_color = "red"
-	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/colorful_reagent/powder/red/crayon = 1.5)
 	dye_color = DYE_RED
 
 /obj/item/toy/crayon/orange
 	icon_state = "crayonorange"
 	paint_color = "#FF9300"
 	crayon_color = "orange"
-	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/colorful_reagent/powder/orange/crayon = 1.5)
 	dye_color = DYE_ORANGE
 
 /obj/item/toy/crayon/yellow
 	icon_state = "crayonyellow"
 	paint_color = "#FFF200"
 	crayon_color = "yellow"
-	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/colorful_reagent/powder/yellow/crayon = 1.5)
 	dye_color = DYE_YELLOW
 
 /obj/item/toy/crayon/green
 	icon_state = "crayongreen"
 	paint_color = "#A8E61D"
 	crayon_color = "green"
-	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/colorful_reagent/powder/green/crayon = 1.5)
 	dye_color = DYE_GREEN
 
 /obj/item/toy/crayon/blue
 	icon_state = "crayonblue"
 	paint_color = "#00B7EF"
 	crayon_color = "blue"
-	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/colorful_reagent/powder/blue/crayon = 1.5)
 	dye_color = DYE_BLUE
 
 /obj/item/toy/crayon/purple
 	icon_state = "crayonpurple"
 	paint_color = "#DA00FF"
 	crayon_color = "purple"
-	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/colorful_reagent/powder/purple/crayon = 1.5)
 	dye_color = DYE_PURPLE
 
 /obj/item/toy/crayon/black
 	icon_state = "crayonblack"
 	paint_color = "#1C1C1C" //Not completely black because total black looks bad. So Mostly Black.
 	crayon_color = "black"
-	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/colorful_reagent/powder/black/crayon = 1.5)
 	dye_color = DYE_BLACK
 
 /obj/item/toy/crayon/white
 	icon_state = "crayonwhite"
 	paint_color = "#FFFFFF"
 	crayon_color = "white"
-	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5,  /datum/reagent/colorful_reagent/powder/white/crayon = 1.5)
 	dye_color = DYE_WHITE
-
-/obj/item/toy/crayon/mime
-	icon_state = "crayonmime"
-	desc = "A very sad-looking crayon."
-	paint_color = "#FFFFFF"
-	crayon_color = "mime"
-	reagent_contents = list(/datum/reagent/consumable/nutriment = 0.5, /datum/reagent/colorful_reagent/powder/invisible = 1.5)
-	charges = -1
-	dye_color = DYE_MIME
 
 /obj/item/toy/crayon/rainbow
 	icon_state = "crayonrainbow"
@@ -562,13 +545,9 @@
 /obj/item/storage/crayons/attackby(obj/item/W, mob/user, params)
 	if(istype(W, /obj/item/toy/crayon))
 		var/obj/item/toy/crayon/C = W
-		switch(C.crayon_color)
-			if("mime")
-				to_chat(usr, span_warning("This crayon is too sad to be contained in this box!"))
-				return
-			if("rainbow")
-				to_chat(usr, span_warning("This crayon is too powerful to be contained in this box!"))
-				return
+		if(C.crayon_color == "rainbow")
+			to_chat(usr, span_warning("This crayon is too powerful to be contained in this box!"))
+			return
 		if(istype(W, /obj/item/toy/crayon/spraycan))
 			to_chat(user, span_warning("Spraycans are not crayons!"))
 			return
@@ -578,7 +557,12 @@
 
 /obj/item/toy/crayon/spraycan
 	name = "spray can"
+	desc = "A metallic container containing spraypaint. The contained fluids deplete as it's sprayed, so it requires replacement when it's fully used up."
+
 	icon_state = "spraycan"
+
+	icon = 'icons/obj/item/spraycan.dmi'
+	//world_file = 'icons/obj/world/spraycan.dmi'
 
 	icon_capped = "spraycan_cap"
 	icon_uncapped = "spraycan"
@@ -588,8 +572,8 @@
 	item_state = "spraycan"
 	lefthand_file = 'icons/mob/inhands/equipment/hydroponics_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/hydroponics_righthand.dmi'
-	desc = "A metallic container containing tasty paint."
 
+	charges = 80
 	custom_materials = list(/datum/material/iron = 100, /datum/material/glass = 100) // WS Edit - Item Materials
 
 	instant = TRUE
@@ -611,8 +595,8 @@
 	. = ..()
 	// If default crayon red colour, pick a more fun spraycan colour
 	if(!paint_color)
-		paint_color = pick("#DA0000","#FF9300","#FFF200","#A8E61D","#00B7EF",
-		"#DA00FF")
+		paint_color = pick("#b22c20","#d99e50","#f0db65","#579e60","#307db9",
+		"#a548b1")
 	refill()
 	update_appearance()
 
@@ -652,7 +636,8 @@
 			C.blur_eyes(3)
 			C.blind_eyes(1)
 		if(C.get_eye_protection() <= 0) // no eye protection? ARGH IT BURNS. Warning: don't add a stun here. It's a roundstart item with some quirks.
-			C.apply_effects(eyeblur = 5, jitter = 10)
+			C.apply_effects(eyeblur = 5)
+			C.set_timed_status_effect(20 SECONDS, /datum/status_effect/jitter, only_if_higher = TRUE)
 			flash_color(C, flash_color=paint_color, flash_time=40)
 		if(ishuman(C) && actually_paints)
 			var/mob/living/carbon/human/H = C
@@ -664,12 +649,12 @@
 
 		return
 
-	if(isobj(target) && !istype(target, /obj/effect/decal/cleanable/crayon/gang))
+
+	if(isobj(target) && !istype(target, /obj/effect/decal/cleanable/crayon/gang) && !istype(target, /obj/item/clothing))
 		if(actually_paints)
 			if(color_hex2num(paint_color) < 350 && !istype(target, /obj/structure/window) && !istype(target, /obj/effect/decal/cleanable/crayon)) //Colors too dark are rejected
 				to_chat(usr, span_warning("A color that dark on an object like this? Surely not..."))
 				return FALSE
-
 			target.add_atom_colour(paint_color, WASHABLE_COLOUR_PRIORITY)
 
 			if(istype(target, /obj/structure/window))
@@ -679,7 +664,7 @@
 					target.set_opacity(initial(target.opacity))
 
 		. = use_charges(user, 2)
-		reagents.trans_to(target, ., volume_multiplier, transfered_by = user, method = VAPOR)
+		reagents.trans_to(target, ., volume_multiplier, transfered_by = user, methods = VAPOR)
 
 		if(pre_noise || post_noise)
 			playsound(user.loc, 'sound/effects/spray.ogg', 5, TRUE, 5)
@@ -695,7 +680,7 @@
 /obj/item/toy/crayon/spraycan/update_overlays()
 	. = ..()
 	if(use_overlays)
-		var/mutable_appearance/spray_overlay = mutable_appearance('icons/obj/crayons.dmi', "[is_capped ? "spraycan_cap_colors" : "spraycan_colors"]")
+		var/mutable_appearance/spray_overlay = mutable_appearance(icon, "[is_capped ? "spraycan_cap_colors" : "spraycan_colors"]")
 		spray_overlay.color = paint_color
 		. += spray_overlay
 
@@ -726,9 +711,9 @@
 /obj/item/toy/crayon/spraycan/hellcan
 	name = "hellcan"
 	desc = "This spraycan doesn't seem to be filled with paint..."
-	icon_state = "deathcan2_cap"
-	icon_capped = "deathcan2_cap"
-	icon_uncapped = "deathcan2"
+	icon_state = "deathcan_cap"
+	icon_capped = "deathcan_cap"
+	icon_uncapped = "deathcan"
 	use_overlays = FALSE
 
 	volume_multiplier = 25
@@ -736,35 +721,6 @@
 	reagent_contents = list(/datum/reagent/clf3 = 1)
 	actually_paints = FALSE
 	paint_color = "#000000"
-
-/obj/item/toy/crayon/spraycan/lubecan
-	name = "slippery spraycan"
-	desc = "You can barely keep hold of this thing."
-	icon_state = "clowncan2_cap"
-	icon_capped = "clowncan2_cap"
-	icon_uncapped = "clowncan2"
-	use_overlays = FALSE
-
-	reagent_contents = list(/datum/reagent/lube = 1, /datum/reagent/consumable/banana = 1)
-	volume_multiplier = 5
-
-/obj/item/toy/crayon/spraycan/lubecan/isValidSurface(surface)
-	return istype(surface, /turf/open/floor)
-
-/obj/item/toy/crayon/spraycan/mimecan
-	name = "silent spraycan"
-	desc = "Art is best seen, not heard."
-	icon_state = "mimecan_cap"
-	icon_capped = "mimecan_cap"
-	icon_uncapped = "mimecan"
-	use_overlays = FALSE
-
-	can_change_colour = FALSE
-	paint_color = "#FFFFFF" //RGB
-
-	pre_noise = FALSE
-	post_noise = FALSE
-	reagent_contents = list(/datum/reagent/consumable/nothing = 1, /datum/reagent/toxin/mutetoxin = 1)
 
 /obj/item/toy/crayon/spraycan/infinite
 	name = "infinite spraycan"

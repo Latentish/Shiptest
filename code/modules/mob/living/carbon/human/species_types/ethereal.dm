@@ -1,5 +1,5 @@
 #define ELZUOSE_EMAG_COLORS list("#00ffff", "#ffc0cb", "#9400D3", "#4B0082", "#0000FF", "#00FF00", "#FFFF00", "#FF7F00", "#FF0000")
-#define GOOD_SOIL list(/turf/open/floor/plating/grass, /turf/open/floor/plating/dirt, /turf/open/floor/ship/dirt, /turf/open/floor/grass/ship, /turf/open/floor/plating/asteroid/whitesands/grass, /turf/open/floor/grass/fairy/beach)
+#define GOOD_SOIL list(/turf/open/floor/ship/dirt, /turf/open/floor/grass/ship, /turf/open/floor/plating/asteroid/whitesands/grass, /turf/open/floor/grass/fairy/beach, /turf/open/floor/plating/asteroid/dirt)
 #define DIG_TIME (7.5 SECONDS)
 #define ROOT_TIME (3 SECONDS)
 #define ROOT_CHARGE_GAIN (5 * ELZUOSE_CHARGE_SCALING_MULTIPLIER)
@@ -10,18 +10,14 @@
 	attack_verb = "burn"
 	attack_sound = 'sound/weapons/etherealhit.ogg'
 	miss_sound = 'sound/weapons/etherealmiss.ogg'
-	meat = /obj/item/reagent_containers/food/snacks/meat/slab/human/mutant/ethereal
-	mutantstomach = /obj/item/organ/stomach/ethereal
-	mutanttongue = /obj/item/organ/tongue/ethereal
 	siemens_coeff = 0.5 //They thrive on energy
 	attack_type = BURN //burn bish
 	exotic_bloodtype = "E"
 	species_age_max = 300
-	species_traits = list(DYNCOLORS, EYECOLOR, HAIR, FACEHAIR)
+	species_traits = list(DYNCOLORS, HAIR, FACEHAIR)
 	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_PRIDE | MIRROR_MAGIC | RACE_SWAP | ERT_SPAWN
 	species_language_holder = /datum/language_holder/ethereal
 	inherent_traits = list(TRAIT_NOHUNGER)
-	sexes = FALSE //no fetish content allowed
 	toxic_food = NONE
 	// Body temperature for ethereals is much higher then humans as they like hotter environments
 	bodytemp_normal = (HUMAN_BODYTEMP_NORMAL + 50)
@@ -32,19 +28,34 @@
 	min_temp_comfortable = (HUMAN_BODYTEMP_NORMAL - 10)
 	max_temp_comfortable = HUMAN_BODYTEMP_NORMAL + 55
 
-	hair_color = "fixedmutcolor"
-	hair_alpha = 140
+	hair_alpha = 200
 	mutant_bodyparts = list("elzu_horns", "tail_elzu")
-	default_features = list("elzu_horns" = "None", "tail_elzu" = "None", "body_size" = "Normal")
+	default_features = list("elzu_horns" = "None", "tail_elzu" = "None")
 	species_eye_path = 'icons/mob/ethereal_parts.dmi'
-	mutant_organs = list(/obj/item/organ/tail/elzu)
 
-	species_chest = /obj/item/bodypart/chest/ethereal
-	species_head = /obj/item/bodypart/head/ethereal
-	species_l_arm = /obj/item/bodypart/l_arm/ethereal
-	species_r_arm = /obj/item/bodypart/r_arm/ethereal
-	species_l_leg = /obj/item/bodypart/leg/left/ethereal
-	species_r_leg = /obj/item/bodypart/leg/right/ethereal
+	species_organs = list(
+		ORGAN_SLOT_BRAIN = /obj/item/organ/brain,
+		ORGAN_SLOT_HEART = /obj/item/organ/heart,
+		ORGAN_SLOT_LUNGS = /obj/item/organ/lungs,
+		ORGAN_SLOT_EYES = /obj/item/organ/eyes,
+		ORGAN_SLOT_EARS = /obj/item/organ/ears,
+		ORGAN_SLOT_TONGUE = /obj/item/organ/tongue/ethereal,
+		ORGAN_SLOT_LIVER = /obj/item/organ/liver,
+		ORGAN_SLOT_STOMACH = /obj/item/organ/stomach/ethereal,
+		ORGAN_SLOT_APPENDIX = /obj/item/organ/appendix,
+		ORGAN_SLOT_TAIL = /obj/item/organ/tail/elzu,
+	)
+
+	species_limbs = list(
+		BODY_ZONE_CHEST = /obj/item/bodypart/chest/ethereal,
+		BODY_ZONE_HEAD = /obj/item/bodypart/head/ethereal,
+		BODY_ZONE_L_ARM = /obj/item/bodypart/l_arm/ethereal,
+		BODY_ZONE_R_ARM = /obj/item/bodypart/r_arm/ethereal,
+		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/ethereal,
+		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/ethereal,
+	)
+
+	prosthetic_style = /datum/sprite_accessory/body/prosthetic/elzuouse
 
 	var/current_color
 	var/EMPeffect = FALSE
@@ -75,9 +86,13 @@
 
 	//The following code is literally only to make admin-spawned ethereals not be black.
 	_carbon.dna.features["mcolor"] = _carbon.dna.features["ethcolor"] //Ethcolor and Mut color are both dogshit and will be replaced
-	for(var/obj/item/bodypart/BP as anything in _carbon.bodyparts)
-		if(BP.limb_id == SPECIES_ELZUOSE)
-			BP.update_limb(is_creating = TRUE)
+	var/obj/item/bodypart/body_part
+	for(var/zone in _carbon.bodyparts)
+		body_part = _carbon.bodyparts[zone]
+		if(!body_part)
+			continue
+		if(body_part.limb_id == SPECIES_ELZUOSE)
+			body_part.update_limb(is_creating = TRUE)
 
 /datum/species/elzuose/on_species_loss(mob/living/carbon/human/_carbon, datum/species/new_species, pref_load)
 	UnregisterSignal(_carbon, COMSIG_ATOM_EMP_ACT)
@@ -189,10 +204,13 @@
 	else
 		ethereal_light.set_light_on(FALSE)
 		fixed_mut_color = rgb(128,128,128)
-
-	for(var/obj/item/bodypart/parts_to_update as anything in _human.bodyparts)
-		parts_to_update.species_color = fixed_mut_color
-		parts_to_update.update_limb()
+	var/obj/item/bodypart/body_part
+	for(var/zone in _human.bodyparts)
+		body_part = _human.bodyparts[zone]
+		if(!body_part)
+			continue
+		body_part.species_color = fixed_mut_color
+		body_part.update_limb()
 
 	_human.update_body()
 	_human.update_hair()
@@ -236,17 +254,16 @@
 		if(EMP_HEAVY)
 			addtimer(CALLBACK(src, PROC_REF(stop_emp), _human), 20 SECONDS, TIMER_UNIQUE|TIMER_OVERRIDE) //We're out for 20 seconds
 
-/datum/species/elzuose/spec_life(mob/living/carbon/human/_human)
+/datum/species/elzuose/spec_life(mob/living/carbon/human/_human, seconds_per_tick, times_fired)
 	.=..()
-	handle_charge(_human)
+	handle_charge(_human, seconds_per_tick, times_fired)
 
 /datum/species/elzuose/proc/stop_emp(mob/living/carbon/human/_human)
 	EMPeffect = FALSE
 	spec_updatehealth(_human)
 	to_chat(_human, span_notice("You feel more energized as your shine comes back."))
 
-/datum/species/elzuose/proc/handle_charge(mob/living/carbon/human/_human)
-	brutemod = 1.25
+/datum/species/elzuose/proc/handle_charge(mob/living/carbon/human/_human, seconds_per_tick, times_fired)
 	switch(get_charge(_human))
 		if(ELZUOSE_CHARGE_NONE to ELZUOSE_CHARGE_LOWPOWER)
 			if(get_charge(_human) == ELZUOSE_CHARGE_NONE)
@@ -254,14 +271,14 @@
 			else
 				_human.throw_alert("ELZUOSE_CHARGE", /atom/movable/screen/alert/etherealcharge, 2)
 			if(_human.health > 10.5)
-				apply_damage(0.2, TOX, null, null, _human)
+				apply_damage(0.1 * seconds_per_tick, TOX, null, null, _human)
 		if(ELZUOSE_CHARGE_LOWPOWER to ELZUOSE_CHARGE_NORMAL)
 			_human.throw_alert("ELZUOSE_CHARGE", /atom/movable/screen/alert/etherealcharge, 1)
 		if(ELZUOSE_CHARGE_FULL to ELZUOSE_CHARGE_OVERLOAD)
 			_human.throw_alert("ethereal_overcharge", /atom/movable/screen/alert/ethereal_overcharge, 1)
 		if(ELZUOSE_CHARGE_OVERLOAD to ELZUOSE_CHARGE_DANGEROUS)
 			_human.throw_alert("ethereal_overcharge", /atom/movable/screen/alert/ethereal_overcharge, 2)
-			if(prob(10)) //10% each tick for ethereals to explosively release excess energy if it reaches dangerous levels
+			if(SPT_PROB(5, seconds_per_tick)) //5% each second for ethereals to explosively release excess energy if it reaches dangerous levels
 				discharge_process(_human)
 		else
 			_human.clear_alert("ELZUOSE_CHARGE")

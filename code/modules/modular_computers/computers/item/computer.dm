@@ -113,6 +113,18 @@
 		return FALSE
 	return card_slot.try_insert(inserting_id)
 
+/obj/item/modular_computer/attack_hand_secondary(mob/user, list/modifiers)
+	attack_self(user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+/obj/item/modular_computer/attackby_secondary(obj/item/weapon, mob/user, params)
+	attack_self(user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
+/obj/item/modular_computer/attack_self_secondary(mob/user, modifiers)
+	attack_self(user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
 /obj/item/modular_computer/MouseDrop(obj/over_object, src_location, over_location)
 	var/mob/M = usr
 	if((!istype(over_object, /atom/movable/screen)) && usr.canUseTopic(src, BE_CLOSE))
@@ -153,9 +165,9 @@
 
 /obj/item/modular_computer/examine(mob/user)
 	. = ..()
-	if(obj_integrity <= integrity_failure * max_integrity)
+	if(atom_integrity <= integrity_failure * max_integrity)
 		. += span_danger("It is heavily damaged!")
-	else if(obj_integrity < max_integrity)
+	else if(atom_integrity < max_integrity)
 		. += span_warning("It is damaged.")
 
 	. += get_modular_computer_parts_examine(user)
@@ -171,7 +183,7 @@
 	if(enabled)
 		. += active_program?.program_icon_state || icon_state_menu
 
-	if(obj_integrity <= integrity_failure * max_integrity)
+	if(atom_integrity <= integrity_failure * max_integrity)
 		. += "bsod"
 		. += "broken"
 
@@ -185,7 +197,7 @@
 
 /obj/item/modular_computer/proc/turn_on(mob/user)
 	var/issynth = issilicon(user) // Robots and AIs get different activation messages.
-	if(obj_integrity <= integrity_failure * max_integrity)
+	if(atom_integrity <= integrity_failure * max_integrity)
 		if(issynth)
 			to_chat(user, span_warning("You send an activation signal to \the [src], but it responds with an error code. It must be damaged."))
 		else
@@ -217,7 +229,7 @@
 		last_power_usage = 0
 		return 0
 
-	if(obj_integrity <= integrity_failure * max_integrity)
+	if(atom_integrity <= integrity_failure * max_integrity)
 		shutdown_computer()
 		return 0
 
@@ -260,14 +272,14 @@
  * The message that the program wishes to display.
  */
 
-/obj/item/modular_computer/proc/alert_call(datum/computer_file/program/caller, alerttext, sound = 'sound/machines/twobeep_high.ogg')
-	if(!caller || !caller.alert_able || caller.alert_silenced || !alerttext) //Yeah, we're checking alert_able. No, you don't get to make alerts that the user can't silence.
+/obj/item/modular_computer/proc/alert_call(datum/computer_file/program/call_source, alerttext, sound = 'sound/machines/twobeep_high.ogg')
+	if(!call_source || !call_source.alert_able || call_source.alert_silenced || !alerttext) //Yeah, we're checking alert_able. No, you don't get to make alerts that the user can't silence.
 		return
 	playsound(src, sound, 50, TRUE)
-	visible_message(span_notice("The [src] displays a [caller.filedesc] notification: [alerttext]"))
+	visible_message(span_notice("The [src] displays a [call_source.filedesc] notification: [alerttext]"))
 	var/mob/living/holder = loc
 	if(istype(holder))
-		to_chat(holder, "[icon2html(src)] [span_notice("The [src] displays a [caller.filedesc] notification: [alerttext]")]")
+		to_chat(holder, "[icon2html(src)] [span_notice("The [src] displays a [call_source.filedesc] notification: [alerttext]")]")
 
 // Function used by NanoUI's to obtain data for header. All relevant entries begin with "PC_"
 /obj/item/modular_computer/proc/get_header_data()
@@ -412,16 +424,16 @@
 		return
 
 	if(W.tool_behaviour == TOOL_WELDER)
-		if(obj_integrity == max_integrity)
+		if(atom_integrity == max_integrity)
 			to_chat(user, span_warning("\The [src] does not require repairs."))
 			return
 
-		if(!W.tool_start_check(user, amount=1))
+		if(!W.tool_start_check(user, src, amount=1))
 			return
 
 		to_chat(user, span_notice("You begin repairing damage to \the [src]..."))
 		if(W.use_tool(src, user, 20, volume=50, amount=1))
-			obj_integrity = max_integrity
+			atom_integrity = max_integrity
 			to_chat(user, span_notice("You repair \the [src]."))
 		return
 

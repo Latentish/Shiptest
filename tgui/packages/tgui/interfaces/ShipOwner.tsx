@@ -1,4 +1,5 @@
 import { useBackend, useLocalState } from '../backend';
+import { decodeHtmlEntities } from 'common/string';
 import {
   Button,
   LabeledList,
@@ -27,6 +28,7 @@ type ApplicationData = {
   ref: string;
   key: string;
   name: string;
+  job: string;
   text: string;
   status: string;
 };
@@ -114,13 +116,16 @@ const ShipOwnerContent = (_, context: any) => {
                 onClick={() => act('memo')}
               />
             </LabeledList.Item>
-            <LabeledList.Item label="Current Memo">{memo}</LabeledList.Item>
+            <LabeledList.Item label="Current Memo">
+              {decodeHtmlEntities(memo)}
+            </LabeledList.Item>
           </LabeledList>
           <Divider />
           <Table>
             <Table.Row header>
               <Table.Cell>CKey</Table.Cell>
               <Table.Cell>Character Name</Table.Cell>
+              <Table.Cell>Applied For</Table.Cell>
               <Table.Cell>Message</Table.Cell>
               <Table.Cell>Status</Table.Cell>
             </Table.Row>
@@ -128,6 +133,7 @@ const ShipOwnerContent = (_, context: any) => {
               <Table.Row key={app.ref}>
                 <Table.Cell>{app.key}</Table.Cell>
                 <Table.Cell>{app.name}</Table.Cell>
+                <Table.Cell>{app.job}</Table.Cell>
                 <Table.Cell>{app.text}</Table.Cell>
                 <Table.Cell>
                   {(app.status === 'pending' && (

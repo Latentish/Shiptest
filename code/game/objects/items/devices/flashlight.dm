@@ -12,7 +12,7 @@
 	slot_flags = ITEM_SLOT_BELT
 	custom_materials = list(/datum/material/iron=50, /datum/material/glass=20)
 	actions_types = list(/datum/action/item_action/toggle_light)
-	light_color = "#FFCC66"  //Cit lighting
+	light_color = "#FFCC66" //Cit lighting
 	light_system = MOVABLE_LIGHT_DIRECTIONAL
 	light_range = 4
 	light_power = 0.8
@@ -20,7 +20,6 @@
 	var/on = FALSE
 	var/toggle_on_sound = 'sound/items/flashlight_on.ogg'
 	var/toggle_off_sound = 'sound/items/flashlight_off.ogg'
-
 
 /obj/item/flashlight/Initialize()
 	. = ..()
@@ -37,7 +36,6 @@
 	if(light_system == STATIC_LIGHT)
 		update_light()
 
-
 /obj/item/flashlight/attack_self(mob/user)
 	on = !on
 	playsound(user, on ? toggle_on_sound : toggle_off_sound, 40, TRUE)
@@ -46,6 +44,10 @@
 		var/datum/action/A = X
 		A.UpdateButtonIcon()
 	return 1
+
+/obj/item/flashlight/attack_hand_secondary(mob/user, modifiers)
+	attack_self(user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
 
 /obj/item/flashlight/attack(mob/living/carbon/M, mob/living/carbon/human/user)
 	add_fingerprint(user)
@@ -78,7 +80,7 @@
 					return
 
 				if(M == user)	//they're using it on themselves
-					if(M.flash_act(visual = 1))
+					if(M.flash_act(visual = 1) & FLASH_EFFECT)
 						M.visible_message(span_notice("[M] directs [src] to [M.p_their()] eyes."), span_notice("You wave the light in front of your eyes! Trippy!"))
 					else
 						M.visible_message(span_notice("[M] directs [src] to [M.p_their()] eyes."), span_notice("You wave the light in front of your eyes."))
@@ -87,7 +89,7 @@
 						span_warning("[user] directs [src] to [M]'s eyes."),
 						span_danger("You direct [src] to [M]'s eyes.")
 					)
-					if(M.stat == DEAD || (M.is_blind()) || !M.flash_act(visual = 1)) //mob is dead or fully blind
+					if(M.stat == DEAD || (M.is_blind()) || !(M.flash_act(visual = 1) & FLASH_EFFECT)) //mob is dead or fully blind
 						to_chat(user, span_warning("[M]'s pupils don't react to the light!"))
 					else if(M.dna && M.dna.check_mutation(XRAY))	//mob has X-ray vision
 						to_chat(user, span_danger("[M]'s pupils give an eerie glow!"))
@@ -168,7 +170,7 @@
 	name = "penlight"
 	desc = "A pen-sized light, used by medical staff. It can also be used to create a hologram to alert people of incoming medical assistance."
 	icon_state = "penlight"
-	item_state = ""
+	item_state = "penlight"
 	flags_1 = CONDUCT_1
 	w_class = WEIGHT_CLASS_TINY
 	light_range = 2
@@ -185,8 +187,20 @@
 		var/T = get_turf(target)
 		if(locate(/mob/living) in T)
 			new /obj/effect/temp_visual/medical_holosign(T,user) //produce a holographic glow
-			holo_cooldown = world.time + 100
+			holo_cooldown = world.time + 10 SECONDS
 			return
+
+// see: [/datum/wound/burn/flesh/proc/uv()]
+/obj/item/flashlight/pen/paramedic
+	name = "paramedic penlight"
+	desc = "A high-powered UV penlight intended to help stave off infection in the field on serious burned patients. Probably really bad to look into."
+	icon_state = "penlight"
+	/// Our current UV cooldown
+	var/uv_cooldown = 0
+	/// How long between UV fryings
+	var/uv_cooldown_length = 30 SECONDS
+	/// How much sanitization to apply to the burn wound
+	var/uv_power = 1
 
 /obj/effect/temp_visual/medical_holosign
 	name = "medical holosign"
@@ -199,7 +213,6 @@
 	playsound(loc, 'sound/machines/ping.ogg', 50, FALSE) //make some noise!
 	if(creator)
 		visible_message(span_danger("[creator] created a medical hologram!"))
-
 
 /obj/item/flashlight/seclite
 	name = "seclite"
@@ -232,14 +245,11 @@
 	light_color = "#FFDDBB" //Cit lighting
 	light_power = 0.8 //Cit lighting
 
-
 // green-shaded desk lamp
 /obj/item/flashlight/lamp/green
 	desc = "A classic green-shaded desk lamp."
 	icon_state = "lampgreen"
 	item_state = "lampgreen"
-
-
 
 /obj/item/flashlight/lamp/verb/toggle_light()
 	set name = "Toggle light"
@@ -257,7 +267,6 @@
 	item_state = "lampgreen"
 
 // FLARES
-
 /obj/item/flashlight/flare
 	name = "flare"
 	desc = "A generic red flare. There are instructions on the side, it reads 'pull cord, make light'."
@@ -393,7 +402,7 @@
 		var/distance = max(0, get_dist(get_turf(src), M.loc))
 		if(distance == 0) //We won't affect ourselves
 			continue
-		if(M.flash_act(affect_silicon = 1))
+		if(M.flash_act(affect_silicon = 1) & FLASH_EFFECT)
 			M.Knockdown(10/(max(1, distance)))
 			M.confused += 15
 	cooldown = TRUE
@@ -486,17 +495,14 @@
 	toggle_on_sound = 'sound/effects/glowstick.ogg'
 	toggle_off_sound = 'sound/effects/glowstick.ogg'
 
-
 /obj/item/flashlight/glowstick/Initialize()
 	fuel = rand(3200, 4000)
 	set_light_color(color)
 	return ..()
 
-
 /obj/item/flashlight/glowstick/Destroy()
 	STOP_PROCESSING(SSobj, src)
 	return ..()
-
 
 /obj/item/flashlight/glowstick/process(seconds_per_tick)
 	fuel = max(fuel - seconds_per_tick, 0)
@@ -587,7 +593,6 @@
 	///Base light_range that can be set on Initialize to use in smooth light range expansions and contractions.
 	var/base_light_range = 4
 
-
 /obj/item/flashlight/spotlight/Initialize(mapload, _light_range, _light_power, _light_color)
 	. = ..()
 	if(!isnull(_light_range))
@@ -597,7 +602,6 @@
 		set_light_power(_light_power)
 	if(!isnull(_light_color))
 		set_light_color(_light_color)
-
 
 /obj/item/flashlight/flashdark
 	name = "flashdark"
@@ -611,14 +615,12 @@
 	///Variable to preserve old lighting behavior in flashlights, to handle darkness.
 	var/dark_light_power = -3
 
-
 /obj/item/flashlight/flashdark/update_brightness(mob/user)
 	. = ..()
 	if(on)
 		set_light(dark_light_range, dark_light_power)
 	else
 		set_light(0)
-
 
 /obj/item/flashlight/eyelight
 	name = "eyelight"

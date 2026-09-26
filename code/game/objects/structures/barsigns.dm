@@ -1,7 +1,7 @@
 /obj/structure/sign/barsign // All Signs are 64 by 32 pixels, they take two tiles
 	name = "bar sign"
 	desc = "A bar sign which has not been initialized, somehow. Complain at a coder!"
-	icon = 'icons/obj/barsigns.dmi'
+	icon = 'icons/obj/structures/barsigns.dmi'
 	icon_state = "empty"
 	req_access = list(ACCESS_BAR)
 	max_integrity = 500
@@ -43,9 +43,10 @@
 			var/new_sign = new D
 			return set_sign(new_sign)
 
-/obj/structure/sign/barsign/obj_break(damage_flag)
+/obj/structure/sign/barsign/atom_break(damage_flag)
 	if(!broken && !(flags_1 & NODECONSTRUCT_1))
 		broken = TRUE
+	. = ..()
 
 /obj/structure/sign/barsign/deconstruct(disassembled = TRUE)
 	new /obj/item/stack/sheet/metal(drop_location(), 2)
@@ -331,3 +332,24 @@
 	icon = "empty"
 	desc = "This sign doesn't seem to be on."
 	rename_area = FALSE
+
+/datum/barsign/hiddensigns/hereyes
+	name = "Her Eyes"
+	icon = 'icons/obj/structures/barsigns64x64.dmi'
+	icon = "hereyes"
+	desc = "The premier nightclub of the Thousand Eyes Perch. Home to many luxuries including a hot tub, well-stocked bar, and private booths to gamble your savings away."
+	rename_area = FALSE
+
+// Specifically for the perch
+/obj/structure/sign/barsign/hereyes
+	name = "Her Eyes"
+	desc = "The premier nightclub of the Thousand Eyes Perch. Home to many luxuries including a hot tub, well-stocked bar, and private booths to gamble your savings away."
+	icon = 'icons/obj/structures/barsigns64x64.dmi'
+	icon_state = "hereyes"
+	chosen_sign = /datum/barsign/hiddensigns/hereyes
+
+
+/obj/structure/sign/barsign/hereyes/Initialize()
+	. = ..()
+	set_sign(new /datum/barsign/hiddensigns/hereyes)
+// Specifically for the perch

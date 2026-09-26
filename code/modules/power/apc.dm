@@ -107,6 +107,7 @@
 	name = "area power controller"
 	desc = "A control terminal for the area's electrical systems."
 
+	icon = 'icons/obj/wallmounts/apc.dmi'
 	icon_state = "apc0"
 	use_power = NO_POWER_USE
 	req_access = null
@@ -193,7 +194,7 @@
 /obj/machinery/power/apc/auto_name
 	auto_name = TRUE
 
-MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
+MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 24)
 
 /obj/machinery/power/apc/get_cell()
 	return cell
@@ -343,16 +344,15 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 	if(!updates)
 		return
 
-	if(!cell) //it always peeved me that abandoned ships always had the apc lights on. this should fix it
-		icon_update_needed = FALSE
-		set_light(0)
 
-	else if(cell.charge <= 0)
-		icon_update_needed = FALSE
-		set_light(0)
-	//this may need to be moved up!!
+
 	. = ..()
 	// And now, separately for cleanness, the lighting changing
+	//if we have no charge, turn off the lights
+	if(!cell || cell.charge <= 0)
+		set_light(0)
+		return
+
 	if(!update_state)
 		switch(charging)
 			if(APC_NOT_CHARGING)
@@ -394,6 +394,9 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 /obj/machinery/power/apc/update_overlays()
 	. = ..()
 	if((machine_stat & (BROKEN|MAINT)) || update_state)
+		return
+	//If we dont have charge or a cell, all lights are off.
+	if(!cell || cell.charge <= 0)
 		return
 
 	SSvis_overlays.add_vis_overlay(src, icon, "apcox-[locked]", layer, plane, dir)
@@ -443,7 +446,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 
 	// Handle overlay status:
 	var/new_update_overlay = NONE
-	if(operating)
+	if(operating && cell && cell.charge > 0)
 		new_update_overlay |= UPOVERLAY_OPERATING
 
 	if(!update_state)
@@ -563,7 +566,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 /obj/machinery/power/apc/welder_act(mob/living/user, obj/item/W)
 	. = ..()
 	if (opened && !has_electronics && !terminal)
-		if(!W.tool_start_check(user, amount=3))
+		if(!W.tool_start_check(user, src, amount=3))
 			return
 		user.visible_message(span_notice("[user.name] welds [src]."), \
 							span_notice("You start welding the APC frame..."), \
@@ -682,7 +685,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 			to_chat(user, span_warning("[src] has both electronics and a cell."))
 			return
 	else if (istype(W, /obj/item/wallframe/apc) && opened)
-		if (!(machine_stat & BROKEN || opened==APC_COVER_REMOVED || obj_integrity < max_integrity)) // There is nothing to repair
+		if (!(machine_stat & BROKEN || opened==APC_COVER_REMOVED || atom_integrity < max_integrity)) // There is nothing to repair
 			to_chat(user, span_warning("You found no reason for repairing this APC!"))
 			return
 		if (!(machine_stat & BROKEN) && opened==APC_COVER_REMOVED) // Cover is the only thing broken, we do not need to remove elctronicks to replace cover
@@ -703,7 +706,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 			to_chat(user, span_notice("You replace the damaged APC frame with a new one."))
 			qdel(W)
 			set_machine_stat(machine_stat & ~BROKEN)
-			obj_integrity = max_integrity
+			atom_integrity = max_integrity
 			if (opened==APC_COVER_REMOVED)
 				opened = APC_COVER_OPENED
 			update_appearance()
@@ -768,6 +771,10 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 	else
 		togglelock(user)
 
+/obj/machinery/power/apc/attack_hand_secondary(mob/user, list/modifiers)
+	togglelock(user)
+	return SECONDARY_ATTACK_CANCEL_ATTACK_CHAIN
+
 /obj/machinery/power/apc/proc/togglelock(mob/living/user)
 	if(obj_flags & EMAGGED)
 		to_chat(user, span_warning("The interface is broken!"))
@@ -793,12 +800,12 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 	last_nightshift_switch = world.time
 	set_nightshift(!nightshift_lights)
 
-/obj/machinery/power/apc/run_obj_armor(damage_amount, damage_type, damage_flag = 0, attack_dir)
+/obj/machinery/power/apc/run_atom_armor(damage_amount, damage_type, damage_flag = 0, attack_dir)
 	if(machine_stat & BROKEN)
 		return damage_amount
 	. = ..()
 
-/obj/machinery/power/apc/obj_break(damage_flag)
+/obj/machinery/power/apc/atom_break(damage_flag)
 	. = ..()
 	if(.)
 		set_broken()
@@ -1503,7 +1510,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 	environ = APC_CHANNEL_OFF
 	update_appearance()
 	update()
-	addtimer(CALLBACK(src, PROC_REF(reset), APC_RESET_EMP), 600)
+	addtimer(CALLBACK(src, PROC_REF(reset), APC_RESET_EMP), (5 / severity) SECONDS)
 
 /obj/machinery/power/apc/disconnect_terminal()
 	if(terminal)
@@ -1514,7 +1521,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/power/apc/auto_name, 25)
 	if(malfai && operating)
 		malfai.malf_picker.processing_time = clamp(malfai.malf_picker.processing_time - 10,0,1000)
 	operating = FALSE
-	obj_break()
+	atom_break()
 	if(occupier)
 		malfvacate(1)
 	update()

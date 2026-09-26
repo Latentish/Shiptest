@@ -2,18 +2,18 @@
 	name = "hivebot fabricator"
 	desc = "An active fabrication plant, electrical tendrils reaching into the ground searching for scrap metals, a hunger permeating the world around it."
 
-	icon = 'icons/obj/machines/bsm.dmi'
-	icon_state = "bsm_on"
+	icon = 'icons/obj/machines/hivebot_fabricator.dmi'
+	icon_state = "hivefab"
 
 	faction = list("hivebot")
 	max_integrity = 250
 	mob_types = list(
-		/mob/living/simple_animal/hostile/hivebot = 40,
-		/mob/living/simple_animal/hostile/hivebot/ranged = 40,
-		/mob/living/simple_animal/hostile/hivebot/ranged/rapid = 10,
-		/mob/living/simple_animal/hostile/hivebot/strong = 5,
-		/mob/living/simple_animal/hostile/hivebot/mechanic = 5,
-		/mob/living/simple_animal/hostile/hivebot/defender = 1,
+		/mob/living/basic/hivebot = 40,
+		/mob/living/basic/hivebot/ranged = 40,
+		/mob/living/basic/hivebot/rapid = 10,
+		/mob/living/basic/hivebot/strong = 5,
+		/mob/living/basic/hivebot/mechanic = 5,
+		/mob/living/basic/hivebot/core = 1,
 	)
 	spawn_text = "emerges from within"
 	spawn_sound = list('sound/effects/suitstep2.ogg')

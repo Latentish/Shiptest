@@ -27,8 +27,9 @@
 	attack_verb_continuous = "bites"
 	attack_verb_simple = "bite"
 	attack_sound = 'sound/weapons/bite.ogg'
+	sharpness = SHARP_POINTY
 	//attack_vis_effect = ATTACK_EFFECT_BITE
-	butcher_results = list(/obj/item/reagent_containers/food/snacks/meat/slab = 2, /obj/effect/decal/cleanable/brimdust = 1)
+	butcher_results = list(/obj/item/food/meat/slab = 2, /obj/effect/decal/cleanable/brimdust = 1)
 	loot = list()
 	robust_searching = TRUE
 	footstep_type = FOOTSTEP_MOB_CLAW
@@ -241,7 +242,7 @@
 
 /datum/reagent/brimdust/on_mob_life(mob/living/carbon/carbon, seconds_per_tick, times_fired)
 	. = ..()
-	carbon.adjustFireLoss((ispodperson(carbon) ? -1 : 1) * seconds_per_tick)
+	carbon.adjustFireLoss(1 * seconds_per_tick)
 	carbon.adjust_bodytemperature(5 * TEMPERATURE_DAMAGE_COEFFICIENT, 0, carbon.get_body_temp_normal())
 
 /datum/reagent/brimdust/on_hydroponics_apply(obj/item/seeds/myseed, datum/reagents/chems, obj/machinery/hydroponics/mytray)

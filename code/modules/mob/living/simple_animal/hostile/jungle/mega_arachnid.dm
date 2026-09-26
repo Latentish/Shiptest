@@ -10,8 +10,8 @@
 	mob_biotypes = MOB_ORGANIC|MOB_BUG
 	melee_damage_lower = 30
 	melee_damage_upper = 30
-	maxHealth = 300
-	health = 300
+	maxHealth = 200
+	health = 200
 	speed = 1
 	ranged = 1
 	pixel_x = -16
@@ -28,7 +28,7 @@
 
 	footstep_type = FOOTSTEP_MOB_CLAW
 
-/mob/living/simple_animal/hostile/jungle/mega_arachnid/Life()
+/mob/living/simple_animal/hostile/jungle/mega_arachnid/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	..()
 	if(target && ranged_cooldown > world.time && iscarbon(target))
 		var/mob/living/carbon/C = target

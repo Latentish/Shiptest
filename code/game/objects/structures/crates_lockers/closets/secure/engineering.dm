@@ -13,7 +13,7 @@
 	new /obj/item/clothing/under/rank/engineering/chief_engineer/skirt(src)
 	new /obj/item/clothing/head/hardhat/white(src)
 	new /obj/item/clothing/head/hardhat/weldhat/white(src)
-	new /obj/item/clothing/gloves/color/yellow(src)
+	new /obj/item/clothing/gloves/insulated(src)
 	new /obj/item/clothing/shoes/sneakers/brown(src)
 	new /obj/item/tank/jetpack/suit(src)
 	new /obj/item/cartridge/ce(src)
@@ -38,7 +38,7 @@
 	..()
 	var/static/items_inside = list(
 		/obj/item/stack/tape/industrial/electrical = 1, // Better tape
-		/obj/item/clothing/gloves/color/yellow = 2,
+		/obj/item/clothing/gloves/insulated = 2,
 		/obj/item/storage/toolbox/electrical = 3,
 		/obj/item/electronics/apc = 3,
 		/obj/item/multitool = 3,
@@ -65,10 +65,10 @@
 
 /obj/structure/closet/secure_closet/engineering_personal/PopulateContents()
 	..()
-	new /obj/item/stack/tape/industrial(src) //WS edit - Tape
-	new /obj/item/clothing/head/beret/eng(src) //WS edit - Berets
+	new /obj/item/stack/tape/industrial(src)
+	new /obj/item/clothing/head/beret/eng(src)
 	new /obj/item/clothing/head/safety_helmet(src)
-	new /obj/item/clothing/glasses/meson/prescription(src) //WS edit - Prescription HUDs
+	new /obj/item/clothing/glasses/meson/prescription(src)
 	new /obj/item/radio/headset/headset_eng(src)
 	new /obj/item/storage/toolbox/mechanical(src)
 	new /obj/item/tank/internals/emergency_oxygen/engi(src)

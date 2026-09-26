@@ -279,18 +279,6 @@ GLOBAL_LIST_INIT(hallucination_list, list(
 		to_chat(target, span_notice("[xeno_name] scrambles into the ventilation ducts!"))
 	qdel(src)
 
-/obj/effect/hallucination/simple/clown
-	image_icon = 'icons/mob/animal.dmi'
-	image_state = "clown"
-
-/obj/effect/hallucination/simple/clown/Initialize(mapload, mob/living/carbon/T, duration)
-	..(loc, T)
-	name = pick(GLOB.clown_names)
-	QDEL_IN(src,duration)
-
-/obj/effect/hallucination/simple/clown/scary
-	image_state = "scary_clown"
-
 /obj/effect/hallucination/simple/bubblegum
 	name = "Bubblegum"
 	image_icon = 'icons/mob/lavaland/96x96megafauna.dmi'
@@ -729,7 +717,7 @@ GLOBAL_LIST_INIT(hallucination_list, list(
 	// Display message
 	if (!is_radio && !target.client?.prefs.chat_on_map)
 		var/image/speech_overlay = image('icons/mob/talk.dmi', person, "default0", layer = ABOVE_MOB_LAYER)
-		INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(flick_overlay), speech_overlay, list(target.client), 30)
+		INVOKE_ASYNC(GLOBAL_PROC, GLOBAL_PROC_REF(flick_overlay_global), speech_overlay, list(target.client), 3 SECONDS)
 	if (target.client?.prefs.chat_on_map)
 		target.create_chat_message(speaker || person, understood_language, chosen, spans)
 	to_chat(target, message)
@@ -890,7 +878,7 @@ GLOBAL_LIST_INIT(hallucination_list, list(
 				target.playsound_local(source, pick('sound/voice/human/manlaugh1.ogg', 'sound/voice/human/manlaugh2.ogg'), 50, 1)
 		if("creepy")
 		//These sounds are (mostly) taken from Hidden: Source
-			target.playsound_local(source, pick(CREEPY_SOUNDS), 50, 1)
+			target.playsound_local(source, pick(GLOB.creepy_ambience), 50, 1)
 		if("tesla") //Tesla loose!
 			target.playsound_local(source, 'sound/magic/lightningbolt.ogg', 35, 1)
 			sleep(30)
@@ -937,20 +925,20 @@ GLOBAL_LIST_INIT(hallucination_list, list(
 /datum/hallucination/fake_alert/New(mob/living/carbon/C, forced = TRUE, specific, duration = 150)
 	set waitfor = FALSE
 	..()
-	var/alert_type = pick("not_enough_oxy","not_enough_tox","not_enough_co2","too_much_oxy","too_much_co2","too_much_tox","newlaw","nutrition","charge","gravity","fire","locked","hacked","temphot","tempcold","pressure")
+	var/alert_type = pick(ALERT_NOT_ENOUGH_OXYGEN,"not_enough_tox",ALERT_NOT_ENOUGH_CO2,ALERT_TOO_MUCH_OXYGEN,ALERT_TOO_MUCH_CO2,"too_much_tox","newlaw","nutrition","charge","gravity","fire","locked","hacked","temphot","tempcold","pressure")
 	if(specific)
 		alert_type = specific
 	feedback_details += "Type: [alert_type]"
 	switch(alert_type)
-		if("not_enough_oxy")
+		if(ALERT_NOT_ENOUGH_OXYGEN)
 			target.throw_alert(alert_type, /atom/movable/screen/alert/not_enough_oxy, override = TRUE)
 		if("not_enough_tox")
 			target.throw_alert(alert_type, /atom/movable/screen/alert/not_enough_tox, override = TRUE)
-		if("not_enough_co2")
+		if(ALERT_NOT_ENOUGH_CO2)
 			target.throw_alert(alert_type, /atom/movable/screen/alert/not_enough_co2, override = TRUE)
-		if("too_much_oxy")
+		if(ALERT_TOO_MUCH_OXYGEN)
 			target.throw_alert(alert_type, /atom/movable/screen/alert/too_much_oxy, override = TRUE)
-		if("too_much_co2")
+		if(ALERT_TOO_MUCH_CO2)
 			target.throw_alert(alert_type, /atom/movable/screen/alert/too_much_co2, override = TRUE)
 		if("too_much_tox")
 			target.throw_alert(alert_type, /atom/movable/screen/alert/too_much_tox, override = TRUE)
@@ -1202,7 +1190,7 @@ GLOBAL_LIST_INIT(hallucination_list, list(
 	set waitfor = FALSE
 	..()
 	target.fire_stacks = max(target.fire_stacks, 0.1) //Placebo flammability
-	fire_overlay = image('icons/mob/OnFire.dmi', target, "Standing", ABOVE_MOB_LAYER)
+	fire_overlay = image('icons/mob/onfire.dmi', target, "human_burning", ABOVE_MOB_LAYER)
 	if(target.client)
 		target.client.images += fire_overlay
 	to_chat(target, span_userdanger("You're set on fire!"))
@@ -1265,8 +1253,7 @@ GLOBAL_LIST_INIT(hallucination_list, list(
 	target.playsound_local(get_turf(src), "sparks", 100, 1)
 	target.staminaloss += 50
 	target.Stun(40)
-	target.adjust_jitter(1000, max = 1500)
-	target.do_jitter_animation(target.jitteriness)
+	target.set_timed_status_effect(300 SECONDS, /datum/status_effect/jitter, only_if_higher = TRUE)
 	addtimer(CALLBACK(src, PROC_REF(shock_drop)), 20)
 
 /datum/hallucination/shock/proc/reset_shock_animation()
@@ -1275,7 +1262,7 @@ GLOBAL_LIST_INIT(hallucination_list, list(
 		target.client.images.Remove(electrocution_skeleton_anim)
 
 /datum/hallucination/shock/proc/shock_drop()
-	target.jitteriness = max(target.jitteriness - 990, 10) //Still jittery, but vastly less
+	target.set_timed_status_effect(20 SECONDS, /datum/status_effect/jitter)
 	target.Paralyze(60)
 
 /datum/hallucination/husks

@@ -245,11 +245,11 @@
 	lefthand_file = 'icons/mob/inhands/equipment/mister_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/equipment/mister_righthand.dmi'
 	safety = 0
-	max_water = 200
+	max_water = 400 // doubled from before because of doubled water consumption
 	power = 8
 	force = 10
 	precision = 1
-	cooling_power = 5
+	volume = 2
 	w_class = WEIGHT_CLASS_HUGE
 	item_flags = ABSTRACT  // don't put in storage
 	chem = null //holds no chems of its own, it takes from the tank.
@@ -454,7 +454,7 @@
 
 	var/inj_am = injection_amount * seconds_per_tick
 	var/used_amount = inj_am / usage_ratio
-	reagents.trans_to(user, used_amount, multiplier=usage_ratio, method = INJECT)
+	reagents.trans_to(user, used_amount, multiplier=usage_ratio, methods = INJECT)
 	update_appearance()
 	user.update_inv_back() //for overlays update
 

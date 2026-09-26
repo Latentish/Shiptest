@@ -1,12 +1,13 @@
 /obj/machinery/recharger
 	name = "recharger"
-	icon = 'icons/obj/stationobjs.dmi'
+	icon = 'icons/obj/machines/recharger.dmi'
 	icon_state = "recharger"
 	base_icon_state = "recharger"
 	desc = "A charging dock for energy based weaponry. However someones modified it to work with most things with cells."
 	use_power = IDLE_POWER_USE
 	idle_power_usage = IDLE_DRAW_MINIMAL
 	active_power_usage = ACTIVE_DRAW_LOW
+	power_flags = POWER_ALLOW_WIRE | POWER_ALLOW_AREA
 	circuit = /obj/item/circuitboard/machine/recharger
 	pass_flags = PASSTABLE
 	var/obj/item/charging = null
@@ -22,8 +23,8 @@
 		/obj/item/modular_computer,
 		/obj/item/gun/ballistic/automatic/powered,
 		/obj/item/gun/ballistic/automatic/assault/e40,
-		/obj/item/attachment/gun/energy,
-		/obj/item/stock_parts/cell/gun
+		/obj/item/stock_parts/cell/gun,
+		/obj/item/melee/energy/flyssa
 		))
 
 /obj/machinery/recharger/RefreshParts()
@@ -119,15 +120,15 @@
 
 	add_fingerprint(user)
 	if(charging)
-		charging.update_appearance()
 		charging.forceMove(drop_location())
+		charging.update_appearance()
 		user.put_in_hands(charging)
 		setCharging(null)
 
 /obj/machinery/recharger/attack_tk(mob/user)
 	if(charging)
-		charging.update_appearance()
 		charging.forceMove(drop_location())
+		charging.update_appearance()
 		setCharging(null)
 
 /obj/machinery/recharger/process(seconds_per_tick)
