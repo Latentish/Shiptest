@@ -84,7 +84,7 @@
 	data["num_copies"] = num_copies
 
 	try
-		var/list/blanks = json_decode(file2text("strings/blanks/nt_blanks.json"))
+		var/list/blanks = json_decode(file2text("strings/blanks/warra_blanks.json"))
 		if (blanks != null)
 			data["blanks"] = blanks
 			data["category"] = category
@@ -437,7 +437,7 @@
 	else
 		return ..()
 
-/obj/machinery/photocopier/obj_break(damage_flag)
+/obj/machinery/photocopier/atom_break(damage_flag)
 	. = ..()
 	if(. && toner_cartridge.charges)
 		new /obj/effect/decal/cleanable/oil(get_turf(src))

@@ -27,10 +27,12 @@
 	var/can_be_disabled = FALSE
 	//Can be used for do_afters on disable checks, also toolchecks.
 	var/time_to_disable = 5 SECONDS
-	//whether this hazard has been disabled, which no longer functions and doesn't listen to hazard shutoffs.
+	//Whether this hazard has been disabled, which no longer functions and doesn't listen to hazard shutoffs.
 	var/disabled = FALSE
-	//examine text shown if can_be_disabled is true. Make sure to set this if you add a way to disable your hazard.
+	//Examine text shown if can_be_disabled is true. Make sure to set this if you add a way to disable your hazard. In context: "[src] could be disabled by [disable_text]."
 	var/disable_text = "a way you don't know! (this needs to be set)"
+	//Examine text shown when 'on' is false. In context: [src] appears to be [off_text].</span>"
+	var/off_text = "turned off"
 
 	//ID for use with hazard shutoffs, should be set per map and not in code.
 	var/id = null
@@ -39,6 +41,14 @@
 
 	//slowdown, which increases the slowdown of the turf the hazard is on. All hazards can use this.
 	var/slowdown = 0
+
+	//whether alarms like from trophy cases can set off this hazard
+	var/alarm_sensitive = FALSE
+
+	//Faction datum. By default, this faction is ignored by the hazard.
+	var/list/hazard_faction
+	//If we want to only trigger the hazard for this faction, this is set to true.
+	var/invert_faction = FALSE
 
 /*
 procs used to set off effects
@@ -81,6 +91,15 @@ evil 'code' that sets off the above procs. mappers beware!
 	disabled = TRUE
 	update_appearance()
 
+/obj/structure/hazard/proc/alarm()
+	if(alarm_sensitive)
+		turn_on()
+		alarm_act()
+
+/obj/structure/hazard/proc/alarm_act()
+	random_effect()
+	return
+
 //real code
 
 /obj/structure/hazard/Initialize()
@@ -95,6 +114,7 @@ evil 'code' that sets off the above procs. mappers beware!
 			COMSIG_ATOM_ENTERED = PROC_REF(on_entered),
 		)
 		AddElement(/datum/element/connect_loc, loc_connections)
+	update_appearance()
 
 /obj/structure/hazard/update_icon_state()
 	if(disabled)
@@ -111,6 +131,8 @@ evil 'code' that sets off the above procs. mappers beware!
 		. += span_notice("[src] has been disabled.</span>")
 	else if(can_be_disabled)
 		. += span_notice("[src] could be disabled by [disable_text].</span>")
+	if(!on)
+		. += span_notice("[src] appears to be [off_text].</span>")
 
 /obj/structure/hazard/proc/random_effect(start = FALSE)
 	if(QDELETED(src))
@@ -132,17 +154,24 @@ evil 'code' that sets off the above procs. mappers beware!
 
 //contact checks, based on density.
 
-/obj/structure/hazard/proc/on_entered(datum/source, atom/movable/AM)
+/obj/structure/hazard/proc/on_entered(datum/source, atom/movable/target)
 	SIGNAL_HANDLER
 
-	if(!iseffect(AM) && on && !disabled)
-		var/target = AM
+	if(check_target(target))
 		contact(target)
 
-/obj/structure/hazard/Bumped(atom/movable/AM)
-	if(!iseffect(AM) && on && !disabled)
-		var/target = AM
+/obj/structure/hazard/Bumped(atom/movable/target)
+	if(check_target(target))
 		contact(target)
+
+/obj/structure/hazard/proc/check_target(target)
+	if(ismob(target) && hazard_faction)
+		var/mob/target_mob = target
+		var/shared_faction = faction_check(hazard_faction, target_mob.faction)
+		if(shared_faction == !invert_faction)
+			return FALSE
+	if(!iseffect(target) && on && !disabled)
+		return TRUE
 
 //attacked checks
 

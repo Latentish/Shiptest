@@ -1,8 +1,8 @@
 //Originally coded by ISaidNo, later modified by Kelenius. Ported from Baystation12.
 
 /obj/structure/closet/crate/secure/loot
-	name = "abandoned crate"
-	desc = "What could be inside?"
+	name = "tamper-proof crate"
+	desc = "An abandoned crate locked with a Deca-code lock. Next to the lock is a warning: Too many failed attempts will cause the anti-tamper explosive to detonate."
 	icon_state = "securecrate"
 	integrity_failure = 0 //no breaking open the crate
 	var/code = null
@@ -224,13 +224,13 @@
 		if(92)
 			new /obj/item/storage/firstaid/advanced(src)
 		if(93)
-			new /obj/item/attachment/gun/energy/e50(src)
+			new /obj/item/gun/energy/laser/e10(src)
 		if(94)
 			new /mob/living/simple_animal/hostile/mimic/crate(src)
 			qdel_on_open = TRUE
 		if(95)
 			for(var/i in 1 to 15)
-				new /obj/item/reagent_containers/food/snacks/energybar(src)
+				new /obj/item/food/energybar(src)
 		if(96)
 			for(var/i in 1 to 3)
 				new /obj/item/mine/pressure/sound(src)

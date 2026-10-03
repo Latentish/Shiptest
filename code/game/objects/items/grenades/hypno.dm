@@ -53,7 +53,7 @@
 			M.hallucination += 50
 
 	//Flash
-	if(M.flash_act(affect_silicon = 1))
+	if(M.flash_act(affect_silicon = 1) & FLASH_EFFECT)
 		M.Paralyze(max(10/max(1,distance), 5))
 		M.Knockdown(max(100/max(1,distance), 40))
 		if(iscarbon(M))
@@ -63,5 +63,5 @@
 			else
 				to_chat(C, span_hypnophrase("The light is so pretty..."))
 				C.confused += min(C.confused + 10, 20)
-				C.dizziness += min(C.dizziness + 10, 20)
+				C.adjust_timed_status_effect(20 SECONDS, /datum/status_effect/dizziness, max_duration = 40 SECONDS)
 				C.drowsyness += min(C.drowsyness + 10, 20)

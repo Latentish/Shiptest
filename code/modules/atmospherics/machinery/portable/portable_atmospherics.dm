@@ -1,6 +1,6 @@
 /obj/machinery/portable_atmospherics
 	name = "portable_atmospherics"
-	icon = 'icons/obj/atmos.dmi'
+	icon = 'icons/obj/atmospherics/port_atmos.dmi'
 	use_power = NO_POWER_USE
 	max_integrity = 250
 	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 100, "bomb" = 0, "bio" = 100, "rad" = 100, "fire" = 60, "acid" = 30)
@@ -31,7 +31,7 @@
 /obj/machinery/portable_atmospherics/ex_act(severity, target)
 	if(severity == 1 || target == src)
 		if(resistance_flags & INDESTRUCTIBLE)
-			return //Indestructable cans shouldn't release air
+			return //indestructible cans shouldn't release air
 
 		//This explosion will destroy the can, release its air.
 		var/turf/T = get_turf(src)

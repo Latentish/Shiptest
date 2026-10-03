@@ -36,6 +36,10 @@
 	QDEL_NULL(stored)
 	return ..()
 
+/obj/structure/disposaloutlet/Moved()
+	target = get_ranged_target_turf(src, dir, 10)
+	return ..()
+
 // expel the contents of the holder object, then delete it
 // called when the holder exits the outlet
 /obj/structure/disposaloutlet/proc/expel(obj/structure/disposalholder/H)
@@ -68,7 +72,7 @@
 
 /obj/structure/disposaloutlet/welder_act(mob/living/user, obj/item/I)
 	..()
-	if(!I.tool_start_check(user, amount=0))
+	if(!I.tool_start_check(user, src, amount=0))
 		return TRUE
 
 	playsound(src, 'sound/items/welder2.ogg', 100, TRUE)

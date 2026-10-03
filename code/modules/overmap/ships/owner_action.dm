@@ -105,6 +105,9 @@
 	.["applications"] = list()
 	for(var/a_key as anything in parent_ship.applications)
 		var/datum/ship_application/app = parent_ship.applications[a_key]
+		// don't show unfinished applications
+		if(app.status == SHIP_APPLICATION_UNFINISHED || app.status == SHIP_APPLICATION_CANCELLED)
+			continue
 		if(app.status == SHIP_APPLICATION_PENDING)
 			.["pending"] = TRUE
 		.["applications"] += list(list(
@@ -112,6 +115,7 @@
 			ref = REF(app),
 			key = (app.show_key ? app.app_key : "<Empty>"),
 			name = app.app_name,
+			job = app.app_job,
 			text = app.app_msg,
 			status = app.status
 		))
@@ -164,6 +168,7 @@
 					parent_ship.join_mode = SHIP_JOIN_MODE_CLOSED
 				if(SHIP_JOIN_MODE_CLOSED)
 					parent_ship.join_mode = SHIP_JOIN_MODE_OPEN
+			GLOB.ship_select_tgui?.update_static_data_for_all_viewers()
 			return TRUE
 
 		if("memo")
@@ -176,6 +181,7 @@
 			if(memo_result && length(memo_result))
 				parent_ship.memo = memo_result
 				check_blinking()
+			GLOB.ship_select_tgui?.update_static_data_for_all_viewers()
 			return TRUE
 
 		if("adjustshare")
@@ -253,7 +259,7 @@
 
 			COOLDOWN_START(parent_ship, job_slot_adjustment_cooldown, (5 SECONDS) * cooldown_coeff)
 			parent_ship.job_slots[target_job] = new_amount
-			update_static_data(user)
+			GLOB.ship_select_tgui?.update_static_data_for_all_viewers()
 			return TRUE
 
 // Admin-only ship owner action.

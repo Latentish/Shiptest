@@ -11,7 +11,7 @@
 	var/basic_mob_flags = NONE
 
 	///How much stamina the mob recovers per second
-	var/stamina_recovery = 5
+	var/stamina_recovery = 10
 
 	///how much damage this basic mob does to objects, if any.
 	var/obj_damage = 0
@@ -80,7 +80,7 @@
 	///Leaving something at 0 means it's off - has no maximum.
 	var/list/habitable_atmos = list("min_oxy" = 5, "max_oxy" = 0, "min_plas" = 0, "max_plas" = 1, "min_co2" = 0, "max_co2" = 5, "min_n2" = 0, "max_n2" = 0)
 	///This damage is taken when atmos doesn't fit all the requirements above. Set to 0 to avoid adding the atmos_requirements element.
-	var/unsuitable_atmos_damage = 1
+	var/unsuitable_atmos_damage = 0.5
 
 	///Minimal body temperature without receiving damage
 	var/minimum_survivable_temperature = NPC_DEFAULT_MIN_TEMP
@@ -91,8 +91,17 @@
 	///This damage is taken when the body temp is too hot. Set both this and unsuitable_cold_damage to 0 to avoid adding the body_temp_sensitive element.
 	var/unsuitable_heat_damage = 1
 
+	///conneceted nest datum, used to talk to the monster's 'nest'/spawner
+	var/datum/component/spawner/nest
+
 /mob/living/basic/Initialize(mapload)
 	. = ..()
+	if (islist(armor))
+		armor = getArmor(arglist(armor))
+	else if (!armor)
+		armor = getArmor()
+	else if (!istype(armor, /datum/armor))
+		stack_trace("Invalid type [armor.type] found in .armor during [src.type] Initialize()")
 
 	if(gender == PLURAL)
 		gender = pick(MALE,FEMALE)
@@ -125,19 +134,30 @@
 		return
 	AddElement(/datum/element/basic_body_temp_sensetive, minimum_survivable_temperature, maximum_survivable_temperature, unsuitable_cold_damage, unsuitable_heat_damage, mapload)
 
-/mob/living/basic/Life(delta_time = SSMOBS_DT, times_fired)
+/mob/living/basic/getarmor(def_zone, type)
+	if(armor)
+		return armor.getRating(type)
+	return FALSE
+
+/mob/living/basic/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	. = ..()
 	///Automatic stamina re-gain
 	if(staminaloss > 0)
-		adjustStaminaLoss(-stamina_recovery * delta_time, FALSE, TRUE)
+		adjustStaminaLoss(-stamina_recovery * seconds_per_tick, FALSE, TRUE)
 
-/mob/living/basic/say_mod(input, list/message_mods = list())
+/mob/living/basic/say_mod(input, datum/language/message_language, list/message_mods = list())
 	if(length(speak_emote))
 		verb_say = pick(speak_emote)
 	return ..()
 
 /mob/living/basic/death(gibbed)
 	. = ..()
+	if(nest)
+		if(QDELETED(nest))
+			nest = null
+		else
+			nest.spawned_mobs -= src
+			nest = null
 	if(basic_mob_flags & DEL_ON_DEATH)
 		qdel(src)
 	else

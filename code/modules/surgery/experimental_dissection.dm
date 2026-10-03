@@ -70,7 +70,7 @@
 		if(H?.dna?.species)
 			if(isabductor(H))
 				cost = (MAX_DISSECTION_REWARD*24)
-			else if(iszombie(H) || isshadow(H) || isandroid(H))
+			else if(iszombie(H) || isandroid(H))
 				cost = (MAX_DISSECTION_REWARD*20)
 	else for(var/type in mob_mult_list) // THIS. ELSE IF(). ENDS. HERE.
 		if(istype(target, type))
@@ -99,7 +99,7 @@
 		hand_dossier.merge(the_dossier)
 
 	var/obj/item/bodypart/L = target.get_bodypart(BODY_ZONE_CHEST)
-	target.apply_damage(80, BRUTE, L)
+	target.apply_damage(80, BRUTE, L, wound_bonus=CANT_WOUND)
 	ADD_TRAIT(target, TRAIT_DISSECTED, "[surgery.name]")
 	repeatable = FALSE
 	experience_given = max(points_earned/(MAX_DISSECTION_REWARD/MEDICAL_SKILL_MEDIUM),1)
@@ -115,7 +115,7 @@
 		hand_dossier.merge(the_dossier)
 
 	var/obj/item/bodypart/L = target.get_bodypart(BODY_ZONE_CHEST)
-	target.apply_damage(80, BRUTE, L)
+	target.apply_damage(80, BRUTE, L, wound_bonus=CANT_WOUND)
 	return TRUE
 
 /datum/surgery/advanced/experimental_dissection/adv

@@ -18,7 +18,7 @@
 #define THERMAL_PROTECTION_HAND_LEFT 0.025
 #define THERMAL_PROTECTION_HAND_RIGHT 0.025
 
-/mob/living/carbon/human/Life()
+/mob/living/carbon/human/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	set invisibility = 0
 	if (notransform)
 		return
@@ -32,19 +32,22 @@
 		if(.) //not dead
 
 			for(var/datum/mutation/human/HM in dna.mutations) // Handle active genes
-				HM.on_life()
+				HM.on_life(seconds_per_tick, times_fired)
 
 		if(stat != DEAD)
 			//heart attack stuff
-			handle_heart()
-			handle_liver()
+			handle_heart(seconds_per_tick, times_fired)
+			handle_liver(seconds_per_tick, times_fired)
 
-		dna.species.spec_life(src) // for mutantraces
+		//Body temperature stability and damage
+		dna.species.handle_body_temperature(src, seconds_per_tick, times_fired)
 
-	//WS Begin - Broken bones
-	if(stat != DEAD)
-		handle_fractures()
-	//WS End
+		dna.species.spec_life(src, seconds_per_tick, times_fired) // for mutantraces
+
+	else
+		for(var/i in all_wounds)
+			var/datum/wound/iter_wound = i
+			iter_wound.on_stasis(seconds_per_tick, times_fired)
 
 	//Update our name based on whether our face is obscured/disfigured
 	name = get_visible_name()
@@ -76,16 +79,19 @@
 		return wear_mask
 	if(glasses?.flags_cover & SEALS_EYES)
 		return glasses
+	var/obj/item/bodypart/target_bodypart = get_bodypart(BODY_ZONE_HEAD)
+	if(target_bodypart?.bodytype & BODYTYPE_ROBOTIC)
+		return target_bodypart
 
-/mob/living/carbon/human/handle_traits()
+/mob/living/carbon/human/handle_traits(seconds_per_tick, times_fired)
 	if (getOrganLoss(ORGAN_SLOT_BRAIN) >= 60)
 		SEND_SIGNAL(src, COMSIG_ADD_MOOD_EVENT, "brain_damage", /datum/mood_event/brain_damage)
 	else
 		SEND_SIGNAL(src, COMSIG_CLEAR_MOOD_EVENT, "brain_damage")
 	return ..()
 
-/mob/living/carbon/human/handle_mutations_and_radiation()
-	if(!dna || !dna.species.handle_mutations_and_radiation(src))
+/mob/living/carbon/human/handle_mutations_and_radiation(seconds_per_tick, times_fired)
+	if(!dna || !dna.species.handle_mutations_and_radiation(src, seconds_per_tick, times_fired))
 		..()
 
 /mob/living/carbon/human/breathe()
@@ -107,13 +113,13 @@
 		var/datum/species/S = dna.species
 
 		if(S.breathid == "o2")
-			throw_alert("not_enough_oxy", /atom/movable/screen/alert/not_enough_oxy)
+			throw_alert(ALERT_NOT_ENOUGH_OXYGEN, /atom/movable/screen/alert/not_enough_oxy)
 		else if(S.breathid == "tox")
 			throw_alert("not_enough_tox", /atom/movable/screen/alert/not_enough_tox)
 		else if(S.breathid == "co2")
-			throw_alert("not_enough_co2", /atom/movable/screen/alert/not_enough_co2)
+			throw_alert(ALERT_NOT_ENOUGH_CO2, /atom/movable/screen/alert/not_enough_co2)
 		else if(S.breathid == "n2")
-			throw_alert("not_enough_nitro", /atom/movable/screen/alert/not_enough_nitro)
+			throw_alert(ALERT_NOT_ENOUGH_NITRO, /atom/movable/screen/alert/not_enough_nitro)
 
 		return FALSE
 	else
@@ -123,14 +129,24 @@
 			lun.handle_breath_temperature(breath,src)
 
 /// Environment handlers for species
-/mob/living/carbon/human/handle_environment(datum/gas_mixture/environment)
+/mob/living/carbon/human/handle_environment(datum/gas_mixture/environment, seconds_per_tick, times_fired)
 	// If we are in a cryo bed do not process life functions
 	if(istype(loc, /obj/machinery/atmospherics/components/unary/cryo_cell))
 		return
 
-	dna.species.handle_body_temperature(src)
-	dna.species.handle_environment(environment, src)
-	dna.species.handle_environment_pressure(environment, src)
+	dna.species.handle_body_temperature(src, seconds_per_tick, times_fired)
+	dna.species.handle_environment(environment, src, seconds_per_tick, times_fired)
+
+/**
+ * Adjust the core temperature of a mob
+ *
+ * vars:
+ * * amount The amount of degrees to change body temperature by
+ * * min_temp (optional) The minimum body temperature after adjustment
+ * * max_temp (optional) The maximum body temperature after adjustment
+ */
+/mob/living/carbon/human/proc/adjust_coretemperature(amount, min_temp=0, max_temp=INFINITY)
+	coretemperature = clamp(coretemperature + amount, min_temp, max_temp)
 
 /**
  * get_body_temperature Returns the body temperature with any modifications applied
@@ -146,22 +162,7 @@
 		return dna.species.bodytemp_normal
 	return dna.species.bodytemp_normal + get_body_temp_normal_change()
 
-///FIRE CODE
-/mob/living/carbon/human/handle_fire()
-	. = ..()
-	if(.) //if the mob isn't on fire anymore
-		return
-
-	if(dna)
-		. = dna.species.handle_fire(src) //do special handling based on the mob's species. TRUE = they are immune to the effects of the fire.
-
-	if(!last_fire_update)
-		last_fire_update = fire_stacks
-	if((fire_stacks > HUMAN_FIRE_STACK_ICON_NUM && last_fire_update <= HUMAN_FIRE_STACK_ICON_NUM) || (fire_stacks <= HUMAN_FIRE_STACK_ICON_NUM && last_fire_update > HUMAN_FIRE_STACK_ICON_NUM))
-		last_fire_update = fire_stacks
-		update_fire()
-
-
+//fire code
 /mob/living/carbon/human/proc/get_thermal_protection()
 	var/thermal_protection = 0 //Simple check to estimate how protected we are against multiple temperatures
 	if(wear_suit)
@@ -172,20 +173,7 @@
 			thermal_protection += (head.max_heat_protection_temperature*THERMAL_PROTECTION_HEAD)
 	thermal_protection = round(thermal_protection)
 	return thermal_protection
-
-/mob/living/carbon/human/IgniteMob()
-	//If have no DNA or can be Ignited, call parent handling to light user
-	//If firestacks are high enough
-	if(!dna || dna.species.CanIgniteMob(src))
-		return ..()
-	. = FALSE //No ignition
-
-/mob/living/carbon/human/ExtinguishMob()
-	if(!dna || !dna.species.ExtinguishMob(src))
-		last_fire_update = null
-		..()
-//END FIRE CODE
-
+//end fire code
 
 //This proc returns a number made up of the flags for body parts which you are protected on. (such as HEAD, CHEST, GROIN, etc. See setup.dm for the full list)
 /mob/living/carbon/human/proc/get_heat_protection_flags(temperature) //Temperature is the temperature you're being exposed to.
@@ -304,14 +292,17 @@
 
 	return min(1,thermal_protection)
 
-/mob/living/carbon/human/handle_random_events()
+/mob/living/carbon/human/handle_random_events(seconds_per_tick, times_fired)
 	//Puke if toxloss is too high
-	if(!stat)
-		if(getToxLoss() >= 45 && nutrition > 20)
-			lastpuke += prob(50)
-			if(lastpuke >= 50) // about 25 second delay I guess
-				vomit(20, toxic = TRUE)
-				lastpuke = 0
+	if(stat)
+		return
+	if(getToxLoss() < 45 || nutrition <= 20)
+		return
+
+	lastpuke += SPT_PROB(30, seconds_per_tick)
+	if(lastpuke >= 50) // about 25 second delay I guess // This is actually closer to 150 seconds
+		vomit(20)
+		lastpuke = 0
 
 
 /mob/living/carbon/human/has_smoke_protection()
@@ -327,39 +318,17 @@
 			return TRUE
 	return ..()
 
-/mob/living/carbon/human/proc/handle_heart()
+/mob/living/carbon/human/proc/handle_heart(seconds_per_tick, times_fired)
 	var/we_breath = !HAS_TRAIT_FROM(src, TRAIT_NOBREATH, SPECIES_TRAIT)
 
 	if(!undergoing_cardiac_arrest())
 		return
 
 	if(we_breath)
-		adjustOxyLoss(8)
+		adjustOxyLoss(4 * seconds_per_tick)
 		Unconscious(80)
 	// Tissues die without blood circulation
-	adjustBruteLoss(2)
-
-/mob/living/carbon/human/proc/handle_fractures()
-	//this whole thing is hacky and WILL NOT work right with multiple hands
-	//you've been warned
-	var/obj/item/bodypart/L = get_bodypart("l_arm")
-	var/obj/item/bodypart/R = get_bodypart("r_arm")
-
-	if(istype(L) && L.bone_status == BONE_FLAG_BROKEN && held_items[1] && prob(30))
-		force_scream()
-		if(!HAS_TRAIT(src, TRAIT_ANALGESIA))
-			visible_message(span_warning("[src] screams and lets go of [held_items[1]] in pain."), span_userdanger("A horrible pain in your [parse_zone(L)] makes it impossible to hold [held_items[1]]!"))
-		else
-			visible_message(span_notice("[src] flinches and lets go of [held_items[1]]."),span_notice("A sudden weakness in your [parse_zone(L)] makes it impossible to grasp [held_items[1]]!"))
-		dropItemToGround(held_items[1])
-
-	if(istype(R) && R.bone_status == BONE_FLAG_BROKEN && held_items[2] && prob(30))
-		force_scream()
-		if(!HAS_TRAIT(src, TRAIT_ANALGESIA))
-			visible_message(span_warning("[src] screams and lets go of [held_items[1]] in pain."), span_userdanger("A horrible pain in your [parse_zone(R)] makes it impossible to hold [held_items[1]]!"))
-		else
-			visible_message(span_notice("[src] flinches and lets go of [held_items[1]]."),span_notice("A sudden weakness in your [parse_zone(R)] makes it impossible to grasp [held_items[1]]!"))
-		dropItemToGround(held_items[2])
+	adjustBruteLoss(1 * seconds_per_tick)
 
 #undef THERMAL_PROTECTION_HEAD
 #undef THERMAL_PROTECTION_CHEST

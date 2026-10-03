@@ -198,7 +198,7 @@
 	STR.max_combined_w_class = 50
 	STR.max_items = 100
 	STR.set_holdable(list(
-		/obj/item/reagent_containers/food/snacks/grown,
+		/obj/item/food/grown,
 		/obj/item/seeds,
 		/obj/item/grown,
 		/obj/item/reagent_containers/honeycomb,
@@ -228,7 +228,7 @@
 
 /obj/item/storage/bag/sheetsnatcher
 	name = "sheet snatcher"
-	desc = "A patented Nanotrasen storage system designed for any kind of mineral sheet."
+	desc = "A patented Makosso-Warra storage system designed for any kind of mineral sheet."
 	icon = 'icons/obj/mining.dmi'
 	icon_state = "sheetsnatcher"
 
@@ -431,7 +431,7 @@
 		/obj/item/reagent_containers/blood,
 		/obj/item/reagent_containers/hypospray/medipen,
 		/obj/item/food/deadmouse,
-		/obj/item/reagent_containers/food/snacks/monkeycube,
+		/obj/item/food/monkeycube,
 		/obj/item/organ,
 		/obj/item/bodypart
 		))

@@ -104,7 +104,7 @@
 
 /datum/component/ammo_hud/Initialize()
 	. = ..()
-	if(!istype(parent, /obj/item/gun) && !istype(parent, /obj/item/weldingtool))
+	if(!istype(parent, /obj/item/gun))
 		return COMPONENT_INCOMPATIBLE
 	RegisterSignal(parent, COMSIG_ITEM_EQUIPPED, PROC_REF(wake_up))
 
@@ -128,7 +128,7 @@
 	SIGNAL_HANDLER
 
 	RegisterSignal(parent, COMSIG_ITEM_DROPPED, PROC_REF(turn_off))
-	RegisterSignal(parent, list(COMSIG_UPDATE_AMMO_HUD, COMSIG_GUN_CHAMBER_PROCESSED), PROC_REF(update_hud))
+	RegisterSignals(parent, list(COMSIG_UPDATE_AMMO_HUD, COMSIG_GUN_CHAMBER_PROCESSED), PROC_REF(update_hud))
 
 	hud.turn_on()
 	update_hud()

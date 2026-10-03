@@ -61,27 +61,18 @@
 
 /turf/closed/wall/r_wall/update_stats()
 	var/integrity_per_state = max_integrity/7
-	d_state = (7 - round(integrity/integrity_per_state))
+	d_state = (7 - round(atom_integrity/integrity_per_state))
 	.= ..()
 
 /// Calculate how much integrity the r-wall should have a a given state.
 /turf/closed/wall/r_wall/proc/get_state_integrity(state)
-	if(state > INTACT)
+	if(state < INTACT)
 		state = INTACT
-	if(state < SHEATH)
+	if(state > SHEATH)
 		state = SHEATH
 	return max_integrity - ((max_integrity/7) * state)
 
 /turf/closed/wall/r_wall/try_decon(obj/item/W, mob/user, turf/T)
-	//DECONSTRUCTION
-	if(istype(W,/obj/item/gun/energy/plasmacutter))
-		to_chat(user, span_notice("You begin slicing through the [src]."))
-		while(W.use_tool(src,user,30,volume = 100))
-			to_chat(user, span_notice("You slice through some of the outer plating..."))
-			if(!alter_integrity(-(W.wall_decon_damage)))
-				return TRUE
-		return 1
-
 	switch(d_state)
 		if(INTACT)
 			if(W.tool_behaviour == TOOL_WIRECUTTER)
@@ -114,7 +105,7 @@
 
 		if(COVER)
 			if(W.tool_behaviour == TOOL_WELDER)
-				if(!W.tool_start_check(user, amount=0))
+				if(!W.tool_start_check(user, src, amount=0))
 					return
 				to_chat(user, span_notice("You begin slicing through the metal cover..."))
 				if(W.use_tool(src, user, 60, volume=100))
@@ -147,7 +138,7 @@
 				return 1
 
 			if(W.tool_behaviour == TOOL_WELDER)
-				if(!W.tool_start_check(user, amount=0))
+				if(!W.tool_start_check(user, src, amount=0))
 					return
 				to_chat(user, span_notice("You begin welding the metal cover back to the frame..."))
 				if(W.use_tool(src, user, 60, volume=100))
@@ -181,7 +172,7 @@
 
 		if(SUPPORT_RODS)
 			if(W.tool_behaviour == TOOL_WELDER)
-				if(!W.tool_start_check(user, amount=0))
+				if(!W.tool_start_check(user, src, amount=0))
 					return
 				to_chat(user, span_notice("You begin slicing through the support rods..."))
 				if(W.use_tool(src, user, 100, volume=100))
@@ -214,7 +205,7 @@
 				return 1
 
 			if(W.tool_behaviour == TOOL_WELDER)
-				if(!W.tool_start_check(user, amount=0))
+				if(!W.tool_start_check(user, src, amount=0))
 					return
 				to_chat(user, span_notice("You begin welding the support rods back together..."))
 				if(W.use_tool(src, user, 100, volume=100))

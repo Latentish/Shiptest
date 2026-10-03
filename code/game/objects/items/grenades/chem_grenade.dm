@@ -194,12 +194,12 @@
 		stage_change(GRENADE_EMPTY)
 		active = FALSE
 		return
-//	logs from custom assemblies priming are handled by the wire component
+	//logs from custom assemblies priming are handled by the wire component
 	log_game("A grenade detonated at [AREACOORD(detonation_turf)]")
 
 	update_mob()
 
-	qdel(src)
+	resolve()
 
 //Large chem grenades accept slime cores and use the appropriately.
 /obj/item/grenade/chem_grenade/large
@@ -373,7 +373,7 @@
 
 /obj/item/grenade/chem_grenade/ez_clean
 	name = "cleaner grenade"
-	desc = "Waffle Co.-brand foaming space cleaner. In a special applicator for rapid cleaning of wide areas."
+	desc = "EZ-Clean brand foaming space cleaner. In a special applicator for rapid cleaning of wide areas."
 	stage = GRENADE_READY
 
 /obj/item/grenade/chem_grenade/ez_clean/Initialize()
