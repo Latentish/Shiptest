@@ -126,6 +126,15 @@
 /obj/effect/turf_decal/siding/brown/end
 	icon_state = "siding_end"
 
+/obj/effect/turf_decal/siding/black
+	color = "#474747"
+
+/obj/effect/turf_decal/siding/black/corner
+	icon_state = "siding_corner"
+
+/obj/effect/turf_decal/siding/black/end
+	icon_state = "siding_end"
+
 /obj/effect/turf_decal/siding/wood
 	icon_state = "siding_wood_line"
 	color = "#55391A"
@@ -135,6 +144,25 @@
 
 /obj/effect/turf_decal/siding/wood/end
 	icon_state = "siding_wood_end"
+
+#define WOOD_SIDING_COLOR_HELPER(_name, _color)			\
+	/obj/effect/turf_decal/siding/wood/##_name {		\
+		color = _color									\
+	}													\
+	/obj/effect/turf_decal/siding/wood/corner/##_name{	\
+		color = _color									\
+	}													\
+	/obj/effect/turf_decal/siding/wood/end/##_name{		\
+		color = _color									\
+	}													\
+
+WOOD_SIDING_COLOR_HELPER(ebony, WOOD_COLOR_BLACK)
+WOOD_SIDING_COLOR_HELPER(mahogany, WOOD_COLOR_RICH)
+WOOD_SIDING_COLOR_HELPER(maple, WOOD_COLOR_PALE)
+WOOD_SIDING_COLOR_HELPER(walnut, WOOD_COLOR_CHOCOLATE)
+WOOD_SIDING_COLOR_HELPER(bamboo, WOOD_COLOR_PALE2)
+WOOD_SIDING_COLOR_HELPER(birch, WOOD_COLOR_PALE3)
+WOOD_SIDING_COLOR_HELPER(yew, WOOD_COLOR_YELLOW)
 
 /obj/effect/turf_decal/siding/thinplating
 	icon_state = "siding_thinplating_line"
@@ -430,6 +458,10 @@
 
 /obj/effect/turf_decal/number/left_zero
 	icon_state = "0-"
+
+/obj/effect/turf_decal/dash
+	icon_state = "dash"
+
 
 
 /obj/effect/turf_decal/dept/hop

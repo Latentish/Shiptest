@@ -5,9 +5,11 @@
 	interaction_flags_atom = INTERACT_ATOM_ATTACK_HAND | INTERACT_ATOM_UI_INTERACT
 	layer = BELOW_OBJ_LAYER
 	flags_ricochet = RICOCHET_HARD
-	ricochet_chance_mod = 0.5
+	receive_ricochet_chance_mod = 0.5
 
 	hitsound_type = PROJECTILE_HITSOUND_METAL
+
+	bad_type = /obj/structure
 
 	///is this assigned the climbable element on init?
 	var/climbable = FALSE
@@ -17,6 +19,16 @@
 	var/climb_stun = 0
 
 	var/broken = 0 //similar to machinery's stat BROKEN
+	///If projectiles are allowed to pass through a structure at all
+	var/pass_through = FALSE
+	///The chance of a projectile to pass through the structure. Lower number means less projectiles pass through
+	var/pass_chance = 0
+	///If this is directional cover and blocks one direction. eg. flipped tables
+	var/directional_cover = FALSE
+	///check if the turf the incoming thing is coming from the same type of cover object on it. If it is, let it through.
+	var/continuous_cover = FALSE
+	///if continuous cover is enabled, is there other types this cover should let things through from?
+	var/allowed_in_from
 
 /obj/structure/Initialize()
 	if (!armor)
@@ -29,6 +41,8 @@
 			icon_state = ""
 	if(climbable)
 		AddElement(/datum/element/climbable, climb_time, climb_stun)
+	if(pass_through)
+		AddComponent(/datum/component/cover, pass_chance, directional_cover, continuous_cover, allowed_in_from)
 	GLOB.cameranet.updateVisibility(src)
 
 /obj/structure/Destroy()
@@ -64,7 +78,7 @@
 			. += examine_status
 
 /obj/structure/proc/examine_status(mob/user) //An overridable proc, mostly for falsewalls.
-	var/healthpercent = (obj_integrity/max_integrity) * 100
+	var/healthpercent = (atom_integrity/max_integrity) * 100
 	switch(healthpercent)
 		if(50 to 99)
 			return  "It looks slightly damaged."

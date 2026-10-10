@@ -20,25 +20,6 @@
 	REMOVE_TRAIT(owner, TRAIT_MUTE, TRAUMA_TRAIT)
 	..()
 
-/datum/brain_trauma/severe/aphasia
-	name = "Aphasia"
-	desc = "Patient is unable to speak or understand any language."
-	scan_desc = "extensive damage to the brain's language center"
-	gain_text = span_warning("You have trouble forming words in your head...")
-	lose_text = span_notice("You suddenly remember how languages work.")
-
-/datum/brain_trauma/severe/aphasia/on_gain()
-	owner.add_blocked_language(subtypesof(/datum/language/) - /datum/language/aphasia, LANGUAGE_APHASIA)
-	owner.grant_language(/datum/language/aphasia, TRUE, TRUE, LANGUAGE_APHASIA)
-	..()
-
-/datum/brain_trauma/severe/aphasia/on_lose()
-	if(QDELETED(owner))
-		return ..()
-	owner.remove_blocked_language(subtypesof(/datum/language/), LANGUAGE_APHASIA)
-	owner.remove_language(/datum/language/aphasia, TRUE, TRUE, LANGUAGE_APHASIA)
-	..()
-
 /datum/brain_trauma/severe/blindness
 	name = "Cerebral Blindness"
 	desc = "Patient's brain is no longer connected to its eyes."
@@ -126,7 +107,7 @@
 	gain_text = span_warning("You have a constant feeling of drowsiness...")
 	lose_text = span_notice("You feel awake and aware again.")
 
-/datum/brain_trauma/severe/narcolepsy/on_life()
+/datum/brain_trauma/severe/narcolepsy/on_life(seconds_per_tick, times_fired)
 	..()
 	if(owner.IsSleeping())
 		return
@@ -135,10 +116,10 @@
 		sleep_chance += 2
 	if(owner.drowsyness)
 		sleep_chance += 3
-	if(prob(sleep_chance))
+	if(SPT_PROB(0.5 * sleep_chance, seconds_per_tick))
 		to_chat(owner, span_warning("You fall asleep."))
 		owner.Sleeping(60)
-	else if(!owner.drowsyness && prob(sleep_chance * 2))
+	else if(!owner.drowsyness && SPT_PROB(sleep_chance, seconds_per_tick))
 		to_chat(owner, span_warning("You feel tired..."))
 		owner.drowsyness += 10
 
@@ -157,14 +138,14 @@
 	else
 		to_chat(owner, span_notice("You feel safe, as long as you have people around you."))
 
-/datum/brain_trauma/severe/monophobia/on_life()
+/datum/brain_trauma/severe/monophobia/on_life(seconds_per_tick, times_fired)
 	..()
 	if(check_alone())
 		stress = min(stress + 0.5, 100)
-		if(stress > 10 && (prob(5)))
+		if(stress > 10 && SPT_PROB(2.5, seconds_per_tick))
 			stress_reaction()
 	else
-		stress = max(stress - 4, 0)
+		stress = max(stress - (2 * seconds_per_tick), 0)
 
 /datum/brain_trauma/severe/monophobia/proc/check_alone()
 	if(owner.is_blind())
@@ -191,14 +172,14 @@
 		if(2)
 			if(!high_stress)
 				to_chat(owner, span_warning("You can't stop shaking..."))
-				owner.dizziness += 20
+				owner.adjust_timed_status_effect(40 SECONDS, /datum/status_effect/dizziness)
 				owner.confused += 20
-				owner.set_jitter(20)
+				owner.set_timed_status_effect(40 SECONDS, /datum/status_effect/jitter, only_if_higher = TRUE)
 			else
 				to_chat(owner, span_warning("You feel weak and scared! If only you weren't alone..."))
-				owner.dizziness += 20
+				owner.adjust_timed_status_effect(20 SECONDS, /datum/status_effect/dizziness)
 				owner.confused += 20
-				owner.set_jitter(20)
+				owner.set_timed_status_effect(20 SECONDS, /datum/status_effect/jitter, only_if_higher = TRUE)
 				owner.adjustStaminaLoss(50)
 
 		if(3, 4)
@@ -262,9 +243,9 @@
 	..()
 	owner.remove_status_effect(/datum/status_effect/trance)
 
-/datum/brain_trauma/severe/hypnotic_stupor/on_life()
+/datum/brain_trauma/severe/hypnotic_stupor/on_life(seconds_per_tick, times_fired)
 	..()
-	if(prob(1) && !owner.has_status_effect(/datum/status_effect/trance))
+	if(SPT_PROB(0.5, seconds_per_tick) && !owner.has_status_effect(/datum/status_effect/trance))
 		owner.apply_status_effect(/datum/status_effect/trance, rand(100,300), FALSE)
 
 /datum/brain_trauma/severe/hypnotic_trigger
@@ -274,7 +255,7 @@
 	gain_text = span_warning("You feel odd, like you just forgot something important.")
 	lose_text = span_notice("You feel like a weight was lifted from your mind.")
 	random_gain = FALSE
-	var/trigger_phrase = "Nanotrasen"
+	var/trigger_phrase = "Makosso-Warra"
 
 /datum/brain_trauma/severe/hypnotic_trigger/New(phrase)
 	..()

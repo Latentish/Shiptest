@@ -14,6 +14,11 @@
 	name = ".38 match bullet"
 	armour_penetration = -10
 	speed_mod = BULLET_SPEED_AP_MOD
+
+	wound_bonus = -20
+	bare_wound_bonus = 10
+	embedding = list(embed_chance=15, fall_chance=2, jostle_chance=2, ignore_throwspeed_threshold=TRUE, pain_stam_pct=0.4, pain_mult=3, jostle_pain_mult=5, rip_time=10)
+
 	ricochets_max = 4
 	ricochet_chance = 100
 	ricochet_auto_aim_angle = 40
@@ -56,7 +61,7 @@
 	if(iscarbon(target))
 		var/mob/living/carbon/M = target
 		M.adjust_fire_stacks(3)
-		M.IgniteMob()
+		M.ignite_mob()
 
 /obj/projectile/bullet/c38/iceblox //see /obj/projectile/temp for the original code
 	name = ".38 chilled bullet"
@@ -77,8 +82,8 @@
 	. = ..()
 	if(isliving(target))
 		var/mob/living/M = target
-		M.adjust_jitter(5)
-		M.Dizzy(5)
+		M.set_timed_status_effect(10 SECONDS, /datum/status_effect/jitter)
+		M.set_timed_status_effect(10 SECONDS, /datum/status_effect/dizziness, only_if_higher = TRUE)
 		M.adjust_drugginess(10)
 
 /obj/projectile/bullet/c38/shock
@@ -130,7 +135,7 @@
 /obj/projectile/bullet/a357/hp
 	name = ".357 hollow point bullet"
 	damage = 50
-	armour_penetration = -20
+	armour_penetration = -30
 	speed_mod = BULLET_SPEED_HP_MOD
 	ricochet_chance = 0
 
@@ -138,13 +143,14 @@
 
 /obj/projectile/bullet/a4570
 	name = ".45-70 bullet"
-	damage = 45 //crits in 3-4 taps depending on armor
+	damage = 50 //might seem crazy but armor will tank this
 	speed = BULLET_SPEED_REVOLVER
 	bullet_identifier = "large bullet"
 
 /obj/projectile/bullet/a4570/match
 	name = ".45-70 match bullet"
-	armour_penetration = 10
+	damage = 45
+	armour_penetration = 15
 	speed_mod = BULLET_SPEED_AP_MOD
 	ricochets_max = 5
 	ricochet_chance = 140
@@ -155,8 +161,8 @@
 
 /obj/projectile/bullet/a4570/hp
 	name = ".45-70 hollow point bullet"
-	damage = 55
-	armour_penetration = -10
+	damage = 70 //will two tap goliaths armor pen should stop it from annihilating people
+	armour_penetration = -35
 	speed_mod = BULLET_SPEED_HP_MOD
 
 /obj/projectile/bullet/a4570/explosive //for extra oof
@@ -165,20 +171,20 @@
 
 /obj/projectile/bullet/a4570/explosive/on_hit(atom/target, blocked = FALSE)
 	..()
-	explosion(target, -1, 0, 1)
+	explosion(target, -1, 0, 1, light_dam = 20, light_item_dam = 20)
 	return BULLET_ACT_HIT
 
 // 44 Short (Roumain & Shadow)
 
 /obj/projectile/bullet/a44roum
 	name = ".44 roumain bullet"
-	damage =  25
+	damage =  30
 	speed = BULLET_SPEED_REVOLVER
 	bullet_identifier = "small bullet"
 
 /obj/projectile/bullet/a44roum/rubber
 	name = ".44 roumain rubber bullet"
-	damage =  7
+	damage =  10
 	stamina = 40
 	armour_penetration = -10
 	speed_mod = BULLET_SPEED_RUBBER_MOD
@@ -186,7 +192,7 @@
 
 /obj/projectile/bullet/a44roum/hp
 	name = ".44 roumain hollow point bullet"
-	damage =  40
-	armour_penetration = -10
+	damage =  45
+	armour_penetration = -20
 	ricochet_chance = 0
 	speed_mod = BULLET_SPEED_HP_MOD

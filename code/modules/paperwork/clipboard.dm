@@ -41,6 +41,8 @@
 
 /// Take out the topmost paper
 /obj/item/clipboard/proc/remove_paper(obj/item/paper/paper, mob/user)
+	if(!user.canUseTopic(src, BE_CLOSE))
+		return
 	if(!istype(paper))
 		return
 	paper.forceMove(user.loc)
@@ -79,6 +81,7 @@
 	. += "clipboard_over"
 
 /obj/item/clipboard/CtrlClick(mob/user)
+	. = ..()
 	var/obj/item/paper/toppaper = toppaper_ref?.resolve()
 	remove_paper(toppaper, user)
 	return TRUE
@@ -105,6 +108,10 @@
 	add_fingerprint(usr)
 	ui_interact(user)
 	return
+
+/obj/item/clipboard/examine_more(mob/user)
+	. = ..()
+	ui_interact(user)
 
 /obj/item/clipboard/ui_interact(mob/user, datum/tgui/ui)
 	ui = SStgui.try_update_ui(user, src, ui)
@@ -155,7 +162,8 @@
 		if("edit_paper")
 			var/obj/item/paper/paper = locate(params["ref"]) in src
 			if(istype(paper))
-				paper.ui_interact(usr)
+				var/datum/component/writing/our_paper = paper.GetComponent(/datum/component/writing)
+				our_paper.ui_interact(usr)
 				update_icon()
 				. = TRUE
 		// Move paper to the top

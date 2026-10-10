@@ -13,6 +13,7 @@ GLOBAL_LIST_EMPTY(cryopod_computers)
 /obj/machinery/computer/cryopod
 	name = "cryogenic oversight console"
 	desc = "An interface between crew and the cryogenic storage oversight systems."
+	icon = 'icons/obj/machines/wallconsole.dmi'
 	icon_state = "wallconsole"
 	icon_screen = "wallconsole_cryo"
 	icon_keyboard = null
@@ -33,10 +34,11 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/computer/cryopod, 17)
 
 /obj/machinery/computer/cryopod/retro
 	desc = "An interface between crew and the cryogenic storage oversight systems. Currently strugggling to catch up with the modern cryogenic storage system."
-	icon_state = "wallconsole_old"
-	icon_screen = "wallconsole_old_cryo"
+	icon = 'icons/obj/machines/television.dmi'
+	icon_state = "crt_beige_wall"
+	icon_screen = "crt_wall_cryo"
 
-MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/computer/cryopod/retro, 17)
+MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/computer/cryopod/retro, 22)
 
 /obj/machinery/computer/cryopod/Initialize()
 	. = ..()
@@ -218,8 +220,15 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/computer/cryopod/retro, 17)
 		playsound(src, close_sound, 40)
 
 /obj/machinery/cryopod/proc/apply_effects_to_mob(mob/living/carbon/sleepyhead)
-	sleepyhead.set_sleeping(50)
+	sleepyhead.set_sleeping(60)
+	sleepyhead.set_nutrition(200)
 	to_chat(sleepyhead, span_boldnotice("You begin to wake from cryosleep..."))
+	var/ship_name = "<span class='maptext' style=font-size:24pt;text-align:center valign='top'><u>[linked_ship.current_ship.name]</u></span>"
+	var/sector_name = "[linked_ship.current_ship.current_overmap.name]"
+	var/time = "[station_time_timestamp("hh:mm")]"
+	var/character_name = "[sleepyhead.real_name]"
+
+	sleepyhead.play_screen_text("[ship_name]<br>[sector_name]<br>[time]<br>[character_name]")
 
 /obj/machinery/cryopod/open_machine()
 	..()
@@ -339,7 +348,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/computer/cryopod/retro, 17)
 			qdel(G)
 
 	var/datum/overmap/ship/controlled/original_ship = mob_occupant.mind.original_ship.resolve()
-	original_ship.manifest -= mob_occupant.real_name
+	original_ship.manifest_remove(mob_occupant)
 
 	var/obj/machinery/computer/cryopod/control_computer_obj = control_computer?.resolve()
 
@@ -439,18 +448,6 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/computer/cryopod/retro, 17)
 	. = ..()
 	linked_ship = port
 	linked_ship.spawn_points += src
-
-/obj/machinery/cryopod/apply_effects_to_mob(mob/living/carbon/sleepyhead)
-	//it always sucks a little to get up
-	sleepyhead.set_nutrition(200)
-	sleepyhead.set_sleeping(60)
-
-	var/wakeupmessage = "The cryopod shudders as the pneumatic seals separating you and the waking world let out a hiss."
-	if(prob(60))
-		wakeupmessage += " A sickly feeling along with the pangs of hunger greet you upon your awakening."
-		sleepyhead.set_nutrition(100)
-		sleepyhead.apply_effect(rand(3,10), EFFECT_DROWSY)
-	to_chat(sleepyhead, span_danger(boxed_message(wakeupmessage)))
 
 /obj/machinery/cryopod/syndicate
 	icon_state = "sleeper_s-open"

@@ -1,33 +1,3 @@
-/datum/round_event_control/spacevine
-	name = "Spacevine"
-	typepath = /datum/round_event/spacevine
-	weight = 15
-	max_occurrences = 3
-	min_players = 10
-
-/datum/round_event/spacevine
-	fakeable = TRUE
-	announceWhen = 1
-
-/datum/round_event/spacevine/announce(fake)
-	priority_announce("Unidentified plant based lifeform detected aboard the station, contact your local botanist.")
-
-/datum/round_event/spacevine/start()
-	var/list/turfs = list() //list of all the empty floor turfs in the hallway areas
-
-	var/obj/structure/spacevine/SV = new()
-
-	for(var/area/ship/hallway/A in world)
-		for(var/turf/F in A)
-			if(F.Enter(SV))
-				turfs += F
-
-	qdel(SV)
-
-	if(turfs.len) //Pick a turf to spawn at if we can
-		var/turf/T = pick(turfs)
-		new /datum/spacevine_controller(T, list(pick(subtypesof(/datum/spacevine_mutation))), rand(10,100), rand(5,10), src) //spawn a controller at turf with randomized stats and a single random mutation
-
 
 /datum/spacevine_mutation
 	var/name = ""
@@ -143,24 +113,6 @@
 	if(prey && !prey.mutations.Find(src))  //Eat all vines that are not of the same origin
 		qdel(prey)
 
-/datum/spacevine_mutation/aggressive_spread  //very OP, but im out of other ideas currently
-	name = "aggressive spreading"
-	hue = "#333333"
-	severity = 3
-	quality = NEGATIVE
-
-/datum/spacevine_mutation/aggressive_spread/on_spread(obj/structure/spacevine/holder, turf/target)
-	switch(severity)
-		if(EXPLODE_DEVASTATE)
-			SSexplosions.highturf += target
-		if(EXPLODE_HEAVY)
-			SSexplosions.medturf += target
-		if(EXPLODE_LIGHT)
-			SSexplosions.lowturf += target
-
-/datum/spacevine_mutation/aggressive_spread/on_buckle(obj/structure/spacevine/holder, mob/living/buckled)
-	buckled.ex_act(severity, null, src)
-
 /datum/spacevine_mutation/transparency
 	name = "transparent"
 	hue = ""
@@ -246,7 +198,7 @@
 	if(holder.energy)
 		holder.density = TRUE
 	holder.max_integrity = 100
-	holder.obj_integrity = holder.max_integrity
+	holder.update_integrity(holder.max_integrity)
 
 /datum/spacevine_mutation/woodening/on_hit(obj/structure/spacevine/holder, mob/living/hitter, obj/item/I, expected_damage)
 	if(I?.get_sharpness())

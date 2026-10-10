@@ -169,10 +169,10 @@
 /obj/item/storage/box/ammo/a308
 	name = "box of .308 ammo"
 	desc = "A box of standard .308 ammo."
-	icon_state = "a308box"
-
-/obj/item/storage/box/ammo/a308/hunterspride
 	icon_state = "a308box-HP"
+
+/obj/item/storage/box/ammo/a308/inteq
+	icon_state = "a308box"
 
 /obj/item/storage/box/ammo/a308/PopulateContents()
 	var/static/items_inside = list(
@@ -186,7 +186,7 @@
 /obj/item/storage/box/ammo/a308/hp
 	name = "box of .308 HP ammo"
 	desc = "A box of standard .308 HP ammo."
-	icon_state = "a308box"
+	icon_state = "a308box-hp-hp"
 
 /obj/item/storage/box/ammo/a308/hp/PopulateContents()
 	var/static/items_inside = list(
@@ -200,7 +200,7 @@
 /obj/item/storage/box/ammo/a308/ap
 	name = "box of .308 AP ammo"
 	desc = "A box of standard .308 AP ammo."
-	icon_state = "a308box"
+	icon_state = "a308box-hp-ap"
 
 /obj/item/storage/box/ammo/a308/ap/PopulateContents()
 	var/static/items_inside = list(
@@ -221,4 +221,36 @@
 /obj/item/storage/box/ammo/c299/PopulateContents()
 	var/static/items_inside = list(
 		/obj/item/ammo_box/magazine/ammo_stack/prefilled/c299 = 4)
+	generate_items_inside(items_inside,src)
+
+//2x15/3x20 Tav/Deu'Sha
+
+/obj/item/storage/box/ammo/c215
+	name = "box of short 2x15mm dart magazines"
+	desc = "A box of short 2x15mm dart magazines, for the Rectifier gauss pistol."
+	icon_state = "2x15box"
+
+/obj/item/storage/box/ammo/c215/PopulateContents()
+	var/static/items_inside = list(
+		/obj/item/ammo_box/magazine/cs_gauss/pistol = 4)
+	generate_items_inside(items_inside,src)
+
+/obj/item/storage/box/ammo/c215/long
+	name = "box of long 2x15mm dart magazines"
+	desc = "A box of long 2x15mm dart magazines, for the Convergence light gauss rifle."
+	icon_state = "2x15box"
+
+/obj/item/storage/box/ammo/c215/long/PopulateContents()
+	var/static/items_inside = list(
+		/obj/item/ammo_box/magazine/cs_gauss = 4)
+	generate_items_inside(items_inside,src)
+
+/obj/item/storage/box/ammo/c320
+	name = "box of 3x20mm dart magazines"
+	desc = "A box of long 3x20mm dart magazines, for the Vector gauss rifle."
+	icon_state = "3x20box"
+
+/obj/item/storage/box/ammo/c320/PopulateContents()
+	var/static/items_inside = list(
+		/obj/item/ammo_box/magazine/cs_gauss/rifle = 4)
 	generate_items_inside(items_inside,src)

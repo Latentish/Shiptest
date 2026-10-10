@@ -7,6 +7,8 @@
 	living_flags = MOVES_ON_ITS_OWN
 	status_flags = CANPUSH
 
+	bad_type = /mob/living/simple_animal
+
 	var/icon_living = ""
 	///Icon when the animal is dead. Don't use animated icons for this.
 	var/icon_dead = ""
@@ -61,7 +63,11 @@
 	///Leaving something at 0 means it's off - has no maximum.
 	var/list/atmos_requirements = NORMAL_ATMOS_REQS
 	///This damage is taken when atmos doesn't fit all the requirements above.
-	var/unsuitable_atmos_damage = 2
+	var/unsuitable_atmos_damage = 1
+
+	///The safe pressure for this mob
+	var/minimum_pressure = 0
+	var/maximum_pressure = INFINITY
 
 	//Defaults to zero so Ian can still be cuddly. Moved up the tree to living! This allows us to bypass some hardcoded stuff.
 	melee_damage_lower = 0
@@ -140,8 +146,18 @@
 	///What kind of footstep this mob should have. Null if it shouldn't have any.
 	var/footstep_type
 
-	/// Base armor value on this mob for running armor checks
-	var/datum/armor/armor
+	///How much wounding power it has
+	var/wound_bonus = 5
+	///How much bare wounding power it has
+	var/bare_wound_bonus = 0
+	///If the attacks from this are sharp
+	var/sharpness = SHARP_NONE
+	///Generic flags
+	var/simple_mob_flags = NONE
+
+	///If the creature should have an innate TRAIT_MOVE_FLYING trait added on init that is also toggled off/on on death/revival.
+	var/is_flying_animal = FALSE
+
 
 
 /mob/living/simple_animal/Initialize(mapload)
@@ -161,6 +177,8 @@
 		stack_trace("Simple animal being instantiated in nullspace")
 	if(dextrous)
 		AddComponent(/datum/component/personal_crafting)
+	if(is_flying_animal)
+		ADD_TRAIT(src, TRAIT_MOVE_FLYING, ROUNDSTART_TRAIT)
 	if(footstep_type)
 		AddComponent(/datum/component/footstep, footstep_type)
 
@@ -179,6 +197,16 @@
 		QDEL_NULL(access_card)
 
 	return ..()
+
+/mob/living/simple_animal/vv_edit_var(var_name, var_value)
+	. = ..()
+	switch(var_name)
+		if(NAMEOF(src, is_flying_animal))
+			if(stat != DEAD)
+				if(!is_flying_animal)
+					REMOVE_TRAIT(src, TRAIT_MOVE_FLYING, ROUNDSTART_TRAIT)
+				else
+					ADD_TRAIT(src, TRAIT_MOVE_FLYING, ROUNDSTART_TRAIT)
 
 /mob/living/simple_animal/getarmor(def_zone, type)
 	if(armor)
@@ -200,10 +228,6 @@
 		else
 			tame_chance += bonus_tame_chance
 
-///Extra effects to add when the mob is tamed, such as adding a riding component
-/mob/living/simple_animal/proc/tamed(whomst)
-	return
-
 /mob/living/simple_animal/examine(mob/user)
 	. = ..()
 	if(stat == DEAD)
@@ -221,7 +245,7 @@
 			set_stat(CONSCIOUS)
 	med_hud_set_status()
 
-/mob/living/simple_animal/handle_status_effects()
+/mob/living/simple_animal/handle_status_effects(seconds_per_tick, times_fired)
 	..()
 	if(stuttering)
 		stuttering = 0
@@ -318,7 +342,7 @@
 	if((areatemp < minbodytemp) || (areatemp > maxbodytemp))
 		. = FALSE
 
-/mob/living/simple_animal/handle_environment(datum/gas_mixture/environment)
+/mob/living/simple_animal/handle_environment(datum/gas_mixture/environment, seconds_per_tick, times_fired)
 	var/atom/A = loc
 	if(isturf(A))
 		var/areatemp = get_temperature(environment)
@@ -327,18 +351,37 @@
 			diff = diff / 5
 			adjust_bodytemperature(diff)
 
-	if(!environment_air_is_safe())
+	if(!environment_air_is_safe() && unsuitable_atmos_damage)
+		adjustHealth(unsuitable_atmos_damage * seconds_per_tick)
+		if(unsuitable_atmos_damage > 0)
+			throw_alert(ALERT_NOT_ENOUGH_OXYGEN, /atom/movable/screen/alert/not_enough_oxy)
+	else
+		clear_alert(ALERT_NOT_ENOUGH_OXYGEN)
+
+	if(!environment_pressure_is_safe())
 		adjustHealth(unsuitable_atmos_damage)
 		if(unsuitable_atmos_damage > 0)
-			throw_alert("not_enough_oxy", /atom/movable/screen/alert/not_enough_oxy)
+			throw_alert("pressure", /atom/movable/screen/alert/badpressure, 2)
 	else
-		clear_alert("not_enough_oxy")
+		clear_alert("pressure")
 
 	handle_temperature_damage()
 
-/mob/living/simple_animal/proc/handle_temperature_damage()
-	if(bodytemperature < minbodytemp)
-		adjustHealth(unsuitable_atmos_damage)
+/mob/living/simple_animal/proc/environment_pressure_is_safe()
+	. = TRUE
+	if(isturf(loc) && isopenturf(loc))
+		var/turf/open/ST = loc
+		if(ST.air)
+			if(ST.air.return_pressure() < minimum_pressure || ST.air.return_pressure() > maximum_pressure)
+				. = FALSE
+		else
+			if(minimum_pressure > 0)
+				. = FALSE
+
+/mob/living/simple_animal/proc/handle_temperature_damage(seconds_per_tick, times_fired)
+	. = FALSE
+	if((bodytemperature < minbodytemp) && unsuitable_atmos_damage)
+		adjustHealth(unsuitable_atmos_damage * seconds_per_tick)
 		switch(unsuitable_atmos_damage)
 			if(1 to 5)
 				throw_alert("temp", /atom/movable/screen/alert/cold, 1)
@@ -347,7 +390,7 @@
 			if(10 to INFINITY)
 				throw_alert("temp", /atom/movable/screen/alert/cold, 3)
 	else if(bodytemperature > maxbodytemp)
-		adjustHealth(unsuitable_atmos_damage)
+		adjustHealth(unsuitable_atmos_damage * seconds_per_tick)
 		switch(unsuitable_atmos_damage)
 			if(1 to 5)
 				throw_alert("temp", /atom/movable/screen/alert/hot, 1)
@@ -396,7 +439,6 @@
 			new i(loc)
 
 /mob/living/simple_animal/death(gibbed)
-	movement_type &= ~FLYING
 	if(nest)
 		nest.spawned_mobs -= src
 		nest = null
@@ -413,6 +455,8 @@
 		del_on_death = FALSE
 		qdel(src)
 	else
+		if(is_flying_animal)
+			REMOVE_TRAIT(src, TRAIT_MOVE_FLYING, ROUNDSTART_TRAIT)
 		health = 0
 		icon_state = icon_dead
 		if(flip_on_death)
@@ -437,15 +481,11 @@
 			return FALSE
 	return TRUE
 
-/mob/living/simple_animal/handle_fire()
-	return TRUE
-
-/mob/living/simple_animal/IgniteMob()
+/mob/living/simple_animal/ignite_mob()
 	return FALSE
 
-/mob/living/simple_animal/ExtinguishMob()
+/mob/living/simple_animal/extinguish_mob()
 	return
-
 
 /mob/living/simple_animal/revive(full_heal = FALSE, admin_revive = FALSE)
 	. = ..()
@@ -454,7 +494,8 @@
 	icon = initial(icon)
 	icon_state = icon_living
 	density = initial(density)
-	setMovetype(initial(movement_type))
+	if(is_flying_animal)
+		ADD_TRAIT(src, TRAIT_MOVE_FLYING, ROUNDSTART_TRAIT)
 
 
 /mob/living/simple_animal/proc/make_babies() // <3 <3 <3
@@ -515,19 +556,6 @@
 	else
 		REMOVE_TRAIT(src, TRAIT_IMMOBILIZED, RESTING_TRAIT)
 	return ..()
-
-
-/mob/living/simple_animal/update_transform()
-	var/matrix/ntransform = matrix(transform) //aka transform.Copy()
-	var/changed = FALSE
-
-	if(resize != RESIZE_DEFAULT_SIZE)
-		changed = TRUE
-		ntransform.Scale(resize)
-		resize = RESIZE_DEFAULT_SIZE
-
-	if(changed)
-		animate(src, transform = ntransform, time = 2, easing = EASE_IN|EASE_OUT)
 
 /mob/living/simple_animal/proc/sentience_act() //Called when a simple animal gains sentience via gold slime potion
 	toggle_ai(AI_OFF) // To prevent any weirdness.

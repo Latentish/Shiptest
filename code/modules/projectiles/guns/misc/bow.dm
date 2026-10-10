@@ -1,9 +1,11 @@
 /obj/item/gun/ballistic/bow
+	autowiki_hidden = TRUE //the bows and therefore arrows are apparently due for a rework and are unobtainable atm?
 	name = "longbow"
 	desc = "While pretty finely crafted, surely you can find something better to use in the current year."
 	icon = 'icons/obj/guns/projectile.dmi'
 	icon_state = "bow"
 	item_state = "pipebow"
+	spawn_blacklisted = TRUE
 	load_sound = null
 	fire_sound = 'sound/weapons/bowfire.ogg'
 	slot_flags = ITEM_SLOT_BACK

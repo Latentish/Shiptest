@@ -56,7 +56,6 @@
 /obj/item/wallframe/advanced_airlock_controller
 	name = "airlock controller frame"
 	desc = "Used for building advanced airlock controllers."
-	icon = 'icons/obj/monitors.dmi'
 	icon_state = "aac_bitem"
 	result_path = /obj/machinery/advanced_airlock_controller
 	inverse = FALSE
@@ -64,7 +63,7 @@
 /obj/machinery/advanced_airlock_controller
 	name = "advanced airlock controller"
 	desc = "A machine designed to control the operation of cycling airlocks"
-	icon = 'icons/obj/monitors.dmi'
+	icon = 'icons/obj/wallmounts/airlock_control.dmi'
 	icon_state = "aac"
 	use_power = IDLE_POWER_USE
 	idle_power_usage = IDLE_DRAW_MINIMAL
@@ -824,7 +823,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/advanced_airlock_controller/internal,
 	visible_message(span_warning("Sparks fly out of [src]!"), span_notice("You emag [src], disabling its safeties."))
 	playsound(src, "sparks", 50, 1)
 
-/obj/machinery/advanced_airlock_controller/obj_break(damage_flag)
+/obj/machinery/advanced_airlock_controller/atom_break(damage_flag)
 	..()
 	update_appearance()
 
@@ -833,7 +832,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/advanced_airlock_controller/internal,
 		new /obj/item/stack/sheet/metal(loc, 2)
 		var/obj/item/I = new /obj/item/electronics/advanced_airlock_controller(loc)
 		if(!disassembled)
-			I.obj_integrity = I.max_integrity * 0.5
+			I.atom_integrity = I.max_integrity * 0.5
 		new /obj/item/stack/cable_coil(loc, 3)
 	qdel(src)
 

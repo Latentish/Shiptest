@@ -25,15 +25,16 @@
 		AM.forceMove(T)
 	return ..()
 
-/obj/structure/bigDelivery/contents_explosion(severity, target)
+/obj/structure/bigDelivery/contents_explosion(severity, target,light_dam = EX_LIGHT_BASE_DAM, light_item_dam = EX_LIGHT_BASE_ITEM_DAM, heavy_dam = EX_HEAVY_BASE_DAM, heavy_item_dam = EX_HEAVY_BASE_ITEM_DAM)
 	for(var/atom/movable/AM in contents)
+		var/list/to_explode = list(AM,light_dam,light_item_dam,heavy_dam,heavy_item_dam)
 		switch(severity)
 			if(EXPLODE_DEVASTATE)
-				SSexplosions.highobj += AM
+				SSexplosions.highobj += list(to_explode)
 			if(EXPLODE_HEAVY)
-				SSexplosions.medobj += AM
+				SSexplosions.medobj += list(to_explode)
 			if(EXPLODE_LIGHT)
-				SSexplosions.lowobj += AM
+				SSexplosions.lowobj += list(to_explode)
 
 /obj/structure/bigDelivery/examine(mob/user)
 	. = ..()
@@ -342,7 +343,7 @@
 
 	dat += "<table style='width:100%; padding:4px;'><tr>"
 	for (var/i = 1, i <= GLOB.TAGGERLOCATIONS.len, i++)
-		dat += "<td><a href='?src=[REF(src)];nextTag=[i]'>[GLOB.TAGGERLOCATIONS[i]]</a></td>"
+		dat += "<td><a href='byond://?src=[REF(src)];nextTag=[i]'>[GLOB.TAGGERLOCATIONS[i]]</a></td>"
 
 		if(i%4==0)
 			dat += "</tr><tr>"
@@ -430,6 +431,8 @@
 
 /obj/item/sales_tagger/CtrlClick(mob/user)
 	. = ..()
+	if(!user.canUseTopic(src, BE_CLOSE))
+		return
 	payments_acc = null
 	to_chat(user, span_notice("You clear the registered account."))
 

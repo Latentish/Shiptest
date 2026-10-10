@@ -119,7 +119,7 @@
 		if (get_dist(src, L) > range)
 			continue
 
-		if(L.flash_act(affect_silicon = 1))
+		if(L.flash_act(affect_silicon = 1) & FLASH_EFFECT)
 			L.Paralyze(strength)
 			flashed = TRUE
 
@@ -141,7 +141,7 @@
 			bulb.burn_out()
 			power_change()
 
-/obj/machinery/flasher/obj_break(damage_flag)
+/obj/machinery/flasher/atom_break(damage_flag)
 	. = ..()
 	if(. && bulb)
 		bulb.burn_out()

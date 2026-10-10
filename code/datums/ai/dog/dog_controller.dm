@@ -26,13 +26,13 @@
 		return AI_CONTROLLER_INCOMPATIBLE
 
 	RegisterSignal(new_pawn, COMSIG_ATOM_ATTACK_HAND, PROC_REF(on_attack_hand))
-	RegisterSignal(new_pawn, COMSIG_PARENT_EXAMINE, PROC_REF(on_examined))
+	RegisterSignal(new_pawn, COMSIG_ATOM_EXAMINE, PROC_REF(on_examined))
 	RegisterSignal(new_pawn, COMSIG_CLICK_ALT, PROC_REF(check_altclicked))
 	RegisterSignal(SSdcs, COMSIG_GLOB_CARBON_THROW_THING, PROC_REF(listened_throw))
 	return ..() //Run parent at end
 
 /datum/ai_controller/dog/UnpossessPawn(destroy)
-	UnregisterSignal(pawn, list(COMSIG_ATOM_ATTACK_HAND, COMSIG_PARENT_EXAMINE, COMSIG_GLOB_CARBON_THROW_THING, COMSIG_CLICK_ALT))
+	UnregisterSignal(pawn, list(COMSIG_ATOM_ATTACK_HAND, COMSIG_ATOM_EXAMINE, COMSIG_GLOB_CARBON_THROW_THING, COMSIG_CLICK_ALT))
 	return ..() //Run parent at end
 
 /datum/ai_controller/dog/able_to_run()
@@ -70,7 +70,7 @@
 /datum/ai_controller/dog/proc/listen_throw_land(obj/item/thrown_thing, datum/thrownthing/throwing_datum)
 	SIGNAL_HANDLER
 
-	UnregisterSignal(thrown_thing, list(COMSIG_PARENT_QDELETING, COMSIG_MOVABLE_THROW_LANDED))
+	UnregisterSignal(thrown_thing, list(COMSIG_QDELETING, COMSIG_MOVABLE_THROW_LANDED))
 	if(!istype(thrown_thing) || !isturf(thrown_thing.loc) || !can_see(pawn, thrown_thing, length=AI_DOG_VISION_RANGE))
 		return
 
@@ -95,7 +95,7 @@
 			pawn.visible_message("<span='danger'>[pawn] drops [carried_item] at [user]'s feet!</span>")
 			// maybe have a dedicated proc for dropping things
 			carried_item.forceMove(get_turf(user))
-			blackboard[BB_SIMPLE_CARRY_ITEM] = null
+			clear_blackboard_key(BB_SIMPLE_CARRY_ITEM)
 
 /// Someone is being nice to us, let's make them a friend!
 /datum/ai_controller/dog/proc/befriend(mob/living/new_friend)
@@ -134,7 +134,7 @@
 
 	ol_yeller.visible_message("<span='danger'>[ol_yeller] drops [carried_item] as [ol_yeller.p_they()] die[ol_yeller.p_s()].</span>")
 	carried_item.forceMove(get_turf(ol_yeller))
-	blackboard[BB_SIMPLE_CARRY_ITEM] = null
+	clear_blackboard_key(BB_SIMPLE_CARRY_ITEM)
 
 // next section is regarding commands
 

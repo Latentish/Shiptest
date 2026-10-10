@@ -32,7 +32,7 @@
 			else
 				new /obj/item/disk/design_disk/modkit_disc/rapid_repeater(src)
 		if(9)
-			new /obj/item/rod_of_asclepius(src)
+			new /obj/item/gem/bloodstone(src)
 		if(10)
 			new /obj/item/organ/heart/cursed/wizard(src)
 		if(11)
@@ -100,7 +100,7 @@
 				else
 					new /obj/item/disk/design_disk/modkit_disc/rapid_repeater(src)
 			if(9)
-				new /obj/item/rod_of_asclepius(src)
+				new /obj/item/gem/bloodstone(src)
 			if(10)
 				new /obj/item/organ/heart/cursed/wizard(src)
 			if(11)
@@ -177,60 +177,6 @@
 	build_path = /obj/item/borg/upgrade/modkit/bounty
 
 //Spooky special loot
-
-//Rod of Asclepius
-/obj/item/rod_of_asclepius
-	name = "\improper Rod of Asclepius"
-	desc = "A wooden rod about the size of your forearm with a snake carved around it, winding its way up the sides of the rod. Something about it seems to inspire in you the responsibilty and duty to help others."
-	icon = 'icons/obj/lavaland/artefacts.dmi'
-	icon_state = "asclepius_dormant"
-	var/activated = FALSE
-	var/usedHand
-
-/obj/item/rod_of_asclepius/attack_self(mob/user)
-	if(activated)
-		return
-	if(!iscarbon(user))
-		to_chat(user, span_warning("The snake carving seems to come alive, if only for a moment, before returning to its dormant state, almost as if it finds you incapable of holding its oath."))
-		return
-	var/mob/living/carbon/itemUser = user
-	usedHand = itemUser.get_held_index_of_item(src)
-	if(itemUser.has_status_effect(STATUS_EFFECT_HIPPOCRATIC_OATH))
-		to_chat(user, span_warning("You can't possibly handle the responsibility of more than one rod!"))
-		return
-	var/failText = span_warning("The snake seems unsatisfied with your incomplete oath and returns to its previous place on the rod, returning to its dormant, wooden state. You must stand still while completing your oath!")
-	to_chat(itemUser, span_notice("The wooden snake that was carved into the rod seems to suddenly come alive and begins to slither down your arm! The compulsion to help others grows abnormally strong..."))
-	if(do_after(itemUser, 40, target = itemUser))
-		itemUser.say("I swear to fulfill, to the best of my ability and judgment, this covenant:", forced = "hippocratic oath")
-	else
-		to_chat(itemUser, failText)
-		return
-	if(do_after(itemUser, 20, target = itemUser))
-		itemUser.say("I will apply, for the benefit of the sick, all measures that are required, avoiding those twin traps of overtreatment and therapeutic nihilism.", forced = "hippocratic oath")
-	else
-		to_chat(itemUser, failText)
-		return
-	if(do_after(itemUser, 30, target = itemUser))
-		itemUser.say("I will remember that I remain a member of society, with special obligations to all my fellow human beings, those sound of mind and body as well as the infirm.", forced = "hippocratic oath")
-	else
-		to_chat(itemUser, failText)
-		return
-	if(do_after(itemUser, 30, target = itemUser))
-		itemUser.say("If I do not violate this oath, may I enjoy life and art, respected while I live and remembered with affection thereafter. May I always act so as to preserve the finest traditions of my calling and may I long experience the joy of healing those who seek my help.", forced = "hippocratic oath")
-	else
-		to_chat(itemUser, failText)
-		return
-	to_chat(itemUser, span_notice("The snake, satisfied with your oath, attaches itself and the rod to your forearm with an inseparable grip. Your thoughts seem to only revolve around the core idea of helping others, and harm is nothing more than a distant, wicked memory..."))
-	var/datum/status_effect/hippocraticOath/effect = itemUser.apply_status_effect(STATUS_EFFECT_HIPPOCRATIC_OATH)
-	effect.hand = usedHand
-	activated()
-
-/obj/item/rod_of_asclepius/proc/activated()
-	item_flags = DROPDEL
-	ADD_TRAIT(src, TRAIT_NODROP, CURSED_ITEM_TRAIT)
-	desc = "A short wooden rod with a mystical snake inseparably gripping itself and the rod to your forearm. It flows with a healing energy that disperses amongst yourself and those around you. "
-	icon_state = "asclepius_active"
-	activated = TRUE
 
 //Memento Mori
 /obj/item/clothing/neck/memento_mori
@@ -692,7 +638,6 @@
 	var/hat = pick(/obj/item/clothing/head/helmet/roman, /obj/item/clothing/head/helmet/roman/legionnaire)
 	H.equip_to_slot_or_del(new hat(H), ITEM_SLOT_HEAD)
 	H.equip_to_slot_or_del(new /obj/item/clothing/under/costume/roman(H), ITEM_SLOT_ICLOTHING)
-	H.put_in_hands(new /obj/item/shield/riot/roman(H), TRUE)
 	H.put_in_hands(new /obj/item/melee/sword/claymore(H), TRUE)
 	H.equip_to_slot_or_del(new /obj/item/melee/spear(H), ITEM_SLOT_BACK)
 
@@ -822,7 +767,7 @@
 //TODO: replace with a proper polar star and spur, not to mention a  proper sprite
 /obj/item/gun/energy/spur
 	name = "Slowpoke"
-	desc = "The work of a truly genius gunsmith, altered and \"improved\" by a truly deranged Nanotrasen scientist, using components from a kinetic accelerator and beam rifle. Draw, partner!"
+	desc = "The work of a truly genius gunsmith, altered and \"improved\" by a truly deranged Makosso-Warra scientist, using components from a kinetic accelerator and beam rifle. Draw, partner!"
 	icon = 'icons/obj/guns/energy.dmi'
 	lefthand_file = GUN_LEFTHAND_ICON
 	righthand_file = GUN_RIGHTHAND_ICON
@@ -1034,7 +979,7 @@
 			to_chat(owner, span_warning("The defensive wind is faltering!"))
 		if(current_charges <= 0)
 			owner.visible_message(span_warning("The desert storm protecting [owner] fades away, leaving only ionized sparks!"))
-			playsound(loc, 'sound/weather/ashstorm/inside/weak_end.ogg', 100, TRUE)
+			playsound(loc, 'sound/weather/ashstorm/outside/weak_end.ogg', 100, TRUE)
 			shield_state = "broken"
 			owner.update_inv_wear_suit()
 		return 1
@@ -1098,7 +1043,7 @@
 	switch(random)
 		if(1)
 			to_chat(user, span_danger("Your appearance morphs to that of a very small humanoid ash dragon! You get to look like a dragon without the cool abilities."))
-			H.dna.features = list("mcolor" = "A02720", "tail_lizard" = "Dark Tiger", "tail_human" = "None", "face_markings" = "None", "horns" = "Curled", "ears" = "None", "wings" = "None", "frills" = "None", "spines" = "Long", "body_markings" = "Dark Tiger Body", "legs" = "Digitigrade Legs")
+			H.dna.features = list("mcolor" = "A02720", "tail_lizard" = "Dark Tiger", "tail_human" = "None", "face_markings" = "None", "horns" = "Curled", "ears" = "None", "wings" = "None", "frills" = "None", "spines" = "Long", "body_markings" = "Dark Tiger Body")
 			H.eye_color = "fee5a3"
 			H.set_species(/datum/species/lizard)
 		if(2)
@@ -1115,23 +1060,6 @@
 
 	playsound(user.loc,'sound/items/drink.ogg', rand(10,50), TRUE)
 	qdel(src)
-
-/datum/disease/transformation/dragon
-	name = "dragon transformation"
-	cure_text = "nothing"
-	cures = list(/datum/reagent/medicine/adminordrazine)
-	agent = "dragon's blood"
-	desc = "What do dragons have to do with Space Station 13?"
-	stage_prob = 20
-	severity = DISEASE_SEVERITY_BIOHAZARD
-	visibility_flags = 0
-	stage1	= list("Your bones ache.")
-	stage2	= list("Your skin feels scaly.")
-	stage3	= list(span_danger("You have an overwhelming urge to terrorize some peasants."), span_danger("Your teeth feel sharper."))
-	stage4	= list(span_danger("Your blood burns."))
-	stage5	= list(span_danger("You're a fucking dragon. However, any previous allegiances you held still apply. It'd be incredibly rude to eat your still human friends for no reason."))
-	new_form = /mob/living/simple_animal/hostile/megafauna/dragon/lesser
-
 
 //Lava Staff
 

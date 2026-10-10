@@ -24,7 +24,7 @@
 	vision_range = 10
 	damage_coeff = list(BRUTE = 1, BURN = 0.5, TOX = 0.5, CLONE = 0.5, STAMINA = 0, OXY = 0.5)
 	loot = list(/obj/item/melee/sword/claymore, /obj/item/clothing/suit/space/hardsuit/cult/enchanted)
-	mob_trophy = list(/obj/item/melee/sword/claymore, /obj/item/clothing/suit/space/hardsuit/cult/enchanted, /obj/item/upgradescroll)
+	mob_trophy = list(/obj/item/melee/sword/claymore, /obj/item/clothing/suit/space/hardsuit/cult/enchanted)
 	wander = FALSE
 	del_on_death = TRUE
 	blood_volume = BLOOD_VOLUME_NORMAL
@@ -117,7 +117,8 @@
 			span_userdanger("You butcher [L], restoring your health!"))
 //			if(!is_station_level(z) || client) //NPC monsters won't heal while on station
 			adjustHealth(-(L.maxHealth * 0.5))
-			L.gib()
+			if(can_gib)
+				L.gib()
 			if(ishuman(L)) // If target is a human - yell some funny shit.
 				telegraph()
 				say("Mah'weyh pleggh at e'ntrath!!")
@@ -373,7 +374,7 @@
 	infernal_summon_cooldown = (world.time + initial(infernal_summon_cooldown))
 	charging = FALSE
 
-/mob/living/simple_animal/hostile/megafauna/cult_templar/proc/shoot_projectile(turf/marker, set_angle)
+/mob/living/simple_animal/hostile/megafauna/cult_templar/shoot_projectile(turf/marker, set_angle)
 	if(!isnum(set_angle) && (!marker || marker == loc))
 		return
 	var/turf/startloc = get_turf(src)

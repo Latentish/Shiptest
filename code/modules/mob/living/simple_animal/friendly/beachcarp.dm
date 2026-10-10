@@ -12,7 +12,7 @@
 	speak_chance = 1
 	faction = list("mining")
 	turns_per_move = 5
-	butcher_results = list(/obj/item/reagent_containers/food/snacks/fishmeat/carp = 2)
+	butcher_results = list(/obj/item/food/fishmeat/carp = 2)
 	response_help_continuous = "pets"
 	response_help_simple = "pet"
 	response_disarm_continuous = "gently pushes aside"
@@ -25,7 +25,7 @@
 	turns_per_move = 2
 
 
-/mob/living/simple_animal/beachcarp/Life()
+/mob/living/simple_animal/beachcarp/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	..()
 	//CARP movement
 	if(!ckey && !stat)

@@ -22,7 +22,7 @@
 	default_firemode = FIREMODE_OTHER
 
 	weapon_weight = WEAPON_MEDIUM
-	slot_flags = ITEM_SLOT_BACK
+	slot_flags = ITEM_SLOT_BACK | ITEM_SLOT_SUITSTORE
 
 	show_magazine_on_sprite = TRUE
 	ammo_counter = TRUE
@@ -99,7 +99,7 @@
 		return
 	return ..()
 
-/obj/item/gun/ballistic/automatic/assault/e40/AltClick(mob/living/user)
+/obj/item/gun/ballistic/automatic/assault/e40/unique_action(mob/living/user)
 	var/current_firemode = gun_firemodes[firemode_index]
 	if(current_firemode == FIREMODE_OTHER)
 		if(secondary.latch_closed)
@@ -180,7 +180,7 @@
 
 /obj/item/gun/ballistic/automatic/assault/e40/toggle_safety(mob/user, silent=FALSE)
 	. = ..()
-	secondary.toggle_safety(user, silent=TRUE)
+	secondary.safety = safety
 
 /obj/item/gun/ballistic/automatic/assault/e40/fire_select(mob/living/carbon/human/user)
 	. = ..()
@@ -195,7 +195,7 @@
 /obj/item/gun/ballistic/automatic/assault/e40/examine(mob/user)
 	. = ..()
 	if(!secondary.internal_magazine)
-		. += "The cell retainment latch is [secondary.latch_closed ? span_green("CLOSED") : span_red("OPEN")]. Alt-Click to toggle the latch."
+		. += "The cell retainment latch is [secondary.latch_closed ? span_green("CLOSED") : span_red("OPEN")]. Use the Unique Action Key to toggle the latch while on laser mode. By default, this is <b>space</b>."
 	var/obj/item/ammo_casing/energy/shot = secondary.ammo_type[select]
 	if(secondary.cell)
 		. += "\The [name]'s cell has [secondary.cell.percent()]% charge remaining."
@@ -212,10 +212,14 @@
 	max_ammo = 30
 	multiple_sprites = AMMO_BOX_FULL_EMPTY
 
+/obj/item/ammo_box/magazine/e40/empty
+	start_empty = TRUE
+
 //laser
 
 /obj/item/gun/energy/laser/e40_laser_secondary
 	name = "secondary e40 laser gun"
+	autowiki_hidden = TRUE //part of the E-40, not a weapon itself
 	desc = "The laser component of a E-40 Hybrid Rifle. You probably shouldn't see this. If you can though, you should probably know lorewise, this is primary, the ballistic compontent in universe is secondary. Unfortunately, we cannot simulate this, So codewise this is secondary."
 	fire_sound = 'sound/weapons/gun/laser/e40_las.ogg'
 	w_class = WEIGHT_CLASS_NORMAL
@@ -223,7 +227,7 @@
 	fire_delay = 0.2 SECONDS
 	gun_firemodes = list(FIREMODE_FULLAUTO)
 	default_firemode = FIREMODE_FULLAUTO
-	latch_toggle_delay = 1.2 SECONDS
+	latch_toggle_delay = 0.6 SECONDS
 	valid_attachments = list()
 
 	spread_unwielded = 20

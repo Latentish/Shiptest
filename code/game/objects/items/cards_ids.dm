@@ -127,18 +127,6 @@
 			if(uses_left == 0)
 				emag_on = FALSE
 
-/obj/item/card/emagfake
-	desc = "It's a card with a magnetic strip attached to some circuitry. Closer inspection shows that this card is a poorly made replica, with a \"DonkCo\" logo stamped on the back."
-	name = "cryptographic sequencer"
-	icon_state = "emag"
-	item_state = "card-id"
-	lefthand_file = 'icons/mob/inhands/equipment/idcards_lefthand.dmi'
-	righthand_file = 'icons/mob/inhands/equipment/idcards_righthand.dmi'
-
-/obj/item/card/emagfake/afterattack()
-	. = ..()
-	playsound(src, 'sound/items/bikehorn.ogg', 50, TRUE)
-
 /obj/item/card/id
 	name = "access card"
 	desc = "These cards provide access to different sections of a ship."
@@ -148,7 +136,7 @@
 	righthand_file = 'icons/mob/inhands/equipment/idcards_righthand.dmi'
 	slot_flags = ITEM_SLOT_ID
 	armor = list("melee" = 0, "bullet" = 0, "laser" = 0, "energy" = 0, "bomb" = 0, "bio" = 0, "rad" = 0, "fire" = 100, "acid" = 100)
-	resistance_flags = FIRE_PROOF | ACID_PROOF
+	resistance_flags = FIRE_PROOF | ACID_PROOF | INDESTRUCTIBLE
 	var/list/access = list()
 	var/list/ship_access = list()
 	var/registered_name = null // The name registered_name on the card
@@ -202,7 +190,7 @@
 		. += "[registered_name]"
 	if(registered_age)
 		. += "<B>AGE:</B>"
-		. += "[registered_age] years old [(registered_age < AGE_MINOR) ? "There's a holographic stripe that reads <b>[span_danger("'MINOR: DO NOT SERVE ALCOHOL OR TOBACCO'")]</b> along the bottom of the card." : ""]"
+		. += "[registered_age] years old [(registered_age < AGE_DRINKING) ? "There's a holographic stripe that reads <b>[span_danger("'DO NOT SERVE ALCOHOL OR TOBACCO'")]</b> along the bottom of the card." : ""]"
 	if(length(ship_access))
 		var/list/ship_factions = list()
 		var/list/ship_names = list()
@@ -440,8 +428,8 @@ update_label()
 		..()
 
 /obj/item/card/id/centcom
-	name = "\improper Nanotrasen Central Command access card"
-	desc = "An access card sourced from Nanotrasen's Central Command."
+	name = "\improper Makosso-Warra Central Command access card"
+	desc = "An access card sourced from Makosso-Warra's Central Command."
 	icon_state = "centcom"
 	uses_overlays = FALSE
 	registered_age = null
@@ -499,16 +487,9 @@ update_label()
 	access = get_all_accesses()
 	. = ..()
 
-/obj/item/card/id/ert/clown
-	icon_state = "ert_clown"
-
-/obj/item/card/id/ert/clown/Initialize()
-	access = get_all_accesses()
-	. = ..()
-
 /obj/item/card/id/ert/deathsquad
 	desc = "An access card colored in black and red."
-	icon_state = "deathsquad" //NO NO SIR DEATH SQUADS ARENT A PART OF NANOTRASEN AT ALL
+	icon_state = "deathsquad" //NO NO SIR DEATH SQUADS ARENT A PART OF MAKOSSO-WARRA AT ALL
 	uses_overlays = FALSE
 	job_icon = "deathsquad"
 
