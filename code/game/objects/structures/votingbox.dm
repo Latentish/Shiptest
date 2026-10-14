@@ -44,13 +44,13 @@
 		dat += "<h1> Unregistered. Swipe ID card to register as voting box operator </h1>"
 	dat += "<h1>[vote_description]</h1>"
 	if(is_operator(user))
-		dat += "Voting: <a href='?src=[REF(src)];act=toggle_vote'>[voting_active ? "Active" : "Maintenance Mode"]</a><br>"
-		dat += "Set Description: <a href='?src=[REF(src)];act=set_desc'>Set Description</a><br>"
-		dat += "One vote per ID: <a href='?src=[REF(src)];act=toggle_auth'>[id_auth ? "Yes" : "No"]</a><br>"
-		dat += "Reset voted ID's: <a href='?src=[REF(src)];act=reset_voted'>Reset</a><br>"
-		dat += "Draw random vote: <a href='?src=[REF(src)];act=raffle'>Raffle</a><br>"
-		dat += "Shred votes: <a href='?src=[REF(src)];act=shred'>Shred</a><br>"
-		dat += "Tally votes: <a href='?src=[REF(src)];act=tally'>Tally</a><br>"
+		dat += "Voting: <a href='byond://?src=[REF(src)];act=toggle_vote'>[voting_active ? "Active" : "Maintenance Mode"]</a><br>"
+		dat += "Set Description: <a href='byond://?src=[REF(src)];act=set_desc'>Set Description</a><br>"
+		dat += "One vote per ID: <a href='byond://?src=[REF(src)];act=toggle_auth'>[id_auth ? "Yes" : "No"]</a><br>"
+		dat += "Reset voted ID's: <a href='byond://?src=[REF(src)];act=reset_voted'>Reset</a><br>"
+		dat += "Draw random vote: <a href='byond://?src=[REF(src)];act=raffle'>Raffle</a><br>"
+		dat += "Shred votes: <a href='byond://?src=[REF(src)];act=shred'>Shred</a><br>"
+		dat += "Tally votes: <a href='byond://?src=[REF(src)];act=tally'>Tally</a><br>"
 
 	var/datum/browser/popup = new(user, "votebox", "Voting Box", 300, 300)
 	popup.set_content(dat.Join())
@@ -116,7 +116,9 @@
 		voted += voter_card
 		to_chat(user,span_notice("You cast your vote."))
 
-/obj/structure/votebox/proc/valid_vote(obj/item/paper/voting_slip)
+/obj/structure/votebox/proc/valid_vote(datum/component/writing/voting_slip)
+	if(!voting_slip)
+		return FALSE
 	if(voting_slip.get_total_length() > VOTE_TEXT_LIMIT)
 		return FALSE
 	for(var/datum/paper_input/text as anything in voting_slip.raw_text_inputs)
@@ -169,10 +171,11 @@
 	for(var/obj/item/paper/paper_content in contents)
 		if(i++ > MAX_VOTES)
 			break
-		if(!valid_vote(paper_content))
+		var/datum/component/writing/vote = GetComponent(paper_content)
+		if(!valid_vote(vote))
 			continue
 		var/full_vote_text = ""
-		for(var/datum/paper_input/text as anything in paper_content.raw_text_inputs)
+		for(var/datum/paper_input/text as anything in vote.raw_text_inputs)
 			full_vote_text += "[text.raw_text]<br>"
 
 		if(!results[full_vote_text])

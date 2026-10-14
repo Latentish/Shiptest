@@ -1,7 +1,7 @@
 
 /obj/machinery/holopad/emergency
 	name = "advanced holopad"
-	icon_state = "holopad3"
+	base_icon_state = "advholopad"
 	///The linked Emergency Hologram
 	var/mob/living/simple_animal/hologram/em
 	///The type of emergency hologram to spawn
@@ -23,16 +23,6 @@
 	. = ..()
 	if(user == em)
 		qdel(em)
-
-/obj/machinery/holopad/emergency/update_icon_state()
-	var/total_users = LAZYLEN(masters) + LAZYLEN(holo_calls)
-	if(ringing)
-		icon_state = "holopad_ringing"
-	else if(total_users || replay_mode)
-		icon_state = "holopad1"
-	else
-		icon_state = "holopad3"
-	return ..()
 
 /obj/machinery/holopad/emergency/attack_ghost(mob/dead/observer/user)
 	if(!SSticker.HasRoundStarted() || !loc || !em_starting || em)
@@ -172,11 +162,6 @@
 	name = "advanced logistics holopad"
 	em_name = "logistics"
 	em_spawn_type = /mob/living/simple_animal/hologram/cargo
-
-/obj/machinery/holopad/emergency/clown
-	name = "advanced comedy holopad"
-	em_name = "comedy"
-	em_spawn_type = /mob/living/simple_animal/hologram/clown
 
 /obj/machinery/holopad/emergency/detective
 	name = "advanced forensics holopad"

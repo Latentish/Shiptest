@@ -177,68 +177,73 @@
 
 	var/list/outfit_override
 
-/obj/effect/mob_spawn/human/Initialize()
+/obj/effect/mob_spawn/human/Initialize(mapload, species)
+	if(species)
+		mob_species = species
 	if(ispath(outfit))
 		outfit = new outfit()
 	if(!outfit)
 		outfit = new /datum/outfit
 	return ..()
 
-/obj/effect/mob_spawn/human/equip(mob/living/carbon/human/H)
+/obj/effect/mob_spawn/human/equip(mob/living/carbon/human/mob)
 	if(mob_species)
-		H.set_species(mob_species)
+		mob.set_species(mob_species)
+		// replace mob name with species specific name if possible
+		if(!mob_name)
+			mob.fully_replace_character_name(null, mob.dna.species.random_name(mob.gender, TRUE))
 	if(husk)
-		H.Drain()
+		mob.Drain()
 	else //Because for some reason I can't track down, things are getting turned into husks even if husk = false. It's in some damage proc somewhere.
-		H.cure_husk()
-	H.underwear = "Nude"
-	H.undershirt = "Nude"
-	H.socks = "Nude"
+		mob.cure_husk()
+	mob.underwear = "Nude"
+	mob.undershirt = "Nude"
+	mob.socks = "Nude"
 	if(hairstyle)
-		H.hairstyle = hairstyle
+		mob.hairstyle = hairstyle
 	else
-		H.hairstyle = random_hairstyle(H.gender)
+		mob.hairstyle = random_hairstyle(mob.gender)
 	if(facial_hairstyle)
-		H.facial_hairstyle = facial_hairstyle
+		mob.facial_hairstyle = facial_hairstyle
 	else
-		H.facial_hairstyle = random_facial_hairstyle(H.gender)
+		mob.facial_hairstyle = random_facial_hairstyle(mob.gender)
 	if(skin_tone)
-		H.skin_tone = skin_tone
+		mob.skin_tone = skin_tone
 	else
-		H.skin_tone = random_skin_tone()
-	H.update_hair()
-	H.update_body()
+		mob.skin_tone = random_skin_tone()
+	mob.update_hair()
+	mob.update_body()
 	if(outfit)
 		var/static/list/slots = list("uniform", "r_hand", "l_hand", "suit", "shoes", "gloves", "ears", "glasses", "mask", "head", "belt", "r_pocket", "l_pocket", "back", "id", "neck", "backpack_contents", "suit_store")
 		for(var/slot in slots)
-			var/T = vars[slot]
-			if(!isnum(T))
-				outfit.vars[slot] = T
-		H.equipOutfit(outfit)
+			var/slot_value = vars[slot]
+			if(!isnum(slot_value))
+				outfit.vars[slot] = slot_value
+		mob.equipOutfit(outfit)
 		if(disable_pda)
 			// We don't want corpse PDAs to show up in the messenger list.
-			var/obj/item/pda/PDA = locate(/obj/item/pda) in H
+			var/obj/item/pda/PDA = locate(/obj/item/pda) in mob
 			if(PDA)
 				PDA.toff = TRUE
 		if(disable_sensors)
 			// Using crew monitors to find corpses while creative makes finding certain ruins too easy.
-			var/obj/item/clothing/under/C = H.w_uniform
-			if(istype(C))
-				C.sensor_mode = NO_SENSORS
+			var/obj/item/clothing/under/uniform = mob.w_uniform
+			if(istype(uniform))
+				uniform.sensor_mode = NO_SENSORS
 
 
-	var/obj/item/card/id/W = H.get_idcard()
-	if(W)
-		if(H.age)
-			W.registered_age = H.age
+	var/obj/item/card/id/id_card = mob.get_idcard()
+	if(id_card)
+		if(mob.age)
+			id_card.registered_age = mob.age
 		if(id_access_list)
-			if(!islist(W.access))
-				W.access = list()
-			W.access |= id_access_list
+			if(!islist(id_card.access))
+				id_card.access = list()
+			id_card.access |= id_access_list
 		if(id_job)
-			W.assignment = id_job
-		W.registered_name = H.real_name
-		W.update_label()
+			id_card.assignment = id_job
+		id_card.registered_name = mob.real_name
+		id_card.update_label()
 
 //Instant version - use when spawning corpses during runtime
 /obj/effect/mob_spawn/human/corpse
@@ -298,12 +303,66 @@
 
 /obj/effect/mob_spawn/cow
 	name = "sleeper"
-	mob_type = 	/mob/living/simple_animal/cow
+	mob_type = 	/mob/living/basic/cow
 	death = FALSE
 	roundstart = FALSE
 	mob_gender = FEMALE
 	icon = 'icons/obj/machines/sleeper.dmi'
 	icon_state = "sleeper"
+
+/obj/effect/mob_spawn/animal_corpse
+	name = "animal corpse spawner"
+	mob_type = /mob/living/basic/mouse
+	death = TRUE
+	icon = 'icons/mob/lavaland/lavaland_monsters_wide.dmi'
+	icon_state = "goliath_dead_helper"
+
+/obj/effect/mob_spawn/animal_corpse/goliath
+	name = "dead goliath"
+	mob_type = /mob/living/simple_animal/hostile/asteroid/goliath/beast
+
+/obj/effect/mob_spawn/animal_corpse/goliath/crystal
+	name = "dead crystal goliath"
+	mob_type = /mob/living/simple_animal/hostile/asteroid/goliath/beast/ancient/crystal
+
+/obj/effect/mob_spawn/animal_corpse/crystal_watcher
+	name = "dead crystal watcher"
+	mob_type = /mob/living/simple_animal/hostile/asteroid/basilisk/watcher/forgotten
+
+/obj/effect/mob_spawn/animal_corpse/gruboid
+	name = "dead gruboid"
+	mob_type = /mob/living/simple_animal/hostile/asteroid/goliath/beast/rockplanet
+
+/obj/effect/mob_spawn/animal_corpse/migo
+	name = "dead migo"
+	mob_type = /mob/living/simple_animal/hostile/netherworld/migo/asteroid
+
+/obj/effect/mob_spawn/animal_corpse/creature
+	name = "dead Foul Beast Thing"
+	mob_type = /mob/living/simple_animal/hostile/netherworld/asteroid
+
+/obj/effect/mob_spawn/animal_corpse/baby_gruboid
+	name = "dead baby gruboid"
+	mob_type = /mob/living/simple_animal/hostile/asteroid/elite/broodmother_child/rockplanet
+
+/obj/effect/mob_spawn/animal_corpse/wolf
+	name = "dead wolf"
+	mob_type = /mob/living/simple_animal/hostile/asteroid/wolf
+
+/obj/effect/mob_spawn/animal_corpse/monkey
+	name = "dead monkey"
+	mob_type = /mob/living/carbon/monkey
+
+/obj/effect/mob_spawn/animal_corpse/junglefowl //chicken
+	name = "dead junglefowl"
+	mob_type = /mob/living/simple_animal/hostile/retaliate/chicken
+
+/obj/effect/mob_spawn/animal_corpse/reisehund
+	name = "dead hound"
+	mob_type = /mob/living/simple_animal/hostile/asteroid/wolf/hound
+
+/obj/effect/mob_spawn/animal_corpse/reisehund/ngr
+	mob_type = /mob/living/simple_animal/hostile/asteroid/wolf/hound/ngr
 
 // I'll work on making a list of corpses people request for maps, or that I think will be commonly used. Syndicate operatives for example.
 
@@ -316,9 +375,6 @@
 
 /obj/effect/mob_spawn/human/corpse/assistant/husked
 	husk = TRUE
-
-/obj/effect/mob_spawn/human/corpse/assistant/beesease_infection
-	disease = /datum/disease/beesease
 
 /obj/effect/mob_spawn/human/corpse/assistant/brainrot_infection
 	disease = /datum/disease/brainrot
@@ -362,10 +418,6 @@
 /obj/effect/mob_spawn/human/engineer
 	name = "Engineer"
 	outfit = /datum/outfit/job/engineer
-
-/obj/effect/mob_spawn/human/clown
-	name = "Clown"
-	outfit = /datum/outfit/job/clown
 
 /obj/effect/mob_spawn/human/scientist
 	name = "Scientist"
@@ -432,9 +484,9 @@
 	. = ..()
 
 	var/obj/item/card/id/W = H.get_idcard()
-	if(H.age < AGE_MINOR)
-		W.registered_age = AGE_MINOR
-		to_chat(H, span_notice("You're not technically old enough to access or serve alcohol, but your ID has been discreetly modified to display your age as [AGE_MINOR]. Try to keep that a secret!"))
+	if(H.age < AGE_DRINKING)
+		W.registered_age = AGE_DRINKING
+		to_chat(H, span_notice("You're not technically old enough to access or serve alcohol, but your ID has been discreetly modified to display your age as [AGE_DRINKING]. Try to keep that a secret!"))
 
 /obj/effect/mob_spawn/human/beach
 	outfit = /datum/outfit/beachbum
@@ -463,7 +515,6 @@
 	name = "Beach Bum"
 	glasses = /obj/item/clothing/glasses/sunglasses
 	r_pocket = /obj/item/storage/wallet/random
-	l_pocket = /obj/item/reagent_containers/food/snacks/pizzaslice/dank
 	uniform = /obj/item/clothing/under/pants/jeans
 	id = /obj/item/card/id
 
@@ -473,15 +524,15 @@
 		return
 	H.dna.add_mutation(STONER)
 
-/////////////////Officers+Nanotrasen Security//////////////////////
+/////////////////Officers+Makosso-Warra Security//////////////////////
 
 /obj/effect/mob_spawn/human/bridgeofficer
 	name = "Bridge Officer"
 	id_job = "Bridge Officer"
 	id_access_list = list(ACCESS_CENT_CAPTAIN)
-	outfit = /datum/outfit/nanotrasenbridgeofficercorpse
+	outfit = /datum/outfit/warrabridgeofficercorpse
 
-/datum/outfit/nanotrasenbridgeofficercorpse
+/datum/outfit/warrabridgeofficercorpse
 	name = "Bridge Officer Corpse"
 	ears = /obj/item/radio/headset/heads/head_of_personnel
 	uniform = /obj/item/clothing/under/rank/centcom/official
@@ -495,10 +546,10 @@
 	name = "Commander"
 	id_job = "Commander"
 	id_access_list = list(ACCESS_CENT_CAPTAIN, ACCESS_CENT_GENERAL, ACCESS_CENT_SPECOPS, ACCESS_CENT_MEDICAL, ACCESS_CENT_STORAGE)
-	outfit = /datum/outfit/nanotrasencommandercorpse
+	outfit = /datum/outfit/warracommandercorpse
 
-/datum/outfit/nanotrasencommandercorpse
-	name = "\improper Nanotrasen Private Security Commander"
+/datum/outfit/warracommandercorpse
+	name = "\improper Vigilitas Private Security Commander"
 	uniform = /obj/item/clothing/under/rank/centcom/commander
 	suit = /obj/item/clothing/suit/armor/vest/bulletproof
 	ears = /obj/item/radio/headset/heads/captain
@@ -510,31 +561,24 @@
 	r_pocket = /obj/item/lighter
 	id = /obj/item/card/id
 
-
-/obj/effect/mob_spawn/human/nanotrasensoldier
-	name = "\improper Nanotrasen LP Security Specialist"
-	id_job = "Private Security Force"
-	id_access_list = list(ACCESS_CENT_CAPTAIN, ACCESS_CENT_GENERAL, ACCESS_CENT_SPECOPS, ACCESS_CENT_MEDICAL, ACCESS_CENT_STORAGE, ACCESS_SECURITY, ACCESS_MECH_SECURITY)
-	outfit = /datum/outfit/job/nanotrasen/security/lp
-
 /obj/effect/mob_spawn/human/commander/alive
 	death = FALSE
 	roundstart = FALSE
-	mob_name = "\improper Nanotrasen Commander"
+	mob_name = "\improper Vigilitas Commander"
 	name = "sleeper"
 	icon = 'icons/obj/machines/sleeper.dmi'
 	icon_state = "sleeper"
-	short_desc = "You are a Nanotrasen Commander!"
+	short_desc = "You are a Vigilitas Commander!"
 
-/obj/effect/mob_spawn/human/nanotrasensoldier/alive
+/obj/effect/mob_spawn/human/warrasoldier/alive
 	death = FALSE
 	roundstart = FALSE
 	mob_name = "Private Security Officer"
 	name = "sleeper"
 	icon = 'icons/obj/machines/sleeper.dmi'
 	icon_state = "sleeper"
-	faction = "nanotrasenprivate"
-	short_desc = "You are a Nanotrasen Private Security Officer!"
+	faction = "warraprivate"
+	short_desc = "You are a Vigilitas Private Security Officer!"
 
 
 /////////////////Spooky Undead//////////////////////

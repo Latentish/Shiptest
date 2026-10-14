@@ -1,44 +1,31 @@
+// subtype for all energy guns
 /obj/item/gun/energy
 	name = "energy gun"
-	desc = "A basic energy-based gun."
+	desc = "A profoundly boring and basic energy-based gun. You get the feeling you shouldn't be seeing this and should file a bug report."
 	icon = 'icons/obj/guns/energy.dmi'
 	icon_state = "laser"
 	item_state = "spur"
+
+	bad_type = /obj/item/gun/energy
 
 	muzzleflash_iconstate = "muzzle_flash_laser"
 	light_color = COLOR_SOFT_RED
 
 	has_safety = TRUE
 	safety = TRUE
-
-	modifystate = FALSE
 	ammo_x_offset = 2
 
 	gun_firemodes = list(FIREMODE_SEMIAUTO)
 	default_firemode = FIREMODE_SEMIAUTO
-
-	fire_select_icon_state_prefix = "laser_"
-
-	default_ammo_type = /obj/item/stock_parts/cell/gun
-	allowed_ammo_types = list(
-		/obj/item/stock_parts/cell/gun,
-		/obj/item/stock_parts/cell/gun/upgraded,
-		/obj/item/stock_parts/cell/gun/empty,
-		/obj/item/stock_parts/cell/gun/upgraded/empty,
-	)
-
 	tac_reloads = FALSE
 	tactical_reload_delay = 1.2 SECONDS
-
-	var/latch_closed = TRUE
-	var/latch_toggle_delay = 1.0 SECONDS
+	fire_select_icon_state_prefix = "laser_"
 
 	valid_attachments = list(
 		/obj/item/attachment/laser_sight,
 		/obj/item/attachment/rail_light,
 		/obj/item/attachment/bayonet,
-		/obj/item/attachment/gun,
-		/obj/item/attachment/sling,
+		/obj/item/attachment/gun
 	)
 	slot_available = list(
 		ATTACHMENT_SLOT_RAIL = 1,
@@ -58,6 +45,37 @@
 			"y" = 24,
 		)
 	)
+
+	default_ammo_type = /obj/item/stock_parts/cell/gun
+	allowed_ammo_types = list(
+		/obj/item/stock_parts/cell/gun,
+		/obj/item/stock_parts/cell/gun/upgraded,
+		/obj/item/stock_parts/cell/gun/empty,
+		/obj/item/stock_parts/cell/gun/upgraded/empty,
+	)
+
+	// AMMO TYPE SELECTION //
+	var/ammotype_index // currently selected ammo type
+
+	// LATCHING //
+	var/latch_closed = TRUE
+	var/latch_toggle_delay = 0.6 SECONDS
+	///latch icon state(for overriding)
+	var/latch_icon_state = "latch"
+	///do we always show the latch? For snowflaked latches i.e. cybersun weapons
+	var/always_show_latch = FALSE
+	//file to pull the latch icon from
+	var/latch_icon = 'icons/obj/guns/cell_latch.dmi'
+
+	// RELOADING - ENERGY //
+	var/obj/item/stock_parts/cell/gun/cell // type of cell we use
+	var/can_charge = TRUE // can we put this in a recharger
+	var/selfcharge = FALSE // do we restore power by ourself
+	var/charge_timer = 0
+	var/charge_delay = 8
+	var/use_cyborg_cell = FALSE // can we pull power from a borg cell
+	var/list/ammo_type = list(/obj/item/ammo_casing/energy) // what type of energy projectile are we firing?
+
 
 /obj/item/gun/energy/emp_act(severity)
 	. = ..()
@@ -82,6 +100,7 @@
 
 	if(default_ammo_type)
 		cell = new default_ammo_type(src, spawn_no_ammo)
+	build_ammotypes()
 	update_ammo_types()
 	recharge_newshot(TRUE)
 	if(selfcharge)
@@ -128,15 +147,10 @@
 
 //ATTACK HAND IGNORING PARENT RETURN VALUE
 /obj/item/gun/energy/attack_hand(mob/user)
-	if(!internal_magazine && loc == user && user.is_holding(src) && cell && tac_reloads && !(gun_firemodes[firemode_index] == FIREMODE_UNDERBARREL))
+	if(!internal_magazine && loc == user && user.is_holding(src) && cell && tac_reloads)
 		eject_cell(user)
 		return
 	return ..()
-
-/obj/item/gun/energy/unique_action(mob/living/user)
-	if(ammo_type.len > 1)
-		select_fire(user)
-		update_appearance()
 
 /obj/item/gun/energy/attackby(obj/item/A, mob/user, params)
 	if(..())
@@ -194,9 +208,10 @@
 			return TRUE
 	return FALSE
 
-/obj/item/gun/energy/AltClick(mob/living/user)
+/obj/item/gun/energy/unique_action(mob/living/user)
 	if(..())
 		return
+
 	if(!internal_magazine && latch_closed)
 		to_chat(user, span_notice("You start to unlatch the [src]'s power cell retainment clip..."))
 		if(do_after(user, latch_toggle_delay, src, IGNORE_USER_LOC_CHANGE))
@@ -205,10 +220,10 @@
 			tac_reloads = TRUE
 			latch_closed = FALSE
 			update_appearance()
+
 	else if(!internal_magazine && !latch_closed)
-		// if(!cell && is_attachment_in_contents_list())
-		// 	return ..() //should bring up the attachment menu if attachments are added. If none are added, it just does leaves the latch open
 		to_chat(user, span_warning("You start to latch the [src]'s power cell retainment clip..."))
+
 		if (do_after(user, latch_toggle_delay, src, IGNORE_USER_LOC_CHANGE))
 			to_chat(user, span_notice("You latch the [src]'s power cell retainment clip " + span_green("CLOSED") + "."))
 			playsound(src, 'sound/items/taperecorder/taperecorder_close.ogg', 50, FALSE)
@@ -216,6 +231,15 @@
 			latch_closed = TRUE
 			update_appearance()
 	return
+
+//If an energy gun has both a variable firerate and a variable ammotype, prioritize switching the firerate. Otherwise, swap the ammotype.
+/obj/item/gun/energy/secondary_action(user)
+	if(gun_firemodes.len > 1)
+		fire_select(user)
+	else if (ammo_type.len > 1)
+		select_fire(user)
+	else
+		..()
 
 /obj/item/gun/energy/can_shoot(visuals)
 	if(safety && !visuals)
@@ -256,11 +280,62 @@
 	if(!chambered && can_shoot())
 		process_chamber()	// If the gun was drained and then recharged, load a new shot.
 	..() //process the gunshot as normal
-	if(!latch_closed && prob(65)) //make the cell slide out if it's fired while the retainment clip is unlatched, with a 65% probability
+	if((!latch_closed && prob(65)) && (cell != null)) //make the cell slide out if it's fired while the retainment clip is unlatched, with a 65% probability
 		to_chat(user, span_warning("The [src]'s cell falls out!"))
 		eject_cell()
 	return
 
+/obj/item/gun/energy/proc/build_ammotypes()
+	for(var/datum/action/item_action/toggle_ammotype/old_ammotype in actions)
+		old_ammotype.Destroy()
+	var/datum/action/item_action/our_action
+
+	if(ammo_type.len > 1)
+		our_action = new /datum/action/item_action/toggle_ammotype(src)
+
+		for(var/i=1, i <= ammo_type.len, i++)
+			if(default_ammo_type == ammo_type[i])
+				ammotype_index = i
+				if(our_action)
+					our_action.UpdateButtonIcon()
+				return
+		ammotype_index = 1
+
+/obj/item/gun/energy/ui_action_click(mob/user, actiontype)
+	if (istype(actiontype, /datum/action/item_action/toggle_ammotype))
+		select_fire(user)
+		update_appearance()
+	else
+		..()
+
+/datum/action/item_action/toggle_ammotype/UpdateButtonIcon(status_only = FALSE, force = FALSE)
+	var/obj/item/gun/energy/our_gun = target
+	var/obj/item/ammo_casing/energy/shot = our_gun.ammo_type[our_gun.select]
+	var/current_ammotype = shot.select_name
+
+	var/manufacturer_prefix = "fallback"
+	if (our_gun.manufacturer == MANUFACTURER_EOEHOMA)
+		manufacturer_prefix = "eoehoma"
+	else if (our_gun.manufacturer == MANUFACTURER_SHARPLITE_NEW)
+		manufacturer_prefix = "sharplite"
+	else if (our_gun.manufacturer == MANUFACTURER_PGF)
+		manufacturer_prefix = "etherbor"
+	else if (our_gun.manufacturer == MANUFACTURER_CYBERSUN)
+		manufacturer_prefix = "cybersun"
+	else if (our_gun.manufacturer == MANUFACTURER_MINUTEMAN_LASER)
+		manufacturer_prefix = "clip"
+	else
+		current_ammotype = "fallback"
+
+	current_ammotype = lowertext(current_ammotype)
+
+	// A list of all ammotypes that have icons for them
+	if (!(current_ammotype in list("kill", "disable", "overcharge", "stun", "ion", "energy", "lethal", "medium", "heavy", "focus", "scatter", "flare", "lorentz", "ionization")))
+		current_ammotype = "fallback"
+
+	button_icon_state = "[manufacturer_prefix]["_laser_"][current_ammotype]"
+
+	return ..()
 
 /obj/item/gun/energy/proc/select_fire(mob/living/user)
 	select++
@@ -294,24 +369,24 @@
 	. = ..()
 	if(!automatic_charge_overlays || QDELETED(src))
 		return
-	// Every time I see code this "flexible", a kitten fucking dies //it got worse
+	// Every time I see code this "flexible", a kitten fucking dies //it got worse //help
 	//todo: refactor this a bit to allow showing of charge on a gun's cell
 	var/overlay_icon_state = "[icon_state]_charge"
 	var/obj/item/ammo_casing/energy/shot = ammo_type[modifystate ? select : 1]
 	var/ratio = get_charge_ratio()
-	if(ismob(loc) && !internal_magazine)
+	if((ismob(loc) && !internal_magazine) || always_show_latch)
 		var/mutable_appearance/latch_overlay
-		latch_overlay = mutable_appearance('icons/obj/guns/cell_latch.dmi')
+		latch_overlay = mutable_appearance(latch_icon)
 		if(latch_closed)
 			if(cell)
-				latch_overlay.icon_state = "latch-on-full"
+				latch_overlay.icon_state = "[latch_icon_state]-on-full"
 			else
-				latch_overlay.icon_state = "latch-on-empty"
+				latch_overlay.icon_state = "[latch_icon_state]-on-empty"
 		else
 			if(cell)
-				latch_overlay.icon_state = "latch-off-full"
+				latch_overlay.icon_state = "[latch_icon_state]-off-full"
 			else
-				latch_overlay.icon_state = "latch-off-empty"
+				latch_overlay.icon_state = "[latch_icon_state]-off-empty"
 		. += latch_overlay
 	if(cell)
 		. += "[icon_state]_cell"
@@ -384,10 +459,10 @@
 /obj/item/gun/energy/examine(mob/user)
 	. = ..()
 	if(!internal_magazine)
-		. += "The cell retainment latch is [latch_closed ? span_green("CLOSED") : span_red("OPEN")]. Alt-Click to toggle the latch."
+		. += "The cell retainment latch is [latch_closed ? span_green("CLOSED") : span_red("OPEN")]. Press the Unique Action Key to toggle the latch. By default, this is <b>space</b>."
 	var/obj/item/ammo_casing/energy/shot = ammo_type[select]
 	if(ammo_type.len > 1)
-		. += "You can switch firemodes by pressing the <b>unique action</b> key. By default, this is <b>space</b>"
+		. += "You can switch ammo modes by pressing the <b>Ammo Toggle</b> button."
 	if(cell)
 		. += "\The [name]'s cell has [cell.percent()]% charge remaining."
 		. += "\The [name] has [round(cell.charge/shot.e_cost)] shots remaining on <b>[shot.select_name]</b> mode."

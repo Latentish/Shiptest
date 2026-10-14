@@ -21,6 +21,10 @@
 	name = "Thigh-High Socks (Greyscale)"
 	icon_state = "thigh"
 
+/datum/sprite_accessory/socks/socks_thighalt
+	name = "Thigh-High Socks (Alt)"
+	icon_state = "thighalt"
+
 /datum/sprite_accessory/socks/striped_knee
 	name = "Striped Knee-Highs (Greyscale)"
 	icon_state = "striped_knee"
@@ -28,16 +32,6 @@
 /datum/sprite_accessory/socks/striped_thigh
 	name = "Striped Thigh-Highs (Greyscale)"
 	icon_state = "striped_thigh"
-
-/datum/sprite_accessory/socks/bee_knee
-	name = "Bee Knee-Highs"
-	icon_state = "knee_bee"
-	use_static = TRUE
-
-/datum/sprite_accessory/socks/bee_thigh
-	name = "Bee Thigh-Highs"
-	icon_state = "thigh_bee"
-	use_static = TRUE
 
 /datum/sprite_accessory/socks/inteq
 	name = "Inteq Thigh-Highs"
@@ -64,22 +58,27 @@
 	icon_state = "thigh_blue"
 	use_static = TRUE
 
+/datum/sprite_accessory/socks/stockings_cyan
+	name = "Cyan Thigh-Highs"
+	icon_state = "thigh_cyan"
+	use_static = TRUE
+
 /datum/sprite_accessory/socks/stockings_green
 	name = "Green Thigh-Highs"
 	icon_state = "thigh_green"
 	use_static = TRUE
 
-/datum/sprite_accessory/socks/stockings_cyan
-	name = "Cyan Thigh-Highs"
+/datum/sprite_accessory/socks/stockings_purple
+	name = "Purple Thigh-Highs"
 	icon_state = "thigh_purple"
 	use_static = TRUE
 
-/datum/sprite_accessory/socks/stockings_cyan
+/datum/sprite_accessory/socks/stockings_orange
 	name = "Orange Thigh-Highs"
 	icon_state = "thigh_orange"
 	use_static = TRUE
 
-/datum/sprite_accessory/socks/stockings_cyan
+/datum/sprite_accessory/socks/stockings_yellow
 	name = "Yellow Thigh-Highs"
 	icon_state = "thigh_yellow"
 	use_static = TRUE

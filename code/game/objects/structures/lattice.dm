@@ -14,8 +14,15 @@
 	smoothing_flags = SMOOTH_BITMASK
 	smoothing_groups = list(SMOOTH_GROUP_LATTICE)
 	canSmoothWith = list(SMOOTH_GROUP_LATTICE, SMOOTH_GROUP_OPEN_FLOOR, SMOOTH_GROUP_WALLS)
+	var/list/give_turf_traits = list(TRAIT_CHASM_STOPPED)
 	var/number_of_mats = 1
 	var/build_material = /obj/item/stack/rods
+
+/obj/structure/lattice/Initialize(mapload)
+	. = ..()
+	if(length(give_turf_traits))
+		give_turf_traits = string_list(give_turf_traits)
+		AddElement(/datum/element/give_turf_traits, give_turf_traits)
 
 /obj/structure/lattice/examine(mob/user)
 	. = ..()
@@ -44,7 +51,7 @@
 	. = ..()
 	if(.)
 		return FALSE
-	if(!I.tool_start_check(user, amount=0))
+	if(!I.tool_start_check(user, src, amount=0))
 		return FALSE
 	if(I.use_tool(src, user, 1 SECONDS, volume=0))
 		to_chat(user, span_warning("You cut apart \the [src]."), span_notice("You cut apart \the [src]."))
@@ -85,6 +92,7 @@
 	smoothing_groups = list(SMOOTH_GROUP_LATTICE, SMOOTH_GROUP_CATWALK, SMOOTH_GROUP_OPEN_FLOOR)
 	canSmoothWith = list(SMOOTH_GROUP_CATWALK)
 	obj_flags = CAN_BE_HIT | BLOCK_Z_OUT_DOWN | BLOCK_Z_IN_UP
+	give_turf_traits = list(TRAIT_IMMERSE_STOPPED, TRAIT_CHASM_STOPPED, TRAIT_LAVA_STOPPED, TRAIT_TURF_IGNORE_SLOWDOWN, TRAIT_ACID_STOPPED)
 
 /obj/structure/lattice/catwalk/deconstruction_hints(mob/user)
 	return span_notice("The supporting rods look like they could be <b>cut</b>.")
@@ -112,9 +120,7 @@
 	smoothing_flags = SMOOTH_BITMASK
 	obj_flags = CAN_BE_HIT | BLOCK_Z_OUT_DOWN | BLOCK_Z_IN_UP
 	resistance_flags = FIRE_PROOF | LAVA_PROOF
-
-/obj/structure/lattice/lava/deconstruction_hints(mob/user)
-	return span_notice("The rods look like they could be <b>cut</b>, but the <i>heat treatment will shatter off</i>. There's space for a <i>tile</i>.")
+	give_turf_traits = list(TRAIT_IMMERSE_STOPPED, TRAIT_CHASM_STOPPED, TRAIT_LAVA_STOPPED, TRAIT_ACID_STOPPED)
 
 /obj/structure/lattice/lava/attackby(obj/item/C, mob/user, params)
 	. = ..()

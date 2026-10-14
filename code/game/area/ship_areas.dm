@@ -7,7 +7,8 @@
 	icon = 'ICON FILENAME' 			(defaults to 'icons/turf/areas.dmi')
 	icon_state = "NAME OF ICON" 	(defaults to "unknown" (blank))
 	requires_power = FALSE 				(defaults to true)
-	ambientsounds = list()				(defaults to GENERIC from sound.dm. override it as "ambientsounds = list('sound/ambience/signal.ogg')" or using another define.
+	ambientsounds = list()				(defaults to grabbing from GENERIC_INDEX on area init.
+	override it as "ambientsounds = list('sound/ambience/signal.ogg')" or setting its ambience_index to something else.
 
 NOTE: there are two lists of areas in the end of this file: centcom and station itself. Please maintain these lists valid. --rastaf0
 
@@ -26,9 +27,10 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	power_environ = FALSE
 	area_flags = UNIQUE_AREA | CAVES_ALLOWED | MOB_SPAWN_ALLOWED
 	outdoors = TRUE
-	ambientsounds = SPACE
+	ambience_index = AMBIENCE_SPACE
 	flags_1 = CAN_BE_DIRTY_1
 	sound_environment = SOUND_AREA_SPACE
+	allow_weather = TRUE
 
 /area/space/nearstation
 	icon_state = "space_near"
@@ -56,7 +58,7 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	power_environ = FALSE
 	area_flags = UNIQUE_AREA | CAVES_ALLOWED | MOB_SPAWN_ALLOWED
 	outdoors = TRUE
-	ambientsounds = SPACE
+	ambience_index = AMBIENCE_SPACE
 	flags_1 = CAN_BE_DIRTY_1
 	sound_environment = SOUND_AREA_SPACE
 
@@ -67,7 +69,7 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	icon_state = "asteroid"
 	has_gravity = STANDARD_GRAVITY
 	area_flags = UNIQUE_AREA | CAVES_ALLOWED | MOB_SPAWN_ALLOWED
-	ambientsounds = MINING
+	ambience_index = AMBIENCE_MINING
 	flags_1 = CAN_BE_DIRTY_1
 	sound_environment = SOUND_AREA_ASTEROID
 	min_ambience_cooldown = 70 SECONDS
@@ -83,12 +85,11 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 /area/ship
 	dynamic_lighting = DYNAMIC_LIGHTING_FORCED
 	always_unpowered = FALSE
-	area_flags = VALID_TERRITORY // Loading the same shuttle map at a different time will produce distinct area instances.
+	area_flags = VALID_TERRITORY | SHIP_SMOOTHING | NO_RANDOM_LIGHT_BREAKAGE // Loading the same shuttle map at a different time will produce distinct area instances.
 	icon_state = "shuttle"
 	flags_1 = CAN_BE_DIRTY_1
 	lighting_colour_tube = "#fff0dd"
 	lighting_colour_bulb = "#ffe1c1"
-	area_limited_icon_smoothing = TRUE
 	sound_environment = SOUND_ENVIRONMENT_ROOM
 	lightswitch = FALSE
 	/// The mobile port attached to this area
@@ -123,11 +124,24 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	for(var/i in 1 to get_missing_shuttles(T)) //Keep track of shuttles with hull breaches on this turf
 		new_baseturfs.Insert(1,/turf/baseturf_skipover/shuttle)
 
+/area/ship/connect_to_shuttle(obj/docking_port/mobile/M)
+	link_to_shuttle(M)
+
 /area/ship/proc/link_to_shuttle(obj/docking_port/mobile/M)
 	mobile_port = M
 
-/area/ship/connect_to_shuttle(obj/docking_port/mobile/M)
-	link_to_shuttle(M)
+/area/ship/proc/reset_shuttle_smoothing(obj/docking_port/mobile/requesting_shuttle)
+	if(mobile_port == requesting_shuttle) //We only proceed with smoothing if the mobile ports match.
+		//A bit of copypasta since we don't want to run Initialize().
+		for(var/turf/updated_turf as turf in src)
+			QUEUE_SMOOTH(updated_turf)
+			QUEUE_SMOOTH_NEIGHBORS(updated_turf)
+		for(var/obj/structure/updated_structure as obj in src)
+			if(updated_structure.smoothing_flags & (SMOOTH_CORNERS|SMOOTH_BITMASK))
+				QUEUE_SMOOTH(updated_structure)
+				QUEUE_SMOOTH_NEIGHBORS(updated_structure)
+				if(updated_structure.smoothing_flags & SMOOTH_CORNERS)
+					icon_state = ""
 
 /area/ship/virtual_z()
 	if(mobile_port)
@@ -141,6 +155,14 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	ambientsounds = list('sound/ambience/signal.ogg')
 	lighting_colour_tube = "#ffce99"
 	lighting_colour_bulb = "#ffdbb4"
+	lighting_brightness_tube = 6
+
+/area/ship/bridge/cool
+	name = "Bridge"
+	icon_state = "bridge"
+	ambientsounds = list('sound/ambience/signal.ogg')
+	lighting_colour_tube = "#7794c9"
+	lighting_colour_bulb = "#7794c9"
 	lighting_brightness_tube = 6
 
 /// Crew Quarters ///
@@ -162,6 +184,15 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 
 /area/ship/crew/crewfive
 	name = "Crew Quarters 5"
+
+/area/ship/crew/command
+	name = "Command Quarters"
+
+/area/ship/crew/breakroom
+	name = "Break Room"
+
+/area/ship/crew/breakroom/command
+	name = "Command Break Room"
 
 /area/ship/crew/specialized
 	name = "???"
@@ -203,6 +234,24 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 /area/ship/crew/dorm/captain
 	name = "Captain's Quarters"
 
+/area/ship/crew/dorm/commad
+	name = "Command Quarters"
+
+/area/ship/crew/dorm/commad/affairs
+	name = "Internal Affairs Agent's Quarters"
+
+/area/ship/crew/dorm/commad/cmo
+	name = "Chief Medical Officer's Quarters"
+
+/area/ship/crew/dorm/commad/cmo/director
+	name = "Medical Director's Quarters"
+
+/area/ship/crew/dorm/commad/hos
+	name = "Head of Security's Quarters"
+
+/area/ship/crew/dorm/commad/hos/director
+	name = "Security Director's Quarters"
+
 /area/ship/crew/toilet
 	name = "Restroom"
 	icon_state = "toilet"
@@ -212,6 +261,9 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 
 /area/ship/crew/toilet/three
 	name = "Restroom 3"
+
+/area/ship/crew/toilet/showers
+	name = "Showers"
 
 /area/ship/crew/canteen
 	name = "Canteen"
@@ -228,7 +280,7 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 /area/ship/crew/chapel
 	name = "Chapel"
 	icon_state = "chapel"
-	ambientsounds = HOLY
+	ambience_index = AMBIENCE_HOLY
 	flags_1 = NONE
 	sound_environment = SOUND_AREA_LARGE_ENCLOSED
 
@@ -249,6 +301,10 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	icon_state = "law"
 	sound_environment = SOUND_AREA_SMALL_SOFTFLOOR
 
+/area/ship/crew/law_office/affairs
+	name = "Internal Affairs Office"
+	icon_state = "law"
+
 /area/ship/crew/solgov
 	name = "SolGov Consulate"
 	icon_state = "solgov"
@@ -257,6 +313,14 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 /area/ship/crew/office
 	name = "Office"
 	icon_state = "vacant_office"
+	sound_environment = SOUND_AREA_WOODFLOOR
+
+/area/ship/crew/office/cic
+	name = "Control Center"
+	icon_state = "vacant_office"
+	ambientsounds = list('sound/ambience/signal.ogg')
+	lighting_colour_tube = "#7794c9"
+	lighting_colour_bulb = "#7794c9"
 	sound_environment = SOUND_AREA_WOODFLOOR
 
 /area/ship/crew/office/lobby
@@ -271,11 +335,14 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	icon_state = "janitor"
 	sound_environment = SOUND_AREA_SMALL_ENCLOSED
 
+/area/ship/crew/smoking
+	name = "Smoking Room"
+
 /// Medical Bay ///
 /area/ship/medical
 	name = "Infirmary"
 	icon_state = "medbay3"
-	ambientsounds = MEDICAL
+	ambience_index = AMBIENCE_MEDICAL
 	lighting_colour_tube = "#e7f8ff"
 	lighting_colour_bulb = "#d5f2ff"
 	min_ambience_cooldown = 90 SECONDS
@@ -288,10 +355,28 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 /area/ship/medical/morgue
 	name = "Morgue"
 	icon_state = "morgue"
-	ambientsounds = SPOOKY
+	ambience_index = AMBIENCE_SPOOKY
 
 /area/ship/medical/psych
 	name = "Psych's Office"
+
+/area/ship/medical/recovery
+	name = "Recovery Room"
+
+/area/ship/medical/recovery/recoveryone
+	name = "Recovery Room 1"
+
+/area/ship/medical/recovery/recoverytwo
+	name = "Recovery Room 2"
+
+/area/ship/medical/storage
+	name = "Medical Storage"
+
+/area/ship/medical/cmo
+	name = "Chief Medical Officer's Office"
+
+/area/ship/medical/cmo/director
+	name = "Medical Director's Office"
 
 /// Science Lab ///
 /area/ship/science
@@ -329,7 +414,7 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 /area/ship/engineering
 	name = "Engineering"
 	icon_state = "engine"
-	ambientsounds = ENGINEERING
+	ambience_index = AMBIENCE_ENGI
 	lighting_colour_tube = "#ffce93"
 	lighting_colour_bulb = "#ffbc6f"
 	sound_environment = SOUND_AREA_LARGE_ENCLOSED
@@ -368,11 +453,26 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	name = "Incinerator"
 	icon_state = "disposal"
 
+/area/ship/engineering/storage
+	name = "Engineering Storage Room"
+
+/area/ship/engineering/hallway
+	name = "Engineering Hallway"
+
+/area/ship/engineering/hallway/port
+	name = "Engineering Port Hallway"
+
+/area/ship/engineering/hallway/starboard
+	name = "Engineering Starboard Hallway"
+
+/area/ship/engineering/hallway/aft
+	name = "Engineering Aft Hallway"
+
 /// Security ///
 /area/ship/security
 	name = "Brig"
 	icon_state = "brig"
-	ambientsounds = HIGHSEC
+	ambience_index = AMBIENCE_DANGER
 	lighting_colour_tube = "#ffeee2"
 	lighting_colour_bulb = "#ffdfca"
 
@@ -394,6 +494,14 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 
 /area/ship/security/dock
 	name = "Shuttle Dock"
+	icon_state = "security"
+
+/area/ship/security/hos
+	name = "Head of Security's Office"
+	icon_state = "security"
+
+/area/ship/security/hos/director
+	name = "Security Director's Office"
 	icon_state = "security"
 
 /// Cargo Bay ///
@@ -421,7 +529,7 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	name = "Hangar"
 	icon_state = "shuttlered"
 	sound_environment = SOUND_AREA_LARGE_ENCLOSED
-	ambientsounds = ENGINEERING
+	ambience_index = AMBIENCE_ENGI
 
 /area/ship/hangar/port
 	name = "Port Hangar"
@@ -445,6 +553,14 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	name = "Fore Hallway"
 	icon_state = "hallF"
 
+/area/ship/hallway/fore/port
+	name = "Port Fore Hallway"
+	icon_state = "hallF"
+
+/area/ship/hallway/fore/starboard
+	name = "Starboard Fore Hallway"
+	icon_state = "hallF"
+
 /area/ship/hallway/starboard
 	name = "Starboard Hallway"
 	icon_state = "hallS"
@@ -460,7 +576,7 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 /// Maintenance Areas ///
 /area/ship/maintenance
 	name = "Maintenance"
-	ambientsounds = MAINTENANCE
+	ambience_index = AMBIENCE_MAINT
 	lighting_colour_tube = "#ffe5cb"
 	lighting_colour_bulb = "#ffdbb4"
 	sound_environment = SOUND_AREA_TUNNEL_ENCLOSED
@@ -518,6 +634,11 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 	name = "External"
 	icon_state = "space_near"
 	dynamic_lighting = DYNAMIC_LIGHTING_IFSTARLIGHT
-	ambientsounds = SPACE
+	ambience_index = AMBIENCE_SPACE
 	sound_environment = SOUND_AREA_SPACE
 	lightswitch = TRUE
+
+/area/ship/external/dark
+	name = "Dark External"
+	dynamic_lighting = DYNAMIC_LIGHTING_FORCED
+	icon_state = "space_near"

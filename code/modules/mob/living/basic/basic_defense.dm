@@ -3,7 +3,8 @@
 	if (..())
 		return TRUE
 
-	if(LAZYACCESS(modifiers, RIGHT_CLICK))
+	//if(LAZYACCESS(modifiers, RIGHT_CLICK))
+	if(user.a_intent == INTENT_DISARM)
 		user.do_attack_animation(src, ATTACK_EFFECT_DISARM)
 		playsound(src, 'sound/weapons/thudswoosh.ogg', 50, TRUE, -1)
 		var/shove_dir = get_dir(user, src)
@@ -18,8 +19,7 @@
 			span_danger("You shove [src], pushing [p_them()]!"), span_hear("You hear aggressive shuffling!"), COMBAT_MESSAGE_RANGE, list(src))
 		to_chat(src, span_userdanger("You're pushed by [user.name]!"))
 		return TRUE
-
-	if(!(user.a_intent == INTENT_HARM))
+	else if(!(user.a_intent == INTENT_HARM))
 		if (stat == DEAD)
 			return
 		visible_message(span_notice("[user] [response_help_continuous] [src]."), \
@@ -51,7 +51,7 @@
 	visible_message(span_danger("[user] punches [src]!"), \
 					span_userdanger("You're punched by [user]!"), null, COMBAT_MESSAGE_RANGE, user)
 	to_chat(user, span_danger("You punch [src]!"))
-	adjustBruteLoss(15)
+	apply_damage(15, BRUTE, wound_bonus=10)
 
 /mob/living/basic/attack_paw(mob/living/carbon/human/user, list/modifiers)
 	if(..()) //successful monkey bite.
@@ -69,7 +69,8 @@
 
 /mob/living/basic/attack_alien(mob/living/carbon/alien/humanoid/user, list/modifiers)
 	if(..()) //if harm or disarm intent.
-		if(LAZYACCESS(modifiers, RIGHT_CLICK))
+		//if(LAZYACCESS(modifiers, RIGHT_CLICK))
+		if(user.a_intent == INTENT_DISARM)
 			playsound(loc, 'sound/weapons/pierce.ogg', 25, TRUE, -1)
 			visible_message(span_danger("[user] [response_disarm_continuous] [name]!"), \
 							span_userdanger("[user] [response_disarm_continuous] you!"), null, COMBAT_MESSAGE_RANGE, user)
@@ -133,9 +134,9 @@
 	Proj.on_hit(src, 0, piercing_hit)
 	return BULLET_ACT_HIT
 
-/mob/living/basic/ex_act(severity, target, origin)
+/mob/living/basic/ex_act(severity, target, light_dam = EX_LIGHT_BASE_DAM, light_item_dam = EX_LIGHT_BASE_ITEM_DAM, heavy_dam = EX_HEAVY_BASE_DAM, heavy_item_dam = EX_HEAVY_BASE_ITEM_DAM, origin)
 	if(origin && istype(origin, /datum/spacevine_mutation) && isvineimmune(src))
-		return FALSE
+		return FALSE //flag for later
 
 	. = ..()
 	if(QDELETED(src))
@@ -149,13 +150,13 @@
 				gib()
 				return
 		if (EXPLODE_HEAVY)
-			var/bloss = 60
+			var/bloss = heavy_dam
 			if(prob(bomb_armor))
 				bloss = bloss / 1.5
 			adjustBruteLoss(bloss)
 
 		if (EXPLODE_LIGHT)
-			var/bloss = 30
+			var/bloss = light_dam
 			if(prob(bomb_armor))
 				bloss = bloss / 1.5
 			adjustBruteLoss(bloss)

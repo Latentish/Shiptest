@@ -62,8 +62,14 @@
 
 	var/allow_big_nesting = FALSE					//allow storage objects of the same or greater size.
 
-	var/attack_hand_interact = TRUE					//interact on attack hand.
-	var/quickdraw = FALSE							//altclick interact
+	/// Should left-click open this storage item while equipped?
+	var/attack_hand_interact = TRUE
+	/// Should alt-click open this storage item?
+	var/alt_click_open = TRUE
+	/// Should alt or right click quickly draw the first available item?
+	var/quickdraw = FALSE
+	///can we quickopen storage when it's in a pocket
+	var/pocket_openable = FALSE
 
 	var/datum/action/item_action/storage_gather_mode/modeswitch_action
 
@@ -102,7 +108,7 @@
 
 	RegisterSignal(parent, COMSIG_TOPIC, PROC_REF(topic_handle))
 
-	RegisterSignal(parent, COMSIG_PARENT_ATTACKBY, PROC_REF(attackby))
+	RegisterSignal(parent, COMSIG_ATOM_ATTACKBY, PROC_REF(attackby))
 
 	RegisterSignal(parent, COMSIG_ATOM_ATTACK_HAND, PROC_REF(on_attack_hand))
 	RegisterSignal(parent, COMSIG_ATOM_ATTACK_PAW, PROC_REF(on_attack_hand))
@@ -120,9 +126,12 @@
 	RegisterSignal(parent, COMSIG_MOVABLE_POST_THROW, PROC_REF(close_all))
 	RegisterSignal(parent, COMSIG_MOVABLE_MOVED, PROC_REF(on_move))
 
-	RegisterSignal(parent, COMSIG_CLICK_ALT, PROC_REF(on_alt_click))
+	RegisterSignals(parent, list(COMSIG_ATOM_ATTACK_HAND_SECONDARY, COMSIG_ITEM_ATTACK_SELF_SECONDARY), PROC_REF(on_open_storage_click))
+	RegisterSignal(parent, COMSIG_ATOM_ATTACKBY_SECONDARY, PROC_REF(on_open_storage_attackby))
 	RegisterSignal(parent, COMSIG_MOUSEDROP_ONTO, PROC_REF(mousedrop_onto))
 	RegisterSignal(parent, COMSIG_MOUSEDROPPED_ONTO, PROC_REF(mousedrop_receive))
+	if(alt_click_open)
+		RegisterSignal(parent, COMSIG_CLICK_ALT, PROC_REF(on_open_storage_click))
 
 	update_actions()
 
@@ -269,7 +278,7 @@
 		return
 	var/datum/progressbar/progress = new(M, len, I.loc)
 	var/list/rejections = list()
-	while(do_after(M, 10, parent, TRUE, FALSE, CALLBACK(src, PROC_REF(handle_mass_pickup), things, I.loc, rejections, progress)))
+	while(do_after(M, 10, parent, NONE, FALSE, CALLBACK(src, PROC_REF(handle_mass_pickup), things, I.loc, rejections, progress)))
 		stoplag(1)
 	progress.end_progress()
 	to_chat(M, span_notice("You put everything you could [insert_preposition] [parent]."))
@@ -430,7 +439,7 @@
 			cansee |= M
 		else
 			LAZYREMOVE(is_using, M)
-			UnregisterSignal(M, COMSIG_PARENT_QDELETING)
+			UnregisterSignal(M, COMSIG_QDELETING)
 	return cansee
 
 //Tries to dump content
@@ -595,7 +604,7 @@
 			if(amount >= can_hold_max_of_items[I.type])
 				if(!stop_messages)
 					to_chat(M, span_warning("[host] cannot hold another [I]!"))
-					return FALSE
+				return FALSE
 	if(is_type_in_typecache(I, cant_hold) || HAS_TRAIT(I, TRAIT_NO_STORAGE_INSERT) || (can_hold_trait && !HAS_TRAIT(I, can_hold_trait))) //Items which this container can't hold.
 		if(!stop_messages)
 			to_chat(M, span_warning("[host] cannot hold [I]!"))
@@ -607,7 +616,7 @@
 				to_chat(M, span_warning("[host] has too much junk in it, make some space!"))
 			return FALSE //Storage item is full
 	if(storage_flags & STORAGE_LIMIT_MAX_W_CLASS)
-		if(I.w_class > max_w_class)
+		if(I.w_class > max_w_class && !is_type_in_typecache(I, exception_hold))
 			if(!stop_messages)
 				to_chat(M, span_warning("[I] is much too long for [host]!"))
 			return FALSE
@@ -631,7 +640,7 @@
 	if(isitem(host))
 		var/obj/item/IP = host
 		var/datum/component/storage/STR_I = I.GetComponent(/datum/component/storage)
-		if((I.w_class >= IP.w_class) && STR_I && !allow_big_nesting)
+		if((I.w_class >= IP.w_class) && STR_I && !allow_big_nesting && !is_type_in_list(I, exception_hold))
 			if(!stop_messages)
 				to_chat(M, span_warning("[IP] cannot hold [I] as it's a storage item of the same size!"))
 			return FALSE //To prevent the stacking of same sized storage items.
@@ -761,16 +770,17 @@
 
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
-		if(H.l_store == A && !H.get_active_held_item())	//Prevents opening if it's in a pocket.
-			. = COMPONENT_NO_ATTACK_HAND
-			INVOKE_ASYNC(H, TYPE_PROC_REF(/mob, put_in_hands), A)
-			H.l_store = null
-			return
-		if(H.r_store == A && !H.get_active_held_item())
-			. = COMPONENT_NO_ATTACK_HAND
-			INVOKE_ASYNC(H, TYPE_PROC_REF(/mob, put_in_hands), A)
-			H.r_store = null
-			return
+		if(!pocket_openable) //some things should be opened in pockets
+			if(H.l_store == A && !H.get_active_held_item())	//Prevents opening if it's in a pocket.
+				. = COMPONENT_NO_ATTACK_HAND
+				INVOKE_ASYNC(H, TYPE_PROC_REF(/mob, put_in_hands), A)
+				H.l_store = null
+				return
+			if(H.r_store == A && !H.get_active_held_item())
+				. = COMPONENT_NO_ATTACK_HAND
+				INVOKE_ASYNC(H, TYPE_PROC_REF(/mob, put_in_hands), A)
+				H.r_store = null
+				return
 
 	if(A.loc == user)
 		. = COMPONENT_NO_ATTACK_HAND
@@ -812,36 +822,47 @@
 	SIGNAL_HANDLER
 
 	return ui_hide(target)
-
-/datum/component/storage/proc/on_alt_click(datum/source, mob/user)
-	SIGNAL_HANDLER
-
-	INVOKE_ASYNC(src, PROC_REF(on_alt_click_async), source, user)
-
-/datum/component/storage/proc/on_alt_click_async(datum/source, mob/user)
+/datum/component/storage/proc/open_storage(mob/user)
 	if(!isliving(user) || !user.CanReach(parent) || user.incapacitated())
-		return
-	if(!access_check(user))
 		return FALSE
 	if(locked)
-		to_chat(user, span_warning("[parent] seems to be [locked_flavor]!"))
-		return
+		to_chat(user, span_warning("[parent] seems to be locked!"))
+		return FALSE
 
+	. = TRUE
 	var/atom/A = parent
 	if(!quickdraw)
 		A.add_fingerprint(user)
 		user_show_to_mob(user)
+		playsound(A, "rustle", 50, TRUE, -5)
+		return
+	var/obj/item/to_remove = locate() in real_location()
+	if(!to_remove)
 		return
 
-	var/obj/item/I = locate() in real_location()
-	if(!I)
+	INVOKE_ASYNC(src, PROC_REF(attempt_put_in_hands), to_remove, user)
+
+/datum/component/storage/proc/on_open_storage_click(datum/source, mob/user, list/modifiers)
+	SIGNAL_HANDLER
+
+	if(open_storage(user))
+		return COMPONENT_CANCEL_ATTACK_CHAIN
+
+/datum/component/storage/proc/on_open_storage_attackby(datum/source, obj/item/weapon, mob/user, params)
+	SIGNAL_HANDLER
+
+	if(open_storage(user))
+		return COMPONENT_SECONDARY_CANCEL_ATTACK_CHAIN
+
+///attempt to put an item from contents into the users hands
+/datum/component/storage/proc/attempt_put_in_hands(obj/item/to_remove, mob/user)
+	var/atom/parent_as_atom = parent
+	parent_as_atom.add_fingerprint(user)
+	remove_from_storage(to_remove, get_turf(user))
+	if(!user.put_in_hands(to_remove))
+		to_chat(user, span_notice("You fumble for [to_remove] and it falls on the floor."))
 		return
-	A.add_fingerprint(user)
-	remove_from_storage(I, get_turf(user))
-	if(!user.put_in_hands(I))
-		to_chat(user, span_notice("You fumble for [I] and it falls on the floor."))
-		return
-	user.visible_message(span_warning("[user] draws [I] from [parent]!"), span_notice("You draw [I] from [parent]."))
+	user.visible_message(span_warning("[user] draws [to_remove] from [parent]!"), span_notice("You draw [to_remove] from [parent]."))
 
 /datum/component/storage/proc/action_trigger(datum/signal_source, datum/action/source)
 	SIGNAL_HANDLER

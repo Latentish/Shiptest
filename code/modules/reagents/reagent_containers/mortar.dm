@@ -3,14 +3,12 @@ Originally in glass.dm, moved here
 to accommodate additional materials.
 \*/
 
-#define MORTAR_STAMINA_MINIMUM 50 //What is the amount of stam damage that we prevent mortar use at
-#define MORTAR_STAMINA_USE 40 //How much stam damage is given to people when the mortar is used
-
 /obj/item/pestle
 	name = "pestle"
 	desc = "An ancient, simple tool used in conjunction with a mortar to grind or juice items."
 	w_class = WEIGHT_CLASS_SMALL
 	icon = 'icons/obj/chemical/mortar.dmi'
+	world_file = 'icons/obj/chemical/mortar_world.dmi'
 	icon_state = "pestle"
 	force = 7
 
@@ -18,6 +16,7 @@ to accommodate additional materials.
 	name = "mortar"
 	desc = "A specially formed bowl of ancient design. It is possible to crush or juice items placed in it using a pestle; however the process, unlike modern methods, is slow and physically exhausting. Alt click to eject the item."
 	icon = 'icons/obj/chemical/mortar.dmi'
+	world_file = 'icons/obj/chemical/mortar_world.dmi'
 	icon_state = "mortar_wood"
 	fill_icon_state = "mortar"
 	fill_icon_thresholds = list(1, 20, 40, 80, 100)
@@ -43,10 +42,6 @@ to accommodate additional materials.
 			balloon_alert(user, "nothing to grind")
 			return
 
-		if(user.getStaminaLoss() > MORTAR_STAMINA_MINIMUM)
-			balloon_alert(user, "too tired")
-			return
-
 		var/list/choose_options = list(
 			"Grind" = image(icon = 'icons/mob/radial.dmi', icon_state = "radial_grind"),
 			"Juice" = image(icon = 'icons/mob/radial.dmi', icon_state = "radial_juice")
@@ -61,7 +56,6 @@ to accommodate additional materials.
 			balloon_alert(user, "stopped grinding")
 			return
 
-		user.adjustStaminaLoss(MORTAR_STAMINA_USE)
 		switch(picked_option)
 			if("Juice")
 				if(grinded.juice_results)
@@ -102,17 +96,13 @@ to accommodate additional materials.
 
 ///Grinds the passed target item, and transfers any contained chems to the mortar as well
 /obj/item/reagent_containers/glass/mortar/proc/grind_target_item(obj/item/to_be_ground, mob/living/carbon/human/user)
-	to_be_ground.on_grind()
-	reagents.add_reagent_list(to_be_ground.grind_results)
+	reagents.add_reagent_list(to_be_ground.on_grind())
 
 	if(to_be_ground.reagents) //If grinded item has reagents within, transfer them to the mortar
 		to_be_ground.reagents.trans_to(src, to_be_ground.reagents.total_volume, transfered_by = user)
 
 	to_chat(user, span_notice("You break [to_be_ground] into powder."))
 	QDEL_NULL(to_be_ground)
-
-#undef MORTAR_STAMINA_MINIMUM
-#undef MORTAR_STAMINA_USE
 
 /obj/item/reagent_containers/glass/mortar/glass //mmm yes... this glass is made of glass
 	icon_state = "mortar_glass"

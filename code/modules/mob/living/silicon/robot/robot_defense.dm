@@ -10,7 +10,7 @@ GLOBAL_LIST_INIT(blacklisted_borg_hats, typecacheof(list( //Hats that don't real
 		if (!getBruteLoss())
 			to_chat(user, span_warning("[src] is already in good condition!"))
 			return
-		if (!W.tool_start_check(user, amount=0)) //The welder has 1u of fuel consumed by it's afterattack, so we don't need to worry about taking any away.
+		if (!W.tool_start_check(user, src, amount=0)) //The welder has 1u of fuel consumed by it's afterattack, so we don't need to worry about taking any away.
 			return
 		if(src == user)
 			to_chat(user, span_notice("You start fixing yourself..."))
@@ -312,7 +312,7 @@ GLOBAL_LIST_INIT(blacklisted_borg_hats, typecacheof(list( //Hats that don't real
 
 /mob/living/silicon/robot/fire_act()
 	if(!on_fire) //Silicons don't gain stacks from hotspots, but hotspots can ignite them
-		IgniteMob()
+		ignite_mob()
 
 /mob/living/silicon/robot/emp_act(severity)
 	. = ..()
@@ -391,18 +391,18 @@ GLOBAL_LIST_INIT(blacklisted_borg_hats, typecacheof(list( //Hats that don't real
 	laws.associate(src)
 	update_icons()
 
-/mob/living/silicon/robot/ex_act(severity, target)
+/mob/living/silicon/robot/ex_act(severity, target, light_dam = EX_LIGHT_BASE_DAM, light_item_dam = EX_LIGHT_BASE_ITEM_DAM, heavy_dam = EX_HEAVY_BASE_DAM, heavy_item_dam = EX_HEAVY_BASE_ITEM_DAM)
 	switch(severity)
 		if(1)
 			gib()
 			return
 		if(2)
 			if (stat != DEAD)
-				adjustBruteLoss(60)
-				adjustFireLoss(60)
+				adjustBruteLoss(heavy_dam/2)
+				adjustFireLoss(heavy_dam/2)
 		if(3)
 			if (stat != DEAD)
-				adjustBruteLoss(30)
+				adjustBruteLoss(light_dam)
 
 /mob/living/silicon/robot/bullet_act(obj/projectile/Proj, def_zone)
 	. = ..()

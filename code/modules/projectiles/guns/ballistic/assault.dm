@@ -1,4 +1,6 @@
 /obj/item/gun/ballistic/automatic/assault
+	bad_type = /obj/item/gun/ballistic/automatic/assault
+
 	show_magazine_on_sprite = TRUE
 	w_class = WEIGHT_CLASS_BULKY
 
@@ -24,9 +26,9 @@
 	gunslinger_spread_bonus = 16
 
 	light_range = 2
-	wear_minor_threshold = 100
-	wear_major_threshold = 300
-	wear_maximum = 600
+	wear_minor_threshold = 200
+	wear_major_threshold = 600
+	wear_maximum = 1200
 
 /obj/item/gun/ballistic/automatic/assault/skm
 	name = "\improper SKM-24"
@@ -49,17 +51,22 @@
 	show_magazine_on_sprite = TRUE
 	unique_mag_sprites_for_variants = TRUE
 	weapon_weight = WEAPON_MEDIUM
-	slot_flags = ITEM_SLOT_BACK
+	slot_flags = ITEM_SLOT_BACK | ITEM_SLOT_SUITSTORE
 	manufacturer = MANUFACTURER_IMPORT
 	default_ammo_type = /obj/item/ammo_box/magazine/skm_762_40
 	allowed_ammo_types = list(
 		/obj/item/ammo_box/magazine/skm_762_40,
 	)
 
+	unique_reskin = list(\
+		"SKM" = "skm",
+		"Polymer" = "skm_polymer",
+		"Bright" = "skm_bright",
+		)
+	unique_reskin_changes_inhand = TRUE
+
 	//truly a doohickey for every occasion
 	unique_attachments = list (
-		/obj/item/attachment/scope,
-		/obj/item/attachment/long_scope,
 		/obj/item/attachment/energy_bayonet,
 	)
 
@@ -93,6 +100,7 @@
 	default_ammo_type = FALSE
 
 /obj/item/gun/ballistic/automatic/assault/skm/pirate
+	autowiki_hidden = TRUE //not obtainable: referenced nowhere in code or maps
 	name = "\improper Chopper"
 	desc = "An SKM-24 in a state of shockingly poor repair: Several parts are missing and the 'grip' is improvised from scrap wood. It's a miracle it still works at all. Chambered in 7.62x40mm CLIP."
 
@@ -113,16 +121,6 @@
 	icon_state = "skm_inteq"
 	item_state = "skm_inteq"
 	manufacturer = MANUFACTURER_INTEQ
-
-/obj/item/gun/ballistic/automatic/assault/cm82
-	name = "\improper CM-16"
-	desc = "The standard-issue rifle of CLIP and an extensively modified reproduction of the P-16. Chambered in 5.56mm."
-	icon = 'icons/obj/guns/manufacturer/clip_lanchester/48x32.dmi'
-	lefthand_file = 'icons/obj/guns/manufacturer/clip_lanchester/lefthand.dmi'
-	righthand_file = 'icons/obj/guns/manufacturer/clip_lanchester/righthand.dmi'
-	mob_overlay_icon = 'icons/obj/guns/manufacturer/clip_lanchester/onmob.dmi'
-	icon_state = "cm16"
-	item_state = "cm16"
 
 /obj/item/gun/ballistic/automatic/assault/swiss_cheese
 	name = "\improper Swiss Cheese"
@@ -146,7 +144,7 @@
 
 	fire_select_icon_state_prefix = "swisschesse_"
 
-	slot_flags = ITEM_SLOT_BACK
+	slot_flags = ITEM_SLOT_BACK | ITEM_SLOT_SUITSTORE
 	default_ammo_type = /obj/item/ammo_box/magazine/swiss
 	allowed_ammo_types = list(
 		/obj/item/ammo_box/magazine/swiss,

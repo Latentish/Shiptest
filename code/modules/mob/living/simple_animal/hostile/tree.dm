@@ -14,7 +14,7 @@
 	response_help_simple = "brush"
 	response_disarm_continuous = "pushes"
 	response_disarm_simple = "push"
-	faction = list("hostile")
+	faction = list(FACTION_HOSTILE)
 	speed = 1
 	maxHealth = 250
 	health = 250
@@ -29,12 +29,13 @@
 	attack_verb_continuous = "bites"
 	attack_verb_simple = "bite"
 	attack_sound = 'sound/weapons/bite.ogg'
+	sharpness = SHARP_POINTY
 	speak_emote = list("pines")
 	emote_taunt = list("growls")
 	taunt_chance = 20
 
 	atmos_requirements = list("min_oxy" = 2, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
-	unsuitable_atmos_damage = 5
+	unsuitable_atmos_damage = 2.5
 	minbodytemp = 0
 	maxbodytemp = 1200
 
@@ -44,14 +45,14 @@
 
 	var/is_tree = TRUE
 
-/mob/living/simple_animal/hostile/tree/Life()
+/mob/living/simple_animal/hostile/tree/Life(seconds_per_tick = SSMOBS_DT, times_fired)
 	..()
 	if(is_tree && isopenturf(loc))
 		var/turf/open/T = src.loc
 		if(T.air)
 			var/co2 = T.air.get_moles(GAS_CO2)
 			if(co2 > 0)
-				if(prob(25))
+				if(SPT_PROB(12.5, seconds_per_tick))
 					var/amt = min(co2, 9)
 					T.air.adjust_moles(GAS_CO2, -amt)
 					T.atmos_spawn_air("o2=[amt];TEMP=293.15")

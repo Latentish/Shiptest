@@ -461,6 +461,7 @@
 				client.perspective = EYE_PERSPECTIVE
 				client.eye = loc
 		return TRUE
+	SEND_SIGNAL(src, COMSIG_MOB_RESET_PERSPECTIVE)
 
 /// Show the mob's inventory to another mob
 /mob/proc/show_inv(mob/user)
@@ -497,7 +498,7 @@
 		if(isnull(client.recent_examines[examinify]) || client.recent_examines[examinify] < world.time)
 			result = examinify.examine(src)
 			client.recent_examines[examinify] = world.time + EXAMINE_MORE_TIME // set the value to when the examine cooldown ends
-			RegisterSignal(examinify, COMSIG_PARENT_QDELETING, PROC_REF(clear_from_recent_examines), override=TRUE) // to flush the value if deleted early
+			RegisterSignal(examinify, COMSIG_QDELETING, PROC_REF(clear_from_recent_examines), override=TRUE) // to flush the value if deleted early
 			addtimer(CALLBACK(src, PROC_REF(clear_from_recent_examines), examinify), EXAMINE_MORE_TIME)
 			handle_eye_contact(examinify)
 		else
@@ -564,7 +565,7 @@
 
 	if(!client)
 		return
-	UnregisterSignal(A, COMSIG_PARENT_QDELETING)
+	UnregisterSignal(A, COMSIG_QDELETING)
 	LAZYREMOVE(client.recent_examines, A)
 
 /**
@@ -1052,9 +1053,10 @@
 
 /mob/proc/swap_hand()
 	var/obj/item/held_item = get_active_held_item()
-	if(SEND_SIGNAL(src, COMSIG_MOB_SWAP_HANDS, held_item) & COMPONENT_BLOCK_SWAP)
+	if(SEND_SIGNAL(src, COMSIG_MOB_SWAPPING_HANDS, held_item) & COMPONENT_BLOCK_SWAP)
 		to_chat(src, span_warning("Your other hand is too busy holding [held_item]."))
 		return FALSE
+	SEND_SIGNAL(src, COMSIG_MOB_SWAP_HANDS)
 	return TRUE
 
 /mob/proc/activate_hand(selhand)
@@ -1129,25 +1131,6 @@
 		if(!can_step)
 			return FALSE
 	return ..()
-
-///Call back post buckle to a mob to offset your visual height
-/mob/post_buckle_mob(mob/living/M)
-	var/height = M.get_mob_buckling_height(src)
-	M.pixel_y = initial(M.pixel_y) + height
-	if(M.layer <= layer) //make sure they stay above our current layer
-		M.layer = layer + 0.1
-///Call back post unbuckle from a mob, (reset your visual height here)
-/mob/post_unbuckle_mob(mob/living/M)
-	M.layer = initial(M.layer)
-	M.pixel_y = initial(M.pixel_y)
-
-///returns the height in pixel the mob should have when buckled to another mob.
-/mob/proc/get_mob_buckling_height(mob/seat)
-	if(isliving(seat))
-		var/mob/living/L = seat
-		if(L.mob_size <= MOB_SIZE_SMALL) //being on top of a small mob doesn't put you very high.
-			return 0
-	return 9
 
 ///can the mob be buckled to something by default?
 /mob/proc/can_buckle()
@@ -1454,12 +1437,11 @@
 	fully_replace_character_name(real_name, new_name)
 
 ///Show the language menu for this mob
-/mob/verb/open_language_menu()
+/mob/verb/open_language_menu_verb()
 	set name = "Open Language Menu"
 	set category = "IC"
 
-	var/datum/language_holder/H = get_language_holder()
-	H.open_language_menu(usr)
+	get_language_holder().open_language_menu(usr)
 
 ///Adjust the nutrition of a mob
 /mob/proc/adjust_nutrition(change) //Honestly FUCK the oldcoders for putting nutrition on /mob someone else can move it up because holy hell I'd have to fix SO many typechecks
@@ -1468,14 +1450,6 @@
 ///Force set the mob nutrition
 /mob/proc/set_nutrition(change) //Seriously fuck you oldcoders.
 	nutrition = max(0, change)
-
-
-/mob/setMovetype(newval) //Set the movement type of the mob and update it's movespeed
-	. = ..()
-	if(isnull(.))
-		return
-	update_movespeed(FALSE)
-
 
 /mob/proc/update_equipment_speed_mods()
 	var/speedies = equipped_speed_mods()
@@ -1520,9 +1494,6 @@
 		if(NAMEOF(src, stat))
 			set_stat(var_value)
 			. =  TRUE
-		if(NAMEOF(src, dizziness))
-			set_dizziness(var_value)
-			. =  TRUE
 		if(NAMEOF(src, eye_blind))
 			set_blindness(var_value)
 			. =  TRUE
@@ -1547,10 +1518,10 @@
 
 /mob/proc/set_active_storage(new_active_storage)
 	if(active_storage)
-		UnregisterSignal(active_storage, COMSIG_PARENT_QDELETING)
+		UnregisterSignal(active_storage, COMSIG_QDELETING)
 	active_storage = new_active_storage
 	if(active_storage)
-		RegisterSignal(active_storage, COMSIG_PARENT_QDELETING, PROC_REF(active_storage_deleted))
+		RegisterSignal(active_storage, COMSIG_QDELETING, PROC_REF(active_storage_deleted))
 
 /mob/proc/active_storage_deleted(datum/source)
 	SIGNAL_HANDLER

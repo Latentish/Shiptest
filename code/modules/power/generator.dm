@@ -76,7 +76,7 @@
 
 
 			if(delta_temperature > 0 && cold_air_heat_capacity > 0 && hot_air_heat_capacity > 0)
-				var/efficiency = LOGISTIC_FUNCTION(max_efficiency,0.0009,delta_temperature,10000)
+				var/efficiency = LOGISTIC_FUNCTION(max_efficiency,0.0009,delta_temperature,FUSION_TEMPERATURE_THRESHOLD)
 				//2nd (0.0009) effects how 'steep' the curve is, and 4th (10000) effects where the 'middle' is.
 
 				var/energy_transfer = delta_temperature*hot_air_heat_capacity*cold_air_heat_capacity/(hot_air_heat_capacity+cold_air_heat_capacity)
@@ -255,6 +255,6 @@
 		cold_circ.update_appearance()
 		cold_circ = null
 
-/obj/machinery/power/generator/obj_break(damage_flag)
+/obj/machinery/power/generator/atom_break(damage_flag)
 	kill_circs()
 	..()

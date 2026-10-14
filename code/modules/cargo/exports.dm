@@ -17,7 +17,7 @@
 		report = new
 
 	// We go backwards, so it'll be innermost objects sold first
-	for(var/i in reverseRange(contents))
+	for(var/i in reverse_range(contents))
 		var/atom/movable/thing = i
 		var/sold = FALSE
 		if(QDELETED(thing))
@@ -51,17 +51,23 @@
 
 	/// The percentage of the item's value which is shaved off after each unit is sold, compounding multiplicatively. This recovers over time.
 	/// If items are sold in bulk (i.e., 2 or 3 or 10 at a time), the total payout is the same as if they were sold individually, before rounding.
-	/// Even without any items previously sold, the sale price may be slightly smaller than the "base" price, due to the math attempting to remain
+	/// Even without any items previously sold, the sale cost may be slightly smaller than the "base" cost, due to the math attempting to remain
 	/// correct even when less than a whole unit is sold.
-	/// If set to 0, the price is static.
+	/// If set to 0, the cost is static.
 	var/elasticity_coeff = 0.01
-	/// The amount of time it takes for the sale price of the export to recover from a single unit sold.
-	/// If set to 0, the price will never recover.
+	/// The amount of time it takes for the sale cost of the export to recover from a single unit sold.
+	/// If set to 0, the cost will never recover.
 	var/recovery_ds = 5 MINUTES
+
+	///what's the least this item can go for
+	var/sell_floor = 0
 
 	var/list/export_types = list()	// Type of the exported object. If none, the export datum is considered base type.
 	var/include_subtypes = TRUE		// Set to FALSE to make the datum apply only to a strict type.
 	var/list/exclude_types = list()	// Types excluded from export
+
+	///can this export be targetting with high-value bounty?
+	var/valid_event_target = TRUE
 
 /datum/export/New()
 	..()
@@ -83,18 +89,22 @@
 		return PROCESS_KILL
 
 // Checks the cost. 0 cost items are skipped in export.
-/datum/export/proc/get_cost(obj/O, apply_elastic = TRUE)
-	var/amount = get_amount(O)
+/datum/export/proc/get_cost(amount, apply_elastic = TRUE)
 	if(apply_elastic && elasticity_coeff != 0)
 		// definite integral from (old amount sold) to (new amount sold) of the cost function.
 		// this applies even when the amount being sold is one unit, decreasing it slightly,
 		// so that selling even half a unit twice is no more effective than selling the whole unit, ignoring rounding.
-		return round(
-			(true_cost/log(1 - elasticity_coeff)) * ((1 - elasticity_coeff)**(amount) - 1),
-			1
+
+		// We get the point at which the elasticity function reachs the sell floor
+		var/eq_point = INFINITY
+		if (sell_floor > 0)
+			eq_point = round(log(sell_floor*elasticity_coeff/(-true_cost*log(1-elasticity_coeff)))/log(1 - elasticity_coeff))
+
+		return round( \
+			true_cost * (1 - (1 - elasticity_coeff)**min(amount,eq_point))/elasticity_coeff + sell_floor * max(amount-eq_point,0) + 0.5 \
 		)
 	else
-		return round(cost * amount, 1)
+		return round(cost * amount)
 
 // Checks the amount of exportable in object. Credits in the bill, sheets in the stack, etc.
 // Usually acts as a multiplier for a cost, so item that has 0 amount will be skipped in export.
@@ -107,17 +117,20 @@
 		return FALSE
 	if(include_subtypes && is_type_in_typecache(O, exclude_types))
 		return FALSE
-	if(!get_cost(O, apply_elastic))
+	var/amount = get_amount(O)
+	if(!amount)
+		return FALSE
+	if(!get_cost(amount, apply_elastic))
 		return FALSE
 	if(O.flags_1 & HOLOGRAM_1)
 		return FALSE
 	return TRUE
 
 /datum/export/proc/sell_object(obj/O, dry_run = TRUE, apply_elastic = TRUE)
-	///This is the value of the object, as derived from export datums.
-	var/the_cost = get_cost(O, apply_elastic)
 	///Quantity of the object in question.
 	var/amount = get_amount(O)
+	///This is the value of the object, as derived from export datums.
+	var/the_cost = get_cost(amount, apply_elastic)
 	///Utilized in the pricetag component. Splits the object's profit when it has a pricetag by the specified amount.
 	var/profit_ratio = 0
 
@@ -130,6 +143,8 @@
 	if(!dry_run)
 		if(apply_elastic)
 			true_cost *= (1 - elasticity_coeff)**amount
+			if(true_cost < sell_floor)
+				true_cost = sell_floor
 		SSblackbox.record_feedback("nested tally", "export_sold_cost", 1, list("[O.type]", "[the_cost]"))
 		SSblackbox.record_feedback("tally", "export_sold_cost_total", the_cost, O.type)
 	if(true_cost != cost)
@@ -137,13 +152,13 @@
 	return the_cost
 
 /datum/export/proc/calc_total_payout(atoms_list = list())
-	var/total_payout = 0
+	var/amount = 0
 	for(var/atom/priced_atom in atoms_list)
-		total_payout += get_cost(priced_atom)
-	return total_payout
+		amount += get_amount(priced_atom)
+	return get_cost(amount)
 
 /datum/export/proc/get_payout_text()
 	if(true_cost != cost)
-		return "[round(true_cost, cost/1000)]/[cost]"
+		return "[max(sell_floor,round(true_cost, cost/1000))]/[cost]"
 	else
 		return "[true_cost]"

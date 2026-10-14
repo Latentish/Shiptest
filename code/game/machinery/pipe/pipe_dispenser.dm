@@ -5,13 +5,13 @@
 
 /obj/machinery/pipedispenser
 	name = "pipe dispenser"
-	icon = 'icons/obj/stationobjs.dmi'
+	icon = 'icons/obj/machines/pipedispenser.dmi'
 	icon_state = "pipe_d"
 	desc = "Dispenses countless types of pipes. Very useful if you need pipes."
 	layer = GATEWAY_UNDERLAY_LAYER //so it renders underneath dispensed disposals
 	density = TRUE
 	circuit = /obj/item/circuitboard/machine/pipedispenser
-	interaction_flags_machine = INTERACT_MACHINE_ALLOW_SILICON | INTERACT_MACHINE_OPEN_SILICON | INTERACT_MACHINE_OFFLINE
+	interaction_flags_machine = INTERACT_MACHINE_ALLOW_SILICON | INTERACT_MACHINE_OPEN_SILICON | INTERACT_MACHINE_UNPOWERED
 	var/delay = 0
 	var/busy = FALSE
 	var/p_dir = NORTH
@@ -37,6 +37,7 @@
 	recipe = first_atmos
 
 /obj/machinery/pipedispenser/ui_assets(mob/user)
+	//wait, couldnt the chem dispensor literally just use this spritesheet isntead of pngs...? TODO: make chem dispensors do that for pills
 	return list(
 		get_asset_datum(/datum/asset/spritesheet/pipes),
 	)
@@ -143,14 +144,14 @@
 	return TRUE
 
 //Allow you to drag-drop disposal pipes and transit tubes into it
-/obj/machinery/pipedispenser/MouseDrop_T(obj/structure/pipe, mob/usr)
-	if(usr.incapacitated())
+/obj/machinery/pipedispenser/MouseDrop_T(obj/structure/pipe, mob/user)
+	if(user.incapacitated())
 		return
 
 	if(!istype(pipe, /obj/structure/disposalconstruct) && !istype(pipe, /obj/structure/c_transit_tube) && !istype(pipe, /obj/structure/c_transit_tube_pod))
 		return
 
-	if(get_dist(usr, src) > 1 || get_dist(src,pipe) > 1)
+	if(get_dist(user, src) > 1 || get_dist(src,pipe) > 1)
 		return
 
 	if(pipe.anchored)
@@ -167,7 +168,11 @@
 	var/queued_p_flipped = p_flipped
 	switch(category)
 		if(ATMOS_CATEGORY)
-			if(recipe.type == /datum/pipe_info/meter)
+			//BOOKMARK
+			if(recipe.type == /datum/pipe_info/meter/temperature)
+				new /obj/item/pipe_meter/temperature(loc)
+				on_make_pipe()
+			else if(recipe.type == /datum/pipe_info/meter)
 				new /obj/item/pipe_meter(loc)
 				on_make_pipe()
 			else

@@ -84,7 +84,7 @@
 			to_chat(user, span_notice("You [panel_open ? "remove":"attach"] the screws around the power connection."))
 			return
 		else if(I.tool_behaviour == TOOL_WELDER && panel_open)
-			if(!I.tool_start_check(user, amount=0))
+			if(!I.tool_start_check(user, src, amount=0))
 				return
 
 			to_chat(user, span_notice("You start slicing the floorweld off \the [src]..."))
@@ -368,15 +368,17 @@
 	if(machine_stat & NOPOWER || panel_open)
 		return
 
-	//check for items in disposal - occupied light
-	if(contents.len > 0)
-		. += "dispover-full"
-		SSvis_overlays.add_vis_overlay(src, icon, "dispover-full", EMISSIVE_LAYER, EMISSIVE_PLANE, dir, alpha)
 
 	//charging and ready light
 	if(pressure_charging)
 		. += "dispover-charge"
 		SSvis_overlays.add_vis_overlay(src, icon, "dispover-charge-glow", EMISSIVE_LAYER, EMISSIVE_PLANE, dir, alpha)
+
+	//check for items in disposal - occupied light
+	else if(contents.len > 0)
+		. += "dispover-full"
+		SSvis_overlays.add_vis_overlay(src, icon, "dispover-full", EMISSIVE_LAYER, EMISSIVE_PLANE, dir, alpha)
+
 	else if(full_pressure)
 		. += "dispover-ready"
 		SSvis_overlays.add_vis_overlay(src, icon, "dispover-ready-glow", EMISSIVE_LAYER, EMISSIVE_PLANE, dir, alpha)

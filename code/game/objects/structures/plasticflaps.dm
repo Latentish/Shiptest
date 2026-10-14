@@ -2,7 +2,7 @@
 	name = "plastic flaps"
 	desc = "Heavy duty plastic flaps. Definitely can't get past those. No way."
 	gender = PLURAL
-	icon = 'icons/obj/stationobjs.dmi'
+	icon = 'icons/obj/structures/plasticflaps.dmi'
 	icon_state = "plasticflaps"
 	armor = list("melee" = 100, "bullet" = 80, "laser" = 80, "energy" = 100, "bomb" = 50, "bio" = 100, "rad" = 100, "fire" = 50, "acid" = 50)
 	density = FALSE
@@ -62,15 +62,15 @@
 		return FALSE
 	return TRUE
 
-/obj/structure/plasticflaps/CanAStarPass(ID, to_dir, caller)
-	if(isliving(caller))
-		if(isbot(caller))
+/obj/structure/plasticflaps/CanAStarPass(ID, to_dir, requester)
+	if(isliving(requester))
+		if(isbot(requester))
 			return TRUE
 
-		var/mob/living/M = caller
+		var/mob/living/M = requester
 		if(!M.ventcrawler && M.mob_size != MOB_SIZE_TINY)
 			return FALSE
-	var/atom/movable/M = caller
+	var/atom/movable/M = requester
 	if(M && M.pulling)
 		return CanAStarPass(ID, to_dir, M.pulling)
 	return TRUE //diseases, stings, etc can pass

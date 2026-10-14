@@ -12,7 +12,6 @@
 #define COUGH /datum/mutation/human/cough
 #define DWARFISM /datum/mutation/human/dwarfism
 #define GIGANTISM /datum/mutation/human/gigantism
-#define CLOWNMUT /datum/mutation/human/clumsy
 #define TOURETTES /datum/mutation/human/tourettes
 #define DEAFMUT /datum/mutation/human/deaf
 #define BLINDMUT /datum/mutation/human/blind
@@ -99,38 +98,45 @@
 #define TR_KEEPORGANS (1<<8)
 #define TR_KEEPSTUNS (1<<9)
 #define TR_KEEPREAGENTS (1<<10)
-#define TR_KEEPAI (1<<11)
+#define TR_KEEPSTAMINADAMAGE (1<<11)
+#define TR_KEEPAI (1<<12)
 
 //species traits for mutantraces
 #define MUTCOLORS 1
 #define HAIR 2
 #define FACEHAIR 3
 #define EYECOLOR 4
-#define SCLERA 5
-#define EMOTE_OVERLAY 6
-#define LIPS 7
-#define NOBLOOD 8
-#define NOTRANSSTING 9
+#define EMOTE_OVERLAY 5
+#define LIPS 6
+#define NOBLOOD 7
+#define NOTRANSSTING 8
 /// Used if we want the mutant colour to be only used by mutant bodyparts. Don't combine this with MUTCOLORS, or it will be useless.
-#define MUTCOLORS_PARTSONLY 10
-#define NOZOMBIE 11
-#define NO_UNDERWEAR 12
-#define NOLIVER 13
-#define NOSTOMACH 14
-#define NO_DNA_COPY 15
-#define DRINKSBLOOD 16
-#define NOFLASH 17
-#define DYNCOLORS 18 //! Use this if you want to change the race's color without the player being able to pick their own color. AKA special color shifting TRANSLATION: AWFUL.
-#define AGENDER 19
-#define NOEYESPRITES 20 //! Do not draw eyes or eyeless overlay
-#define NOREAGENTS 21 //! DO NOT PROCESS REAGENTS
+#define MUTCOLORS_PARTSONLY 9
+#define NOZOMBIE 10
+#define NO_UNDERWEAR 11
+#define NOLIVER 12
+#define NOSTOMACH 13
+#define NO_DNA_COPY 14
+#define DRINKSBLOOD 15
+#define NOFLASH 16
+#define DYNCOLORS 17 //! Use this if you want to change the race's color without the player being able to pick their own color. AKA special color shifting TRANSLATION: AWFUL.
+#define AGENDER 18
+#define NOEYESPRITES 19 //! Do not draw eyes or eyeless overlay
+#define NOREAGENTS 20 //! DO NOT PROCESS REAGENTS
 #define REVIVESBYHEALING 21 // Will revive on heal when healing and total HP > 0.
 #define NOHUSK 22 // Can't be husked.
 #define NOMOUTH 23
-#define NOSOCKS 24 // You cannot wear sock
-#define NO_BONES 25 //! You don't have any bones for breaking
-#define MUTCOLORS_SECONDARY 26 //! A second mutant colour for other things
-#define SKINCOLORS 27 //Human skintones
+#define NOSOCKS 24
+///A second mutant colour for other things
+#define MUTCOLORS_SECONDARY 25
+///Human skintones
+#define SKINCOLORS 26
+///Mothperson colortones
+#define NECKFLUFFCOLORS 27
+#define WINGCOLORS 28
+#define ANTENNAECOLORS 29
+#define MARKINGCOLORS 30
+#define BODYFLUFFCOLORS 31
 
 //organ slots
 #define ORGAN_SLOT_BRAIN "brain"
@@ -159,24 +165,62 @@
 #define ORGAN_SLOT_PARASITE_EGG "parasite_egg"
 #define ORGAN_SLOT_REGENERATIVE_CORE "hivecore"
 
+/// Xenomorph organ slots
+#define ORGAN_SLOT_XENO_PLASMAVESSEL "plasma_vessel"
+#define ORGAN_SLOT_XENO_HIVENODE "hive_node"
+#define ORGAN_SLOT_XENO_RESINSPINNER "resin_spinner"
+#define ORGAN_SLOT_XENO_ACIDGLAND "acid_gland"
+#define ORGAN_SLOT_XENO_NEUROTOXINGLAND "neurotoxin_gland"
+#define ORGAN_SLOT_XENO_EGGSAC "eggsac"
+
 //organ defines
 #define STANDARD_ORGAN_THRESHOLD 100
-#define STANDARD_ORGAN_HEALING 0.001
+#define STANDARD_ORGAN_HEALING 0.0015
 //Organs fail in around ~30 minutes
-#define STANDARD_ORGAN_DECAY 0.00111
-//Vital organs (brain, heart) fail in around ~45 minutes
-#define STANDARD_VITAL_ORGAN_DECAY 0.00074
+#define STANDARD_ORGAN_DECAY 0.00050
+//Vital organs (brain, heart) fail in quite a long time
+#define STANDARD_VITAL_ORGAN_DECAY 0.00035
 
 //used for the can_chromosome var on mutations
 #define CHROMOSOME_NEVER 0
 #define CHROMOSOME_NONE 1
 #define CHROMOSOME_USED 2
 
+//used for mob's genetic gender (mainly just for pronouns, members of sexed species with plural gender refer to their body_type for the actual sprites, which is not genetic)
 #define G_MALE 1
 #define G_FEMALE 2
 #define G_PLURAL 3
 
-//Body sizes
-#define BODY_SIZE_NORMAL 1
-#define BODY_SIZE_SHORT 0.93
-#define BODY_SIZE_TALL 1.03
+///Organ slot processing order for life proc
+GLOBAL_LIST_INIT(organ_process_order, list(
+	ORGAN_SLOT_BRAIN,
+	ORGAN_SLOT_APPENDIX,
+	ORGAN_SLOT_RIGHT_ARM_AUG,
+	ORGAN_SLOT_LEFT_ARM_AUG,
+	ORGAN_SLOT_STOMACH,
+	ORGAN_SLOT_STOMACH_AID,
+	ORGAN_SLOT_BREATHING_TUBE,
+	ORGAN_SLOT_EARS,
+	ORGAN_SLOT_EYES,
+	ORGAN_SLOT_LUNGS,
+	ORGAN_SLOT_HEART,
+	ORGAN_SLOT_ZOMBIE,
+	ORGAN_SLOT_THRUSTERS,
+	ORGAN_SLOT_HUD,
+	ORGAN_SLOT_LIVER,
+	ORGAN_SLOT_TONGUE,
+	ORGAN_SLOT_VOICE,
+	ORGAN_SLOT_HEART_AID,
+	ORGAN_SLOT_BRAIN_ANTIDROP,
+	ORGAN_SLOT_BRAIN_ANTISTUN,
+	ORGAN_SLOT_BRAIN_JOYWIRE,
+	ORGAN_SLOT_TAIL,
+	ORGAN_SLOT_WINGS,
+	ORGAN_SLOT_PARASITE_EGG,
+	ORGAN_SLOT_REGENERATIVE_CORE,
+	ORGAN_SLOT_XENO_PLASMAVESSEL,
+	ORGAN_SLOT_XENO_HIVENODE,
+	ORGAN_SLOT_XENO_RESINSPINNER,
+	ORGAN_SLOT_XENO_ACIDGLAND,
+	ORGAN_SLOT_XENO_NEUROTOXINGLAND,
+	ORGAN_SLOT_XENO_EGGSAC,))

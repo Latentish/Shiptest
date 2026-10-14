@@ -5,6 +5,7 @@
 	icon_state = "atv" //Used to be "fuckyou" which hurt my feewings
 	max_integrity = 300
 	armor = list("melee" = 30, "bullet" = 30, "laser" = 30, "energy" = 0, "bomb" = 30, "bio" = 0, "rad" = 0, "fire" = 60, "acid" = 60)
+	plane = GAME_PLANE_FOV_HIDDEN
 	density = TRUE
 	anchored = FALSE
 	var/list/mob/occupants				//mob = bitflags of their control level.
@@ -20,7 +21,7 @@
 	var/default_driver_move = TRUE	//handle driver movement instead of letting something else do it like riding datums.
 	var/list/autogrant_actions_passenger	//plain list of typepaths
 	var/list/autogrant_actions_controller	//assoc list "[bitflag]" = list(typepaths)
-	var/list/mob/occupant_actions			//assoc list mob = list(type = action datum assigned to mob)
+	var/list/list/datum/action/occupant_actions //assoc list mob = list(type = action datum assigned to mob)
 	var/obj/vehicle/trailer
 	var/are_legs_exposed = FALSE
 
@@ -36,7 +37,7 @@
 	. = ..()
 	if(resistance_flags & ON_FIRE)
 		. += span_warning("It's on fire!")
-	var/healthpercent = obj_integrity/max_integrity * 100
+	var/healthpercent = atom_integrity/max_integrity * 100
 	switch(healthpercent)
 		if(50 to 99)
 			. += "It looks slightly damaged."

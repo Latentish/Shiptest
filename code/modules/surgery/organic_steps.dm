@@ -32,7 +32,7 @@
 				"")
 		var/obj/item/bodypart/BP = H.get_bodypart(check_zone(surgery.location))
 		if(BP)
-			BP.adjust_bleeding(3)
+			BP.generic_bleedstacks += 10
 	return ..()
 
 /datum/surgery_step/incise/failure(mob/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery)
@@ -79,7 +79,7 @@
 		var/mob/living/carbon/human/H = target
 		var/obj/item/bodypart/BP = H.get_bodypart(check_zone(surgery.location))
 		if(BP)
-			BP.adjust_bleeding(-3)
+			BP.generic_bleedstacks -= 3
 	return ..()
 
 /datum/surgery_step/clamp_bleeders/failure(mob/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery)
@@ -145,7 +145,7 @@
 		var/mob/living/carbon/human/H = target
 		var/obj/item/bodypart/BP = H.get_bodypart(check_zone(surgery.location))
 		if(BP)
-			BP.adjust_bleeding(-3)
+			BP.generic_bleedstacks -= 3
 	return ..()
 
 //saw bone
@@ -158,13 +158,13 @@
 		/obj/item/melee/arm_blade = 40,
 		/obj/item/hatchet = 40,
 		/obj/item/melee/knife/butcher = 33,
-		/obj/item/gun/energy/plasmacutter = 30,
+		/obj/item/plasmacutter = 30,
 		/obj/item = 10) //10% success (sort of) with any sharp item with a force>=10
 	time = 5.4 SECONDS
 	preop_sound = list(
 		/obj/item/circular_saw = 'sound/surgery/saw.ogg',
 		/obj/item/gear_handle/anglegrinder = 'sound/surgery/saw.ogg',
-		/obj/item/gun/energy/plasmacutter = 'sound/weapons/plasma_cutter.ogg',
+		/obj/item/plasmacutter = 'sound/weapons/melee/plasmacutter/plasma_cutter_melee.ogg',
 		/obj/item/melee/arm_blade = 'sound/surgery/scalpel1.ogg',
 		/obj/item/melee/axe/fire = 'sound/surgery/scalpel1.ogg',
 		/obj/item/hatchet = 'sound/surgery/scalpel1.ogg',
@@ -185,7 +185,7 @@
 	return TRUE
 
 /datum/surgery_step/saw/success(mob/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery, default_display_results)
-	target.apply_damage(20, BRUTE, "[target_zone]")
+	target.apply_damage(50, BRUTE, "[target_zone]", wound_bonus = CANT_WOUND)
 	display_results(user, target, span_notice("You saw [target]'s [parse_zone(target_zone)] open."),
 		span_notice("[user] saws [target]'s [parse_zone(target_zone)] open!"),
 		span_notice("[user] saws [target]'s [parse_zone(target_zone)] open!"))
@@ -194,12 +194,10 @@
 /datum/surgery_step/saw/failure(mob/user, mob/living/carbon/target, target_zone, obj/item/tool, datum/surgery/surgery)
 	if(ishuman(target))
 		var/mob/living/carbon/human/H = target
-		var/obj/item/bodypart/affected = target.get_bodypart(check_zone(target_zone))
 		display_results(user, target, span_warning("You screw up, breaking the bone!"),
 			span_warning("[user] screws up, causing blood to spurt out of [H]'s [parse_zone(target_zone)]"),
 			span_warning("[user] screws up, causing blood to spurt out of [H]'s [parse_zone(target_zone)]"))
-		affected.break_bone()
-		target.apply_damage(25, BRUTE, "[target_zone]")
+		target.apply_damage(50, BRUTE, "[target_zone]", wound_bonus = CANT_WOUND)
 
 //drill bone
 /datum/surgery_step/drill

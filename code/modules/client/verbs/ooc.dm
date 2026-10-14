@@ -83,10 +83,7 @@ GLOBAL_VAR_INIT(normal_ooc_colour, "#002eb8")
 
 			else if(!(key in C.prefs.ignoring))
 				if(GLOB.OOC_COLOR)
-					if(check_mentor())
-						to_chat(C, span_oocplain("<font color='["#00b40f"]'><b>[span_prefix("OOC:")] <EM>[keyname]:</EM> <span class='message linkify'>[msg]</span></b></font>"), MESSAGE_TYPE_OOC)
-					else
-						to_chat(C, span_oocplain("<font color='[GLOB.OOC_COLOR]'><b>[span_prefix("OOC:")] <EM>[keyname]:</EM> <span class='message linkify'>[msg]</span></b></font>"), MESSAGE_TYPE_OOC)
+					to_chat(C, span_oocplain("<font color='[GLOB.OOC_COLOR]'><b>[span_prefix("OOC:")] <EM>[keyname]:</EM> <span class='message linkify'>[msg]</span></b></font>"), MESSAGE_TYPE_OOC)
 				else
 					to_chat(C, span_ooc("[span_prefix("OOC:")] <EM>[keyname]:</EM> <span class='message linkify'>[msg]</span>"), MESSAGE_TYPE_OOC)
 
@@ -133,7 +130,7 @@ GLOBAL_VAR_INIT(normal_ooc_colour, "#002eb8")
 	if(new_ooccolor)
 		prefs.ooccolor = sanitize_ooccolor(new_ooccolor)
 		prefs.save_preferences()
-	SSblackbox.record_feedback("tally", "admin_verb", 1, "Set OOC Color") //If you are copy-pasting this, ensure the 2nd parameter is unique to the new proc!
+	BLACKBOX_LOG_ADMIN_VERB("Set OOC Color")
 	return
 
 /client/verb/resetcolorooc()

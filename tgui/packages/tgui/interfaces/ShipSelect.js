@@ -7,10 +7,18 @@ import {
   Table,
   LabeledList,
   Collapsible,
+  NoticeBox,
 } from '../components';
 import { Window } from '../layouts';
 import { createSearch, decodeHtmlEntities } from 'common/string';
 import { logger } from '../logging';
+
+const findShipByRef = (ship_list, ship_ref) => {
+  for (let i = 0; i < ship_list.length; i++) {
+    if (ship_list[i].ref === ship_ref) return ship_list[i];
+  }
+  return null;
+};
 
 export const ShipSelect = (props, context) => {
   const { act, data } = useBackend(context);
@@ -19,11 +27,20 @@ export const ShipSelect = (props, context) => {
   const templates = data.templates || [];
 
   const [currentTab, setCurrentTab] = useLocalState(context, 'tab', 1);
-  const [selectedShip, setSelectedShip] = useLocalState(
+
+  const [selectedShipName, setSelectedShipName] = useLocalState(
     context,
-    'selectedShip',
+    'selectedShipName',
     null
   );
+
+  const [selectedShipRef, setSelectedShipRef] = useLocalState(
+    context,
+    'selectedShipRef',
+    null
+  );
+
+  const selectedShip = findShipByRef(ships, selectedShipRef);
 
   const applyStates = {
     open: 'Open',
@@ -105,7 +122,8 @@ export const ShipSelect = (props, context) => {
                             : 'good'
                         }
                         onClick={() => {
-                          setSelectedShip(ship);
+                          setSelectedShipRef(ship.ref);
+                          setSelectedShipName(ship.name);
                           setCurrentTab(2);
                           const newTab = {
                             name: 'Job Select',
@@ -136,7 +154,25 @@ export const ShipSelect = (props, context) => {
             </Table>
           </Section>
         )}
-        {currentTab === 2 && (
+        {currentTab === 2 && !selectedShip && (
+          <Section
+            title={`Ship Details - ${decodeHtmlEntities(selectedShipName)}`}
+            buttons={
+              <Button
+                content="Back"
+                onClick={() => {
+                  setCurrentTab(1);
+                }}
+              />
+            }
+          >
+            <NoticeBox>
+              This ship is no longer accepting new crew. It may have closed its
+              applications, or ceased to exist.
+            </NoticeBox>
+          </Section>
+        )}
+        {currentTab === 2 && !!selectedShip && (
           <>
             <Section
               title={`Ship Details - ${decodeHtmlEntities(selectedShip.name)}`}
@@ -152,7 +188,7 @@ export const ShipSelect = (props, context) => {
                   {selectedShip.joinMode}
                 </LabeledList.Item>
                 <LabeledList.Item label="Ship Memo">
-                  {selectedShip.memo || 'No Memo'}
+                  {decodeHtmlEntities(selectedShip.memo) || 'No Memo'}
                 </LabeledList.Item>
               </LabeledList>
             </Section>
@@ -191,11 +227,16 @@ export const ShipSelect = (props, context) => {
                       <Button
                         content="Select"
                         tooltip={
-                          !data.autoMeet &&
-                          data.playMin < job.minTime &&
-                          'You do not have enough playtime to play this job.'
+                          (!data.autoMeet &&
+                            data.playMin < job.minTime &&
+                            'You do not have enough playtime to play this job.') ||
+                          (data.officerBanned &&
+                            'You are banned from playing officer roles')
                         }
-                        disabled={!data.autoMeet && data.playMin < job.minTime}
+                        disabled={
+                          (!data.autoMeet && data.playMin < job.minTime) ||
+                          (data.officerBanned && job.officer)
+                        }
                         onClick={() => {
                           act('join', {
                             ship: selectedShip.ref,

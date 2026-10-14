@@ -112,7 +112,7 @@
 		to_chat(living_mob,related_policy)
 	if(ishuman(living_mob))
 		var/mob/living/carbon/human/wageslave = living_mob
-		living_mob.add_memory("Your account ID is [wageslave.account_id].")
+		living_mob.add_memory("My account ID is [wageslave.account_id].")
 	if(living_mob)
 		after_spawn(living_mob, living_mob) // note: this happens before the mob has a key! living_mob will always have a client, H might not.
 
@@ -188,6 +188,7 @@
 	name = "Standard Gear"
 
 	var/datum/job/jobtype = null
+	var/faction
 
 	uniform = /obj/item/clothing/under/color/grey
 	wallet = /obj/item/storage/wallet
@@ -201,6 +202,9 @@
 	var/satchel  = /obj/item/storage/backpack/satchel
 	var/duffelbag = /obj/item/storage/backpack/duffelbag
 	var/courierbag = /obj/item/storage/backpack/messenger
+	var/tailbag = /obj/item/storage/backpack/satchel/tailbag
+	var/kitbag = /obj/item/storage/backpack/satchel/kitbag
+
 
 	///The icon this outfit's ID will have when shown on a sechud and ID cards. See [icons\mob\hud.dmi] for a list of icons. Leave null for default.
 	var/job_icon
@@ -234,6 +238,18 @@
 			back = duffelbag //Department duffel bag
 		if(DCOURIERBAG)
 			back = courierbag //Department messenger bag
+		if(SBAG)
+			back = /obj/item/storage/backpack/messenger/sport //sports bag
+		if(TAILBAG)
+			if(!HAS_TRAIT(H, TRAIT_TAILED))
+				back = /obj/item/storage/backpack/satchel/kitbag //fallback bag
+				return FALSE
+			back = /obj/item/storage/backpack/satchel/tailbag //Tailbag
+		if(KITBAG)
+			if(HAS_TRAIT(H, TRAIT_TAILED))
+				back = /obj/item/storage/backpack/satchel/tailbag //fallback bag
+				return FALSE
+			back = /obj/item/storage/backpack/satchel/kitbag //kitbag
 		else
 			back = backpack //Department backpack
 
@@ -276,6 +292,9 @@
 /datum/outfit/job/post_equip(mob/living/carbon/human/H, visualsOnly = FALSE, client/preference_source = null)
 	if(visualsOnly)
 		return
+
+	if(faction)
+		H.faction |= list(faction)
 
 	var/datum/job/J = GLOB.type_occupations[jobtype]
 	if(!J)

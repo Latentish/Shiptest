@@ -84,9 +84,9 @@
 	rift.Grant(src)
 	become_hearing_sensitive(ROUNDSTART_TRAIT)
 
-/mob/living/simple_animal/hostile/space_dragon/Life(mapload)
+/mob/living/simple_animal/hostile/space_dragon/Life(seconds_per_tick = SSMOBS_DT, times_fired, mapload)
 	. = ..()
-	tiredness = max(tiredness - 1, 0)
+	tiredness = max(tiredness - (0.5 * seconds_per_tick), 0)
 	if(rifts_charged == 3 && !objective_complete)
 		victory()
 	if(riftTimer == -1)
@@ -329,7 +329,7 @@
 			var/dir_to_target = get_dir(get_turf(src), get_turf(L))
 			var/throwtarget = get_edge_target_turf(target, dir_to_target)
 			L.safe_throw_at(throwtarget, 10, 1, src)
-			L.Paralyze(50)
+			L.Paralyze(1 SECONDS)
 	addtimer(CALLBACK(src, PROC_REF(reset_status)), 4 + ((tiredness * tiredness_mult) / 10))
 	tiredness = tiredness + (30 * tiredness_mult)
 
@@ -494,7 +494,7 @@
 	if(time_charged == max_charge)
 		var/area/A = get_area(src)
 		priority_announce("Spatial object has reached peak energy charge in [initial(A.name)], please stand-by.", "Central Command Spatial Corps")
-		obj_integrity = INFINITY
+		atom_integrity = INFINITY
 		desc = "A rift akin to the ones space carp use to travel long distances.  This one is fully charged, and is capable of bringing many carp to the portal's location."
 		icon_state = "carp_rift_charged"
 		light_color = LIGHT_COLOR_YELLOW
